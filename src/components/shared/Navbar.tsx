@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -16,6 +17,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+const APP_VERSION = "v0.1"; // Version stamp
 
 export default function Navbar() {
   const { user, loading } = useAuthContext();
@@ -47,6 +50,7 @@ export default function Navbar() {
           <span className="font-bold font-headline sm:inline-block text-xl text-foreground">
             FODMAPSafe
           </span>
+          <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span> {/* Version Stamp */}
         </Link>
         
         <div className="flex flex-1 items-center justify-end space-x-4">
