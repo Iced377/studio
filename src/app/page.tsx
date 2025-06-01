@@ -114,7 +114,7 @@ export default function FoodTimelinePage() {
               safeFoods: data.safeFoods || [],
               premium: data.premium || false,
             });
-            toast({ title: "Profile Loaded", description: "Your settings are up to date." });
+            toast({ title: "Profile Loaded", description: `Welcome back, ${authUser.displayName || 'User'}! Your settings are up to date.` });
           } else {
             toast({ title: "New User Setup", description: "Creating your profile..." });
             const newUserProfile: UserProfile = {
@@ -126,7 +126,7 @@ export default function FoodTimelinePage() {
             };
             await setDoc(userDocRef, newUserProfile);
             setUserProfile(newUserProfile);
-            toast({ title: "Profile Created!", description: "Welcome! Your new profile is ready." });
+            toast({ title: "Profile Created!", description: `Welcome, ${authUser.displayName || 'User'}! Your new profile is ready.` });
           }
 
           const q = query(timelineEntriesColRef, orderBy('timestamp', 'desc'));
@@ -146,24 +146,27 @@ export default function FoodTimelinePage() {
           } else {
              toast({ title: "Timeline Ready", description: "Your timeline is empty. Start logging!" });
           }
+          setIsDataLoading(false); // Moved here to ensure it's set after all data ops
 
         } catch (error) {
           console.error("Error loading user data from Firestore:", error);
-          if (error instanceof Error && (error.message.includes("Missing or insufficient permissions") || error.message.includes("permission-denied"))){
-            toast({ title: "Data Load Error", description: "Could not fetch data due to Firestore security rules. Please check your rules configuration.", variant: "destructive", duration: 9000 });
-          } else {
-            toast({ title: "Data Load Error", description: "Could not fetch your saved data. Firestore rules or connection might be an issue.", variant: "destructive", duration: 9000 });
+          let errorDescription = "Could not fetch your saved data. Firestore rules or connection might be an issue.";
+          if (error instanceof Error) {
+            if (error.message.includes("Missing or insufficient permissions") || error.message.includes("permission-denied")) {
+              errorDescription = "Could not fetch data due to Firestore security rules. Please check your rules configuration.";
+            } else if (error.message.includes("Failed to get document because the client is offline")){
+              errorDescription = "You appear to be offline. Could not fetch data.";
+            }
           }
-           setUserProfile(prev => ({
+          toast({ title: "Data Load Error", description: errorDescription, variant: "destructive", duration: 9000 });
+           setUserProfile(prev => ({ // Fallback to authUser details but keep existing profile if any
              ...prev,
              uid: authUser.uid,
              email: authUser.email,
              displayName: authUser.displayName,
-             safeFoods: prev.safeFoods || [],
-             premium: prev.premium || false,
+             // safeFoods and premium will retain their current state or be initial empty/false
            }));
-        } finally {
-          setIsDataLoading(false);
+           setIsDataLoading(false); // Ensure loading state is false even on error
         }
       } else {
         setUserProfile(initialGuestProfile);
@@ -201,7 +204,7 @@ export default function FoodTimelinePage() {
       const itemFodmapProfileForSimilarity: FoodFODMAPProfile = fodmapAnalysis.detailedFodmapProfile || generateFallbackFodmapProfile(foodItemData.name);
 
       let similarityOutput: FoodSimilarityOutput | undefined;
-      if (userProfile.safeFoods.length > 0) {
+      if (userProfile.safeFoods && userProfile.safeFoods.length > 0) {
         const safeFoodItemsForSimilarity = userProfile.safeFoods.map(sf => ({
             name: sf.name,
             portionSize: sf.portionSize,
@@ -225,7 +228,7 @@ export default function FoodTimelinePage() {
         id: newItemId,
         timestamp: new Date(),
         fodmapData: fodmapAnalysis,
-        isSimilarToSafe: similarityOutput?.isSimilar ?? false, // Ensure boolean, default to false
+        isSimilarToSafe: similarityOutput?.isSimilar ?? false,
         userFodmapProfile: itemFodmapProfileForSimilarity,
         entryType: 'food',
       };
@@ -236,7 +239,7 @@ export default function FoodTimelinePage() {
             ...itemToSave,
             timestamp: Timestamp.fromDate(newFoodItem.timestamp)
         });
-        newFoodItem.id = docRef.id;
+        newFoodItem.id = docRef.id; // Update item with Firestore-generated ID
         toast({ title: "Food Logged & Saved", description: `${newFoodItem.name} added with AI analysis.` });
       } else {
         toast({ title: "Food Logged (Locally)", description: `${newFoodItem.name} added with AI analysis. Login to save.` });
@@ -281,7 +284,7 @@ export default function FoodTimelinePage() {
                 ...itemToSave,
                 timestamp: Timestamp.fromDate(newFoodItem.timestamp)
             });
-            newFoodItem.id = docRef.id;
+            newFoodItem.id = docRef.id; // Update item with Firestore-generated ID
             toast({ title: "Food Logged & Saved (No AI)", description: `${newFoodItem.name} added. AI analysis was skipped or failed.` });
         } catch (saveError) {
             console.error("Error saving partially processed food item to Firestore:", saveError);
@@ -315,7 +318,7 @@ export default function FoodTimelinePage() {
                 ...logToSave,
                 timestamp: Timestamp.fromDate(newSymptomLog.timestamp)
             });
-            newSymptomLog.id = docRef.id;
+            newSymptomLog.id = docRef.id; // Update item with Firestore-generated ID
             toast({ title: "Symptoms Logged & Saved", description: "Your symptoms have been recorded." });
         } catch (error) {
             console.error("Error saving symptom log to Firestore:", error);
@@ -411,7 +414,7 @@ export default function FoodTimelinePage() {
           ingredients: e.ingredients,
           portionSize: e.portionSize,
           portionUnit: e.portionUnit,
-          timestamp: e.timestamp instanceof Date ? e.timestamp.toISOString() : e.timestamp,
+          timestamp: e.timestamp instanceof Date ? e.timestamp.toISOString() : String(e.timestamp),
           overallFodmapRisk: e.fodmapData?.overallRisk,
         }));
 
@@ -423,7 +426,7 @@ export default function FoodTimelinePage() {
           symptoms: e.symptoms.map(s => ({id: s.id, name: s.name})),
           severity: e.severity,
           notes: e.notes,
-          timestamp: e.timestamp instanceof Date ? e.timestamp.toISOString() : e.timestamp,
+          timestamp: e.timestamp instanceof Date ? e.timestamp.toISOString() : String(e.timestamp),
         }));
 
       const safeFoodsForAI = userProfile.safeFoods.map(sf => ({
@@ -489,14 +492,24 @@ export default function FoodTimelinePage() {
         try {
             await updateDoc(userDocRef, { premium: true });
             setUserProfile(prev => ({ ...prev, premium: true }));
-            toast({ title: "Upgrade Successful!", description: "You are now a Premium user. Ads have been removed." });
+            toast({ 
+              title: "Premium Status Activated!", 
+              description: "You are now a Premium user. Ads have been removed. (This is a simulation - no real payment was processed)." 
+            });
         } catch (error) {
             console.error("Error updating premium status in Firestore:", error);
-            toast({ title: "Upgrade Failed", description: "Could not save premium status to cloud. Please try again.", variant: "destructive"});
+            toast({ 
+              title: "Upgrade Failed", 
+              description: "Could not save premium status to the cloud. Please try again. (Payment not processed).", 
+              variant: "destructive"
+            });
         }
     } else {
         setUserProfile(prev => ({ ...prev, premium: true }));
-        toast({ title: "Premium Activated (Locally)", description: "Ads removed for this session. Login to save premium status." });
+        toast({ 
+          title: "Premium Activated (Locally)", 
+          description: "Ads removed for this session. Login to save this status. (This is a simulation - no real payment was processed)." 
+        });
     }
   };
 
@@ -518,7 +531,7 @@ export default function FoodTimelinePage() {
     );
   }
   
-  if (isDataLoading && authUser) {
+  if (isDataLoading && authUser && !authLoading) { // Ensure authLoading is false before showing this
      return (
       <div className="flex items-center justify-center min-h-[calc(100vh-128px)] bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -597,7 +610,7 @@ export default function FoodTimelinePage() {
         )}
 
         <div className="space-y-6">
-          {timelineEntries.length === 0 && !isAnyItemLoadingAi && !isDataLoading && (
+         {timelineEntries.length === 0 && !isAnyItemLoadingAi && !isDataLoading && !authLoading && (
             <Card className="text-center py-12 bg-card border-border shadow-md">
               <CardContent>
                 <Utensils className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
@@ -700,5 +713,7 @@ export default function FoodTimelinePage() {
     </div>
   );
 }
+
+    
 
     
