@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import FodmapIndicator from '@/components/shared/FodmapIndicator';
 import { Badge } from '@/components/ui/badge';
 import { ThumbsUp, Trash2, CheckCheck } from 'lucide-react';
-import { analyzeFoodItem, type AnalyzeFoodItemOutput } from '@/ai/flows/fodmap-detection';
+import type { AnalyzeFoodItemOutput } from '@/ai/flows/fodmap-detection';
 import type { FoodFODMAPProfile } from '@/ai/flows/food-similarity';
 
 
@@ -46,7 +46,7 @@ interface FoodItemCardProps {
 }
 
 export default function FoodItemCard({ item, onMarkAsSafe, onRemoveItem, isSafeFood }: FoodItemCardProps) {
-  
+
   const handleMarkAsSafe = () => {
     if (item.fodmapData) { // Ensure fodmapData is available
       const mockProfile = item.userFodmapProfile || generateMockFodmapProfile(item.name);
@@ -72,15 +72,15 @@ export default function FoodItemCard({ item, onMarkAsSafe, onRemoveItem, isSafeF
             <CheckCheck className="mr-1 h-4 w-4" /> Similar to your Safe Foods
           </Badge>
         )}
-         {item.fodmapData && Object.entries(item.fodmapData.ingredientFodmapScores).length > 0 && (
+         {item.fodmapData && item.fodmapData.ingredientFodmapScores && item.fodmapData.ingredientFodmapScores.length > 0 && (
           <div className="mt-2">
             <p className="text-xs font-medium text-muted-foreground mb-1">Ingredient Analysis:</p>
             <ul className="list-disc list-inside pl-1 space-y-0.5">
-              {Object.entries(item.fodmapData.ingredientFodmapScores).map(([ingredient, score]) => (
-                <li key={ingredient} className={`text-xs ${
-                  score === 'Green' ? 'text-green-600' : score === 'Yellow' ? 'text-yellow-600' : 'text-red-600'
+              {item.fodmapData.ingredientFodmapScores.map((entry) => (
+                <li key={entry.ingredient} className={`text-xs ${
+                  entry.score === 'Green' ? 'text-green-600' : entry.score === 'Yellow' ? 'text-yellow-600' : 'text-red-600'
                 }`}>
-                  {ingredient}: <span className="font-medium">{score}</span>
+                  {entry.ingredient}: <span className="font-medium">{entry.score}</span>
                 </li>
               ))}
             </ul>
@@ -88,9 +88,9 @@ export default function FoodItemCard({ item, onMarkAsSafe, onRemoveItem, isSafeF
         )}
       </CardContent>
       <CardFooter className="flex justify-between items-center px-4 pb-4 pt-2">
-        <Button 
-          variant={isSafeFood ? "default" : "outline"} 
-          size="sm" 
+        <Button
+          variant={isSafeFood ? "default" : "outline"}
+          size="sm"
           onClick={handleMarkAsSafe}
           disabled={isSafeFood || !item.fodmapData} // Disable if already safe or no FODMAP data
           className={isSafeFood ? "bg-primary/80 hover:bg-primary text-primary-foreground cursor-not-allowed" : ""}

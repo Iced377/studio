@@ -19,8 +19,13 @@ export type AnalyzeFoodItemInput = z.infer<typeof AnalyzeFoodItemInputSchema>;
 
 const FodmapScoreSchema = z.enum(['Green', 'Yellow', 'Red']);
 
+const IngredientScoreSchema = z.object({
+  ingredient: z.string().describe("The name of the ingredient."),
+  score: FodmapScoreSchema.describe("The FODMAP score for this ingredient (Green, Yellow, or Red).")
+});
+
 const AnalyzeFoodItemOutputSchema = z.object({
-  ingredientFodmapScores: z.record(FodmapScoreSchema).describe('A map of ingredients to their FODMAP scores (Green, Yellow, or Red).'),
+  ingredientFodmapScores: z.array(IngredientScoreSchema).describe('A list of ingredients and their FODMAP scores.'),
   overallRisk: FodmapScoreSchema.describe('The overall FODMAP risk level of the food item (Green, Yellow, or Red).'),
   reason: z.string().describe('Explanation of why food item has the assigned risk level.'),
 });
@@ -34,9 +39,9 @@ const analyzeFoodItemPrompt = ai.definePrompt({
   name: 'analyzeFoodItemPrompt',
   input: {schema: AnalyzeFoodItemInputSchema},
   output: {schema: AnalyzeFoodItemOutputSchema},
-  prompt: `You are an AI assistant specialized in FODMAP analysis of food items. 
-FODMAPs are types of carbohydrates that can cause digestive issues for people with Irritable Bowel Syndrome (IBS). 
-You will receive a food item and a list of its ingredients. Your task is to analyze each ingredient and determine its FODMAP score (Green, Yellow, or Red) based on common FODMAP content. 
+  prompt: `You are an AI assistant specialized in FODMAP analysis of food items.
+FODMAPs are types of carbohydrates that can cause digestive issues for people with Irritable Bowel Syndrome (IBS).
+You will receive a food item and a list of its ingredients. Your task is to analyze each ingredient and determine its FODMAP score (Green, Yellow, or Red) based on common FODMAP content.
 
 Here's a guide for FODMAP scoring:
 
@@ -49,7 +54,12 @@ Consider common FODMAPs such as Fructose, Lactose, Fructans, Galactans, and Poly
 Food Item: {{{foodItem}}}
 Ingredients: {{{ingredients}}}
 
-Output a JSON object with the ingredientFodmapScores for each ingredient, the overallRisk for the food item, and the reason for the risk level assignment.
+Output a JSON object adhering to the following structure:
+1.  \`ingredientFodmapScores\`: This must be an array of objects. Each object in the array should represent a single ingredient and its score, containing two properties:
+    *   \`ingredient\` (string): The name of the ingredient.
+    *   \`score\` (string, one of 'Green', 'Yellow', 'Red'): The FODMAP score for this ingredient.
+2.  \`overallRisk\` (string, one of 'Green', 'Yellow', 'Red'): The overall FODMAP risk level of the food item.
+3.  \`reason\` (string): An explanation of why the food item has been assigned the overallRisk level.
 `,
 });
 
@@ -64,3 +74,4 @@ const analyzeFoodItemFlow = ai.defineFlow(
     return output!;
   }
 );
+
