@@ -91,21 +91,19 @@ export default function FoodTimelinePage() {
 
  useEffect(() => {
     const setupUser = async () => {
-      setIsDataLoading(true); // Always start with loading true when auth state might change
+      setIsDataLoading(true);
 
       if (authLoading) {
-        // Still authenticating, wait for it to resolve
-        // isDataLoading remains true
         return;
       }
 
       if (authUser) {
-        // User is logged in
-        toast({ title: "User Authenticated", description: "Loading your personalized data..." });
+        toast({ title: "Authenticating...", description: "Checking user session." });
         const userDocRef = doc(db, 'users', authUser.uid);
         const timelineEntriesColRef = collection(db, 'users', authUser.uid, 'timelineEntries');
 
         try {
+          toast({ title: "Loading User Data", description: "Fetching your profile and timeline..." });
           const userDocSnap = await getDoc(userDocRef);
           if (userDocSnap.exists()) {
             const data = userDocSnap.data();
@@ -118,6 +116,7 @@ export default function FoodTimelinePage() {
             });
             toast({ title: "Profile Loaded", description: "Your settings are up to date." });
           } else {
+            toast({ title: "New User Setup", description: "Creating your profile..." });
             const newUserProfile: UserProfile = {
               uid: authUser.uid,
               email: authUser.email,
@@ -150,20 +149,23 @@ export default function FoodTimelinePage() {
 
         } catch (error) {
           console.error("Error loading user data from Firestore:", error);
-          toast({ title: "Data Load Error", description: "Could not fetch your saved data. Firestore rules or connection might be an issue.", variant: "destructive" });
-           setUserProfile(prev => ({ // Fallback to authUser details but local data for this session
+          if (error instanceof Error && (error.message.includes("Missing or insufficient permissions") || error.message.includes("permission-denied"))){
+            toast({ title: "Data Load Error", description: "Could not fetch data due to Firestore security rules. Please check your rules configuration.", variant: "destructive", duration: 9000 });
+          } else {
+            toast({ title: "Data Load Error", description: "Could not fetch your saved data. Firestore rules or connection might be an issue.", variant: "destructive", duration: 9000 });
+          }
+           setUserProfile(prev => ({
              ...prev,
              uid: authUser.uid,
              email: authUser.email,
              displayName: authUser.displayName,
-             safeFoods: prev.safeFoods || [], // Keep local safe foods if any
-             premium: prev.premium || false, // Keep local premium if any
+             safeFoods: prev.safeFoods || [],
+             premium: prev.premium || false,
            }));
         } finally {
           setIsDataLoading(false);
         }
       } else {
-        // User is logged out or guest
         setUserProfile(initialGuestProfile);
         setTimelineEntries([]);
         setAiInsights([]);
@@ -223,7 +225,7 @@ export default function FoodTimelinePage() {
         id: newItemId,
         timestamp: new Date(),
         fodmapData: fodmapAnalysis,
-        isSimilarToSafe: similarityOutput?.isSimilar,
+        isSimilarToSafe: similarityOutput?.isSimilar ?? false, // Ensure boolean, default to false
         userFodmapProfile: itemFodmapProfileForSimilarity,
         entryType: 'food',
       };
@@ -234,7 +236,7 @@ export default function FoodTimelinePage() {
             ...itemToSave,
             timestamp: Timestamp.fromDate(newFoodItem.timestamp)
         });
-        newFoodItem.id = docRef.id; // Update with Firestore generated ID
+        newFoodItem.id = docRef.id;
         toast({ title: "Food Logged & Saved", description: `${newFoodItem.name} added with AI analysis.` });
       } else {
         toast({ title: "Food Logged (Locally)", description: `${newFoodItem.name} added with AI analysis. Login to save.` });
@@ -255,9 +257,9 @@ export default function FoodTimelinePage() {
         } else if (errorMessageLower.includes('400') || errorMessageLower.includes('schema validation') || errorMessageLower.includes('invalid argument')) {
           toastTitle = 'AI Analysis Input/Output Error';
           toastDescription = 'There was an issue with the data sent for AI analysis or the AI\'s response format was unexpected. Food added without AI insights.';
-        } else if (errorMessageLower.includes('api key') || errorMessageLower.includes('permission denied') || errorMessageLower.includes('authentication failed') || errorMessageLower.includes('credential')) {
+        } else if (errorMessageLower.includes('api key') || errorMessageLower.includes('permission denied') || errorMessageLower.includes('authentication failed') || errorMessageLower.includes('credential') || errorMessageLower.includes('forbidden') || errorMessageLower.includes('access denied')) {
             toastTitle = 'AI Service Access Issue';
-            toastDescription = 'Could not access the AI service due to an authentication or permission problem. Please check your Google Cloud project setup (APIs, billing, credentials). Food added without AI insights.';
+            toastDescription = 'Could not access the AI service due to an authentication or permission problem. Please check your Google Cloud project setup (APIs, billing, credentials & IAM permissions for service accounts if deployed). Food added without AI insights.';
         } else if (errorMessageLower.includes('deadline exceeded') || errorMessageLower.includes('timeout')) {
             toastTitle = 'AI Request Timeout';
             toastDescription = 'The request to the AI service timed out. Food added without AI insights. Please try again.';
@@ -265,25 +267,24 @@ export default function FoodTimelinePage() {
       }
       toast({ title: toastTitle, description: toastDescription, variant: 'destructive', duration: 9000 });
 
-      // Fallback: log food item without AI data
       newFoodItem = {
         ...foodItemData,
         id: newItemId,
         timestamp: new Date(),
+        isSimilarToSafe: false, // Default to false on error path too
         entryType: 'food',
       };
        if (authUser && authUser.uid !== 'guest-user') {
-        const { id, ...itemToSave } = newFoodItem; // Exclude local ID for Firestore
+        const { id, ...itemToSave } = newFoodItem;
         try {
             const docRef = await addDoc(collection(db, 'users', authUser.uid, 'timelineEntries'), {
                 ...itemToSave,
                 timestamp: Timestamp.fromDate(newFoodItem.timestamp)
             });
-            newFoodItem.id = docRef.id; // Update with Firestore generated ID
+            newFoodItem.id = docRef.id;
             toast({ title: "Food Logged & Saved (No AI)", description: `${newFoodItem.name} added. AI analysis was skipped or failed.` });
         } catch (saveError) {
             console.error("Error saving partially processed food item to Firestore:", saveError);
-            // If even fallback save fails, it's logged locally only.
             toast({ title: "Food Logged (Locally, No AI)", description: `${newFoodItem.name} added. AI analysis and cloud save failed.`, variant: 'destructive'});
         }
       } else {
@@ -386,7 +387,7 @@ export default function FoodTimelinePage() {
             toast({ title: "Entry Removed", description: "The timeline entry has been deleted from cloud." });
         } catch (error) {
             console.error("Error removing timeline entry from Firestore:", error);
-            if (entryToRemove) addTimelineEntry(entryToRemove); // Re-add to local state if cloud delete fails
+            if (entryToRemove) addTimelineEntry(entryToRemove);
             toast({ title: "Error Removing Entry", description: "Could not remove entry from cloud. Removed locally.", variant: "destructive" });
         }
     } else {
@@ -448,7 +449,7 @@ export default function FoodTimelinePage() {
        let toastDescription = "Could not retrieve AI-powered insights at this time.";
        if (error?.message && typeof error.message === 'string') {
         const errorMessageLower = error.message.toLowerCase();
-         if (errorMessageLower.includes('api key') || errorMessageLower.includes('permission denied') || errorMessageLower.includes('authentication failed') || errorMessageLower.includes('credential')) {
+         if (errorMessageLower.includes('api key') || errorMessageLower.includes('permission denied') || errorMessageLower.includes('authentication failed') || errorMessageLower.includes('credential') || errorMessageLower.includes('forbidden') || errorMessageLower.includes('access denied')) {
             toastTitle = 'AI Insights Access Issue';
             toastDescription = 'Could not access AI for insights due to an authentication or permission problem. Please check Google Cloud project setup.';
         } else if (errorMessageLower.includes('503') || errorMessageLower.includes('model is overloaded')) {
@@ -477,7 +478,7 @@ export default function FoodTimelinePage() {
   }, [timelineEntries, userProfile.premium, fetchAiInsightsInternal, authUser, toast]);
 
   useEffect(() => {
-    if (timelineEntries.length === 0 && !isDataLoading && authUser) { // Clear insights if timeline is empty for a logged-in user post-load
+    if (timelineEntries.length === 0 && !isDataLoading && authUser) {
         setAiInsights([]);
     }
   }, [timelineEntries, isDataLoading, authUser]);
@@ -494,7 +495,6 @@ export default function FoodTimelinePage() {
             toast({ title: "Upgrade Failed", description: "Could not save premium status to cloud. Please try again.", variant: "destructive"});
         }
     } else {
-        // For guest or unauthenticated user, only update local state.
         setUserProfile(prev => ({ ...prev, premium: true }));
         toast({ title: "Premium Activated (Locally)", description: "Ads removed for this session. Login to save premium status." });
     }
@@ -509,21 +509,20 @@ export default function FoodTimelinePage() {
 
   const isAnyItemLoadingAi = Object.values(isLoadingAi).some(loading => loading);
 
-  if (authLoading || (isDataLoading && !authUser)) { // Show full page loader if auth is loading, or if data is loading AND user is not yet determined
+  if (authLoading || (isDataLoading && !authUser && !timelineEntries.length)) {
      return (
       <div className="flex items-center justify-center min-h-[calc(100vh-128px)] bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
-         <p className="ml-4 text-lg text-foreground">{authLoading ? "Authenticating..." : "Initializing..."}</p>
+         <p className="ml-4 text-lg text-foreground">{authLoading ? "Authenticating..." : "Initializing App..."}</p>
       </div>
     );
   }
   
-  // If auth is done, but data is still loading for an authenticated user, show a more nuanced loading state
   if (isDataLoading && authUser) {
      return (
       <div className="flex items-center justify-center min-h-[calc(100vh-128px)] bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
-         <p className="ml-4 text-lg text-foreground">Loading your data...</p>
+         <p className="ml-4 text-lg text-foreground">Loading your personalized data...</p>
       </div>
     );
   }
@@ -531,7 +530,7 @@ export default function FoodTimelinePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <header className="sticky top-16 bg-background/80 backdrop-blur-md z-40 py-6 mb-6 shadow-xl rounded-b-2xl"> {/* Navbar height is h-16, so sticky top-16 */}
+      <header className="sticky top-16 bg-background/80 backdrop-blur-md z-40 py-6 mb-6 shadow-xl rounded-b-2xl">
         <div className="container mx-auto flex flex-col items-center gap-4">
           <Button
             size="lg"
@@ -701,3 +700,5 @@ export default function FoodTimelinePage() {
     </div>
   );
 }
+
+    
