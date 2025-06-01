@@ -4,9 +4,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { LoggedFoodItem, SafeFood, UserProfile, TimelineEntry, Symptom, SymptomLog } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, Utensils, ShieldCheck, PlusCircle, ListChecks, AlertCircle, Brain } from 'lucide-react';
+import { Loader2, Utensils, ShieldCheck, PlusCircle, ListChecks, Brain, Star } from 'lucide-react';
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
-import { isSimilarToSafeFoods, type FoodFODMAPProfile } from '@/ai/flows/food-similarity';
+import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
 import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow';
 
 import { useToast } from '@/hooks/use-toast';
@@ -18,9 +18,9 @@ import TimelineFoodCard from '@/components/food-logging/TimelineFoodCard';
 import TimelineSymptomCard from '@/components/food-logging/TimelineSymptomCard';
 import SymptomLoggingDialog from '@/components/food-logging/SymptomLoggingDialog';
 import InsightCard from '@/components/insights/InsightCard';
+import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder';
+import InterstitialAdPlaceholder from '@/components/ads/InterstitialAdPlaceholder';
 
-// Helper function to generate a mock FODMAP profile if AI fails for detailed one
-// This should ideally be less frequently needed if AI provides detailed profiles
 const generateFallbackFodmapProfile = (foodName: string): FoodFODMAPProfile => {
   let hash = 0;
   for (let i = 0; i < foodName.length; i++) {
@@ -30,7 +30,7 @@ const generateFallbackFodmapProfile = (foodName: string): FoodFODMAPProfile => {
   }
   const pseudoRandom = (seed: number) => {
     let x = Math.sin(seed) * 10000;
-    return parseFloat((x - Math.floor(x)).toFixed(1)) * 2; // Scale 0-2
+    return parseFloat((x - Math.floor(x)).toFixed(1)) * 2; 
   };
   return {
     fructans: pseudoRandom(hash + 1),
@@ -48,6 +48,7 @@ const initialUserProfile: UserProfile = {
   email: null,
   displayName: 'Guest User',
   safeFoods: [],
+  premium: false, // Initialize as non-premium
 };
 
 export default function FoodTimelinePage() {
@@ -55,12 +56,13 @@ export default function FoodTimelinePage() {
 
   const [userProfile, setUserProfile] = useState<UserProfile>(initialUserProfile);
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
-  const [isLoadingAi, setIsLoadingAi] = useState<Record<string, boolean>>({}); // Tracks loading state for specific items
+  const [isLoadingAi, setIsLoadingAi] = useState<Record<string, boolean>>({});
   const [isAddFoodDialogOpen, setIsAddFoodDialogOpen] = useState(false);
   const [isSymptomLogDialogOpen, setIsSymptomLogDialogOpen] = useState(false);
   const [symptomDialogContext, setSymptomDialogContext] = useState<{ foodItemIds?: string[] }>({});
   const [aiInsights, setAiInsights] = useState<SymptomCorrelationOutput['insights']>([]);
   const [isLoadingInsights, setIsLoadingInsights] = useState(false);
+  const [showInterstitialAd, setShowInterstitialAd] = useState(false);
 
   const addTimelineEntry = (entry: TimelineEntry) => {
     setTimelineEntries(prevEntries => [...prevEntries, entry].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
@@ -108,7 +110,7 @@ export default function FoodTimelinePage() {
         timestamp: new Date(),
         fodmapData: fodmapAnalysis,
         isSimilarToSafe: similarityOutput?.isSimilar,
-        userFodmapProfile: itemFodmapProfileForSimilarity, // Store the profile used for similarity
+        userFodmapProfile: itemFodmapProfileForSimilarity,
         entryType: 'food',
       };
       addTimelineEntry(newFoodItem);
@@ -130,7 +132,7 @@ export default function FoodTimelinePage() {
       }
       toast({ title: toastTitle, description: toastDescription, variant: 'destructive' });
       
-      const newFoodItem: LoggedFoodItem = { // Add with minimal data on error
+      const newFoodItem: LoggedFoodItem = { 
         ...foodItemData,
         id: newItemId,
         timestamp: new Date(),
@@ -139,7 +141,7 @@ export default function FoodTimelinePage() {
       addTimelineEntry(newFoodItem);
     } finally {
       setIsLoadingAi(prev => ({ ...prev, [newItemId]: false }));
-      setIsAddFoodDialogOpen(false); // Close dialog on success or error
+      setIsAddFoodDialogOpen(false);
     }
   };
 
@@ -169,12 +171,12 @@ export default function FoodTimelinePage() {
     }
 
     const newSafeFood: SafeFood = {
-      id: `safe-${Date.now()}`, // foodItem.id might not be unique enough if portion changes
+      id: `safe-${Date.now()}`, 
       name: foodItem.name,
       ingredients: foodItem.ingredients,
       portionSize: foodItem.portionSize,
       portionUnit: foodItem.portionUnit,
-      fodmapProfile: foodItem.userFodmapProfile, // Use the profile from the item
+      fodmapProfile: foodItem.userFodmapProfile, 
       originalAnalysis: foodItem.fodmapData,
     };
     setUserProfile(prev => ({
@@ -186,7 +188,6 @@ export default function FoodTimelinePage() {
 
   const handleRemoveTimelineEntry = (entryId: string) => {
     setTimelineEntries(prevEntries => prevEntries.filter(entry => entry.id !== entryId));
-    // Also remove from isLoadingAi if it was an item being processed
     setIsLoadingAi(prev => {
       const newState = {...prev};
       delete newState[entryId];
@@ -199,12 +200,7 @@ export default function FoodTimelinePage() {
     setIsSymptomLogDialogOpen(true);
   };
 
-  const fetchAiInsights = useCallback(async () => {
-    if (timelineEntries.filter(e => e.entryType === 'food').length < 1 && timelineEntries.filter(e => e.entryType === 'symptom').length < 1) {
-      // Don't fetch if no data
-      setAiInsights([]);
-      return;
-    }
+  const fetchAiInsightsInternal = useCallback(async () => {
     setIsLoadingInsights(true);
     try {
       const foodLogForAI: SymptomCorrelationInput['foodLog'] = timelineEntries
@@ -245,32 +241,57 @@ export default function FoodTimelinePage() {
     } catch (error) {
       console.error("Failed to fetch AI insights:", error);
       toast({title: "Error Fetching Insights", description: "Could not retrieve AI-powered insights at this time.", variant: "destructive"});
-      setAiInsights([]); // Clear old insights on error
+      setAiInsights([]);
     } finally {
       setIsLoadingInsights(false);
     }
   }, [timelineEntries, userProfile.safeFoods, toast]);
 
+  const triggerFetchAiInsights = useCallback(() => {
+    if (timelineEntries.filter(e => e.entryType === 'food').length < 1 && timelineEntries.filter(e => e.entryType === 'symptom').length < 1) {
+      setAiInsights([]);
+      return;
+    }
+    if (!userProfile.premium) {
+      setShowInterstitialAd(true);
+    } else {
+      fetchAiInsightsInternal();
+    }
+  }, [timelineEntries, userProfile.premium, fetchAiInsightsInternal]);
+
+
   useEffect(() => {
-    // Fetch insights when timeline entries change (debounced or throttled in a real app)
-    // For now, fetch if there are some entries.
     if (timelineEntries.length > 0) {
         const foodEntriesCount = timelineEntries.filter(e => e.entryType === 'food').length;
         const symptomEntriesCount = timelineEntries.filter(e => e.entryType === 'symptom').length;
         if (foodEntriesCount > 0 || symptomEntriesCount > 0) {
-             fetchAiInsights();
+             // Do not auto-fetch on timeline change anymore, user will click button.
+             // triggerFetchAiInsights(); 
         }
     } else {
-        setAiInsights([]); // Clear insights if timeline is empty
+        setAiInsights([]); 
     }
-  }, [timelineEntries, fetchAiInsights]);
+  }, [timelineEntries]);
 
+  const handleUpgradeToPremium = () => {
+    // Simulate IAP
+    setUserProfile(prev => ({ ...prev, premium: true }));
+    toast({ title: "Upgrade Successful!", description: "You are now a Premium user. Ads have been removed." });
+    // TODO: Persist premium status in Firestore once Firebase Auth is re-integrated.
+    // e.g., await updateUserProfileInFirestore(userProfile.uid, { premium: true });
+  };
+
+  const handleInterstitialClosed = (continuedToInsights: boolean) => {
+    setShowInterstitialAd(false);
+    if (continuedToInsights) {
+      fetchAiInsightsInternal();
+    }
+  };
 
   const isAnyItemLoadingAi = Object.values(isLoadingAi).some(loading => loading);
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Sticky Header for central button and actions */}
       <header className="sticky top-[calc(var(--navbar-height,64px)+1rem)] bg-background/80 backdrop-blur-md z-40 py-4 mb-4 shadow rounded-b-lg">
         <div className="container mx-auto flex flex-col items-center gap-4">
           <Button 
@@ -280,15 +301,23 @@ export default function FoodTimelinePage() {
           >
             <PlusCircle className="mr-3 h-8 w-8" /> Tap to Log Food
           </Button>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-center gap-2">
             <Button variant="outline" onClick={() => openSymptomDialog()}>
               <ListChecks className="mr-2 h-5 w-5" /> Log Symptoms
             </Button>
-            <Button variant="outline" onClick={fetchAiInsights} disabled={isLoadingInsights}>
+            <Button variant="outline" onClick={triggerFetchAiInsights} disabled={isLoadingInsights || showInterstitialAd}>
               {isLoadingInsights ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Brain className="mr-2 h-5 w-5" />}
               Get Insights
             </Button>
+             {!userProfile.premium && (
+              <Button variant="outline" onClick={handleUpgradeToPremium} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                <Star className="mr-2 h-5 w-5" /> Upgrade to Premium
+              </Button>
+            )}
           </div>
+           <p className="text-sm text-muted-foreground">
+              Status: {userProfile.premium ? <span className="font-semibold text-primary">Premium User</span> : <span className="font-semibold">Free User</span>}
+            </p>
         </div>
       </header>
       
@@ -304,6 +333,13 @@ export default function FoodTimelinePage() {
         context={symptomDialogContext}
         allSymptoms={COMMON_SYMPTOMS}
       />
+      {showInterstitialAd && !userProfile.premium && (
+        <InterstitialAdPlaceholder
+          isOpen={showInterstitialAd}
+          onClose={() => handleInterstitialClosed(false)}
+          onContinue={() => handleInterstitialClosed(true)}
+        />
+      )}
 
       {isAnyItemLoadingAi && (
         <div className="fixed bottom-4 right-4 bg-accent text-accent-foreground p-3 rounded-lg shadow-lg flex items-center space-x-2 z-50">
@@ -313,7 +349,6 @@ export default function FoodTimelinePage() {
       )}
 
       <main className="flex-grow container mx-auto px-4 py-2">
-        {/* AI Insights Section */}
         {aiInsights.length > 0 && (
           <Card className="mb-6 bg-secondary/20 border-primary/30">
             <CardHeader>
@@ -329,7 +364,6 @@ export default function FoodTimelinePage() {
           </Card>
         )}
         
-        {/* Timeline Section */}
         <div className="space-y-6">
           {timelineEntries.length === 0 && !isAnyItemLoadingAi && (
             <Card className="text-center py-12">
@@ -367,8 +401,13 @@ export default function FoodTimelinePage() {
             return null;
           })}
         </div>
+        
+        {!userProfile.premium && (
+          <div className="mt-8">
+            <BannerAdPlaceholder />
+          </div>
+        )}
 
-        {/* Safe Foods List */}
         <Card className="mt-12">
           <CardHeader>
             <CardTitle className="font-headline text-2xl flex items-center">
@@ -390,7 +429,6 @@ export default function FoodTimelinePage() {
                           <p className="text-sm text-muted-foreground">Portion: {sf.portionSize} {sf.portionUnit}</p>
                           <p className="text-xs text-muted-foreground break-all">Ingredients: {sf.ingredients}</p>
                         </div>
-                        {/* Optional: Display overall risk of the safe food if available */}
                       </div>
                     </li>
                   ))}

@@ -1,3 +1,4 @@
+
 import type { AnalyzeFoodItemOutput, FoodFODMAPProfile as DetailedFodmapProfileFromAI } from "@/ai/flows/fodmap-detection"; // Renamed for clarity
 import type { FoodFODMAPProfile } from "@/ai/flows/food-similarity"; // This is the one used for generating mock, might be similar or identical to DetailedFodmapProfileFromAI
 
@@ -59,11 +60,11 @@ export interface SafeFood {
 }
 
 export interface UserProfile {
-  uid: string; // Assuming local-user for now, or Firebase UID if auth is re-added
+  uid: string;
   email: string | null;
   displayName: string | null;
   safeFoods: SafeFood[];
-  // Potentially add user-specific settings here in the future
+  premium?: boolean; // Added for premium status
 }
 
 // Re-export for convenience if used elsewhere, though fodmap-detection now provides it.
