@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -15,16 +16,19 @@ interface InterstitialAdPlaceholderProps {
   isOpen: boolean;
   onClose: () => void;
   onContinue: () => void;
+  adUnitId?: string;
 }
 
 export default function InterstitialAdPlaceholder({
   isOpen,
   onClose,
   onContinue,
+  adUnitId,
 }: InterstitialAdPlaceholderProps) {
   const handleContinue = () => {
     onContinue();
   };
+  const displayAdUnitId = adUnitId && adUnitId !== "YOUR_INTERSTITIAL_AD_UNIT_ID_HERE" ? adUnitId : "Test Ad Unit / Not Configured";
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -34,7 +38,7 @@ export default function InterstitialAdPlaceholder({
             <Tv2 className="mr-2 h-6 w-6 text-gray-400" /> Supporting FODMAPSafe
           </DialogTitle>
           <DialogDescription className="text-center py-4 text-muted-foreground">
-            This is where an interstitial ad would be displayed for free users.
+            This is where an interstitial ad (Unit ID: {displayAdUnitId}) would be displayed for free users.
             <br />
             Thank you for your understanding!
           </DialogDescription>

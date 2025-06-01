@@ -47,7 +47,7 @@ const initialUserProfile: UserProfile = {
   email: null,
   displayName: 'Guest User',
   safeFoods: [],
-  premium: false,
+  premium: false, // Initialize as non-premium
 };
 
 export default function FoodTimelinePage() {
@@ -62,6 +62,9 @@ export default function FoodTimelinePage() {
   const [aiInsights, setAiInsights] = useState<SymptomCorrelationOutput['insights']>([]);
   const [isLoadingInsights, setIsLoadingInsights] = useState(false);
   const [showInterstitialAd, setShowInterstitialAd] = useState(false);
+
+  const bannerAdUnitId = process.env.NEXT_PUBLIC_BANNER_AD_UNIT_ID;
+  const interstitialAdUnitId = process.env.NEXT_PUBLIC_INTERSTITIAL_AD_UNIT_ID;
 
   const addTimelineEntry = (entry: TimelineEntry) => {
     setTimelineEntries(prevEntries => [...prevEntries, entry].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
@@ -268,7 +271,7 @@ export default function FoodTimelinePage() {
   const handleUpgradeToPremium = () => {
     setUserProfile(prev => ({ ...prev, premium: true }));
     toast({ title: "Upgrade Successful!", description: "You are now a Premium user. Ads have been removed." });
-    // TODO: Persist premium status in Firestore.
+    // TODO: Persist premium status in Firestore once auth is re-integrated.
   };
 
   const handleInterstitialClosed = (continuedToInsights: boolean) => {
@@ -302,7 +305,6 @@ export default function FoodTimelinePage() {
               Get Insights
             </Button>
           </div>
-           {/* Premium status and upgrade button are removed from here, would go in a settings/profile page */}
         </div>
       </header>
       
@@ -323,6 +325,7 @@ export default function FoodTimelinePage() {
           isOpen={showInterstitialAd}
           onClose={() => handleInterstitialClosed(false)}
           onContinue={() => handleInterstitialClosed(true)}
+          adUnitId={interstitialAdUnitId}
         />
       )}
 
@@ -390,7 +393,7 @@ export default function FoodTimelinePage() {
         
         {!userProfile.premium && (
           <div className="mt-8">
-            <BannerAdPlaceholder />
+            <BannerAdPlaceholder adUnitId={bannerAdUnitId} />
           </div>
         )}
 
