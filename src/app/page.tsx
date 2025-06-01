@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,7 +15,7 @@ import FodmapIndicator from '@/components/shared/FodmapIndicator';
 
 
 const initialUserProfile: UserProfile = {
-  uid: 'local-user', // Using a generic ID as there's no authenticated user
+  uid: 'local-user', 
   email: null,
   displayName: null,
   safeFoods: [],
@@ -32,7 +33,6 @@ export default function FoodLoggingPage() {
   });
   const [isLoadingAi, setIsLoadingAi] = useState<Record<string, boolean>>({});
 
-  // Removed useEffect for auth checking and redirection
 
   const handleAddFoodItem = async (
     foodItemData: Omit<LoggedFoodItem, 'id' | 'timestamp' | 'mealType'>,
@@ -73,10 +73,24 @@ export default function FoodLoggingPage() {
         [mealType]: [...prevLog[mealType], newFoodItem],
       }));
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('AI analysis failed:', error);
-      toast({ title: 'AI Analysis Error', description: 'Could not analyze food item with AI.', variant: 'destructive' });
-       const newFoodItem: LoggedFoodItem = {
+      let toastTitle = 'AI Analysis Error';
+      let toastDescription = 'Could not analyze food item with AI at this time.';
+
+      if (error?.message && typeof error.message === 'string') {
+        if (error.message.includes('503') || error.message.toLowerCase().includes('model is overloaded')) {
+          toastTitle = 'AI Model Overloaded';
+          toastDescription = 'The AI model is temporarily busy. Please try adding the item again in a few moments.';
+        } else if (error.message.includes('400')) {
+          toastTitle = 'AI Analysis Input Error';
+          toastDescription = 'There was an issue with the data sent for AI analysis. The food item has been added without AI insights.';
+        }
+      }
+      
+      toast({ title: toastTitle, description: toastDescription, variant: 'destructive' });
+      
+      const newFoodItem: LoggedFoodItem = {
         ...foodItemData,
         id: newItemId,
         mealType,
