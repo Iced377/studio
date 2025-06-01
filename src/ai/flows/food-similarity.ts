@@ -1,42 +1,58 @@
 'use server';
 
 /**
- * @fileOverview This file defines a Genkit flow to determine if a food item is similar to a user's safe foods based on their FODMAP profiles.
+ * @fileOverview This file defines a Genkit flow to determine if a food item (with its portion) is similar to a user's safe foods (with their portions) based on their FODMAP profiles.
  *
  * - isSimilarToSafeFoods - A function that checks if a food item is similar to user-defined safe foods.
- * - FoodSimilarityInput - The input type for the isSimilarToSafeFoods function, including the food item's FODMAP profile and the user's safe food profiles.
- * - FoodSimilarityOutput - The return type for the isSimilarToSafeFoods function, indicating whether the food is similar to safe foods.
+ * - FoodSimilarityInput - The input type for the isSimilarToSafeFoods function.
+ * - FoodSimilarityOutput - The return type for the isSimilarToSafeFoods function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import type { FoodFODMAPProfile as DetailedFodmapProfileFromAI } from './fodmap-detection'; // Use the detailed one from fodmap-detection
 
+// This schema represents the FODMAP profile used for comparison.
+// It should align with what `fodmap-detection` can output in `detailedFodmapProfile`.
 const FoodFODMAPProfileSchema = z.object({
-  fructans: z.number().describe('Fructans content in the food item.'),
-  galactans: z.number().describe('Galactans content in the food item.'),
-  polyols: z.number().describe('Polyols content in the food item.'),
-  lactose: z.number().describe('Lactose content in the food item.'),
-  mannitol: z.number().describe('Mannitol content in the food item.'),
-  fructose: z.number().describe('Fructose content in the food item.'),
-});
+  fructans: z.number().optional().describe('Estimated Fructans content.'),
+  galactans: z.number().optional().describe('Estimated Galactans (GOS) content.'),
+  polyolsSorbitol: z.number().optional().describe('Estimated Sorbitol content.'),
+  polyolsMannitol: z.number().optional().describe('Estimated Mannitol content.'),
+  lactose: z.number().optional().describe('Estimated Lactose content.'),
+  fructose: z.number().optional().describe('Estimated excess Fructose content.'),
+  totalOligos: z.number().optional().describe('Total Oligosaccharides (Fructans + GOS).'),
+  totalPolyols: z.number().optional().describe('Total Polyols (Sorbitol + Mannitol).'),
+}).describe("A detailed, estimated FODMAP profile for a specific food item and portion.");
 
 export type FoodFODMAPProfile = z.infer<typeof FoodFODMAPProfileSchema>;
 
+// We need to include portion information for the food item being checked and for the safe foods.
+const FoodItemWithPortionProfileSchema = z.object({
+  name: z.string().describe("Name of the food item."),
+  portionSize: z.string().describe("Portion size (e.g., '100', '1/2')."),
+  portionUnit: z.string().describe("Portion unit (e.g., 'g', 'cup')."),
+  fodmapProfile: FoodFODMAPProfileSchema.describe('Detailed FODMAP profile of the food item for the specified portion.'),
+});
+
 const FoodSimilarityInputSchema = z.object({
-  foodItemFODMAPProfile: FoodFODMAPProfileSchema.describe('FODMAP profile of the food item to be checked.'),
-  userSafeFoodsFODMAPProfiles: z.array(FoodFODMAPProfileSchema).describe('Array of FODMAP profiles of the user-defined safe foods.'),
+  currentFoodItem: FoodItemWithPortionProfileSchema.describe('The food item (with portion and FODMAP profile) to be checked.'),
+  userSafeFoodItems: z.array(FoodItemWithPortionProfileSchema).describe('Array of user-defined safe food items, each including its name, saved portion, and FODMAP profile for that portion.'),
 });
 
 export type FoodSimilarityInput = z.infer<typeof FoodSimilarityInputSchema>;
 
 const FoodSimilarityOutputSchema = z.object({
-  isSimilar: z.boolean().describe('Indicates whether the food item is similar to the user-defined safe foods.'),
-  similarityReason: z.string().optional().describe('Reasoning behind the similarity assessment, if applicable.'),
+  isSimilar: z.boolean().describe('Indicates whether the current food item is similar to any of the user-defined safe foods, considering both FODMAP profile and portion context.'),
+  similarityReason: z.string().optional().describe('Reasoning behind the similarity assessment. If similar, mention which safe food it resembles and why (e.g., "Similar to your safe intake of 1/2 cup rice due to low overall FODMAPs and comparable portion.").'),
 });
 
 export type FoodSimilarityOutput = z.infer<typeof FoodSimilarityOutputSchema>;
 
 export async function isSimilarToSafeFoods(input: FoodSimilarityInput): Promise<FoodSimilarityOutput> {
+  if (!input.userSafeFoodItems || input.userSafeFoodItems.length === 0) {
+    return { isSimilar: false, similarityReason: "No safe foods defined by the user to compare against." };
+  }
   return foodSimilarityFlow(input);
 }
 
@@ -44,18 +60,27 @@ const foodSimilarityPrompt = ai.definePrompt({
   name: 'foodSimilarityPrompt',
   input: {schema: FoodSimilarityInputSchema},
   output: {schema: FoodSimilarityOutputSchema},
-  prompt: `You are an AI assistant that determines whether a given food item is similar to a user's safe foods based on their FODMAP profiles.
+  prompt: `You are an AI assistant that determines whether a given food item (with its specific portion) is similar to any of a user's "safe" foods (each with their specific saved portion and FODMAP profile).
 
-  Here is the FODMAP profile of the food item to be checked:
-  FODMAP Profile: {{JSON.stringify foodItemFODMAPProfile}}
+  Current Food Item to Check:
+  Name: {{{currentFoodItem.name}}}
+  Portion: {{{currentFoodItem.portionSize}}} {{{currentFoodItem.portionUnit}}}
+  FODMAP Profile (estimated for this portion): {{JSON.stringify currentFoodItem.fodmapProfile}}
 
-  Here are the FODMAP profiles of the user-defined safe foods:
-  Safe Foods Profiles: {{JSON.stringify userSafeFoodsFODMAPProfiles}}
+  User's Safe Foods (with their saved "safe" portions and profiles):
+  {{#each userSafeFoodItems}}
+  - Name: {{{this.name}}}, Portion: {{{this.portionSize}}} {{{this.portionUnit}}}, FODMAP Profile: {{JSON.stringify this.fodmapProfile}}
+  {{/each}}
 
-  Analyze the FODMAP profiles and determine if the food item is similar to the user's safe foods. Consider the levels of each FODMAP group (fructans, galactans, polyols, lactose, mannitol, and fructose) and how they compare between the food item and the safe foods.
+  Analyze the FODMAP profiles AND the portion contexts.
+  A food is "similar" if its FODMAP profile at the given portion is comparable to the FODMAP profile of one of the user's safe foods *at its saved safe portion*.
+  Consider if the types and levels of FODMAPs (fructans, GOS, lactose, excess fructose, sorbitol, mannitol) in the current item are low AND align with at least one safe food's profile.
+  Minor variations in portion might be acceptable if the FODMAP load remains similar and low.
+  For example, if a user marked "1/2 cup cooked rice" as safe (very low FODMAP), then "3/4 cup cooked rice" might also be considered similar if it remains very low FODMAP. However, if "1 slice of wheat bread" (moderate fructans) is safe, "2 slices of wheat bread" might become high fructan and thus not similar.
 
-  Provide a similarity assessment, and set the isSimilar output field appropriately. If isSimilar is true, provide a reason for the similarity in the similarityReason field.
-  If the food item has significantly different FODMAP levels compared to the safe foods, then isSimilar should be false.
+  Set \`isSimilar\` to true if the current food item, at its specified portion, closely matches the safety profile of any of the user's safe foods at their specified portions.
+  If \`isSimilar\` is true, \`similarityReason\` should explain which safe food it's similar to and why (e.g., "Similar to your safe portion of oats because both are low in oligos and polyols at these amounts.").
+  If not similar, \`isSimilar\` should be false.
 `,
 });
 
@@ -70,3 +95,6 @@ const foodSimilarityFlow = ai.defineFlow(
     return output!;
   }
 );
+
+// Export the detailed profile type for use in fodmap-detection or other places
+export type { DetailedFodmapProfileFromAI };

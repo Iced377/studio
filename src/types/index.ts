@@ -1,5 +1,5 @@
-import type { AnalyzeFoodItemOutput } from "@/ai/flows/fodmap-detection";
-import type { FoodFODMAPProfile } from "@/ai/flows/food-similarity";
+import type { AnalyzeFoodItemOutput, FoodFODMAPProfile as DetailedFodmapProfileFromAI } from "@/ai/flows/fodmap-detection"; // Renamed for clarity
+import type { FoodFODMAPProfile } from "@/ai/flows/food-similarity"; // This is the one used for generating mock, might be similar or identical to DetailedFodmapProfileFromAI
 
 export type FodmapScore = 'Green' | 'Yellow' | 'Red';
 
@@ -7,31 +7,64 @@ export interface LoggedFoodItem {
   id: string; // Unique ID for the logged item
   name: string;
   ingredients: string; // Comma-separated
-  mealType: MealType;
+  portionSize: string; // e.g., "100", "0.5", "1"
+  portionUnit: string; // e.g., "g", "cup", "medium apple"
   timestamp: Date;
   fodmapData?: AnalyzeFoodItemOutput; // Result from fodmap-detection AI
   isSimilarToSafe?: boolean; // Result from food-similarity AI
-  userFodmapProfile?: FoodFODMAPProfile; // Mocked or user-inputted detailed profile
+  userFodmapProfile?: FoodFODMAPProfile; // Detailed profile, ideally from AI or user input
+  entryType: 'food';
 }
+
+export interface Symptom {
+  id: string; // e.g., 'bloating', 'gas', 'cramps'
+  name: string; // User-friendly name
+  icon?: string; // Optional: for UI representation
+}
+
+export const COMMON_SYMPTOMS: Symptom[] = [
+  { id: 'bloating', name: 'Bloating' },
+  { id: 'gas', name: 'Gas' },
+  { id: 'cramps', name: 'Cramps' },
+  { id: 'diarrhea', name: 'Diarrhea' },
+  { id: 'constipation', name: 'Constipation' },
+  { id: 'nausea', name: 'Nausea' },
+  { id: 'reflux', name: 'Reflux' },
+  { id: 'other', name: 'Other' },
+];
+
+export interface SymptomLog {
+  id: string; // Unique ID for the symptom log entry
+  linkedFoodItemIds?: string[]; // Optional: IDs of food items this symptom log might be related to
+  symptoms: Symptom[]; // Array of symptoms experienced
+  severity?: number; // Optional: e.g., 1-5 scale
+  notes?: string; // User notes about the symptoms
+  timestamp: Date;
+  entryType: 'symptom';
+}
+
+export type TimelineEntry = LoggedFoodItem | SymptomLog;
+
 
 export interface SafeFood {
-  id: string; // Food name or unique identifier
+  id: string; // Unique identifier for the safe food entry
   name: string;
   ingredients: string;
+  portionSize: string;
+  portionUnit: string;
   // This is the detailed FODMAP profile required by isSimilarToSafeFoods
-  // It will be mocked for now.
-  fodmapProfile: FoodFODMAPProfile; 
+  fodmapProfile: FoodFODMAPProfile;
   // Store original AI analysis if available
-  originalAnalysis?: AnalyzeFoodItemOutput; 
+  originalAnalysis?: AnalyzeFoodItemOutput;
 }
 
-export type MealType = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snacks';
-
-export const MEAL_TYPES: MealType[] = ['Breakfast', 'Lunch', 'Dinner', 'Snacks'];
-
 export interface UserProfile {
-  uid: string;
+  uid: string; // Assuming local-user for now, or Firebase UID if auth is re-added
   email: string | null;
   displayName: string | null;
   safeFoods: SafeFood[];
+  // Potentially add user-specific settings here in the future
 }
+
+// Re-export for convenience if used elsewhere, though fodmap-detection now provides it.
+export type { DetailedFodmapProfileFromAI };
