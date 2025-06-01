@@ -17,6 +17,7 @@ interface InterstitialAdPlaceholderProps {
   onClose: () => void;
   onContinue: () => void;
   adUnitId?: string;
+  actionName?: string; // To customize the continue button
 }
 
 export default function InterstitialAdPlaceholder({
@@ -24,6 +25,7 @@ export default function InterstitialAdPlaceholder({
   onClose,
   onContinue,
   adUnitId,
+  actionName = "Action"
 }: InterstitialAdPlaceholderProps) {
   const handleContinue = () => {
     onContinue();
@@ -52,7 +54,7 @@ export default function InterstitialAdPlaceholder({
             Skip
           </Button>
           <Button type="button" className="bg-primary text-primary-foreground hover:bg-primary/80" onClick={handleContinue}>
-            Continue to Insights
+            Continue to {actionName}
           </Button>
         </DialogFooter>
       </DialogContent>

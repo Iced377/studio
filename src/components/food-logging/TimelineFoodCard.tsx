@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { LoggedFoodItem } from '@/types';
@@ -5,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import FodmapIndicator from '@/components/shared/FodmapIndicator';
 import { Badge } from '@/components/ui/badge';
-import { ThumbsUp, Trash2, CheckCheck, ListChecks, Loader2 } from 'lucide-react';
+import { ThumbsUp, Trash2, CheckCheck, ListChecks, Loader2, Flame, Beef, Wheat, Droplet } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface TimelineFoodCardProps {
@@ -36,6 +37,12 @@ export default function TimelineFoodCard({
 
   const timeAgo = formatDistanceToNow(new Date(item.timestamp), { addSuffix: true });
 
+  const macroParts: string[] = [];
+  if (item.calories !== undefined) macroParts.push(`Cal: ${Math.round(item.calories)}`);
+  if (item.protein !== undefined) macroParts.push(`P: ${Math.round(item.protein)}g`);
+  if (item.carbs !== undefined) macroParts.push(`C: ${Math.round(item.carbs)}g`);
+  if (item.fat !== undefined) macroParts.push(`F: ${Math.round(item.fat)}g`);
+
   return (
     <Card className="mb-4 shadow-lg hover:shadow-xl transition-shadow duration-200 relative overflow-hidden bg-card border-border">
       {isLoadingAi && (
@@ -61,7 +68,17 @@ export default function TimelineFoodCard({
             <CheckCheck className="mr-1 h-4 w-4" /> Similar to your Safe Foods
           </Badge>
         )}
-         {item.fodmapData && item.fodmapData.ingredientFodmapScores && item.fodmapData.ingredientFodmapScores.length > 0 && (
+        {macroParts.length > 0 && !isLoadingAi && (
+            <div className="mt-2 text-xs text-muted-foreground border-t border-border/50 pt-2">
+                <p className="flex items-center gap-x-3 flex-wrap">
+                    {item.calories !== undefined && <span className="flex items-center"><Flame className="w-3 h-3 mr-1 text-orange-400"/>{Math.round(item.calories)} kcal</span>}
+                    {item.protein !== undefined && <span className="flex items-center"><Beef className="w-3 h-3 mr-1 text-red-400"/>{Math.round(item.protein)}g P</span>}
+                    {item.carbs !== undefined && <span className="flex items-center"><Wheat className="w-3 h-3 mr-1 text-yellow-400"/>{Math.round(item.carbs)}g C</span>}
+                    {item.fat !== undefined && <span className="flex items-center"><Droplet className="w-3 h-3 mr-1 text-blue-400"/>{Math.round(item.fat)}g F</span>}
+                </p>
+            </div>
+        )}
+         {item.fodmapData?.ingredientFodmapScores && item.fodmapData.ingredientFodmapScores.length > 0 && (
           <div className="mt-2 max-h-24 overflow-y-auto pr-2">
             <p className="text-xs font-medium text-muted-foreground mb-1">Ingredient Analysis:</p>
             <ul className="list-disc list-inside pl-1 space-y-0.5">

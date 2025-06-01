@@ -1,11 +1,11 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood } from '@/types';
+import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info } from 'lucide-react';
+import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp } from 'lucide-react';
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
 import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow';
@@ -38,6 +38,7 @@ import TimelineFoodCard from '@/components/food-logging/TimelineFoodCard';
 import TimelineSymptomCard from '@/components/food-logging/TimelineSymptomCard';
 import SymptomLoggingDialog from '@/components/food-logging/SymptomLoggingDialog';
 import InsightCard from '@/components/insights/InsightCard';
+import DailyTotalsCard from '@/components/insights/DailyTotalsCard';
 import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder';
 import InterstitialAdPlaceholder from '@/components/ads/InterstitialAdPlaceholder';
 
@@ -97,7 +98,7 @@ export default function FoodTimelinePage() {
       setIsDataLoading(true);
 
       if (authLoading) {
-        toast({ title: "Authenticating...", description: "Please wait while we check your session." });
+        // toast({ title: "Authenticating...", description: "Please wait while we check your session." });
         return;
       }
 
@@ -164,12 +165,12 @@ export default function FoodTimelinePage() {
           }
           toast({ title: "Data Load Error", description: errorDescription, variant: "destructive", duration: 9000 });
            setUserProfile(prev => ({
-             ...prev, // Keep any existing local state like guest safe foods
+             ...prev, 
              uid: authUser.uid,
              email: authUser.email,
              displayName: authUser.displayName,
-             safeFoods: prev.uid === authUser.uid ? prev.safeFoods : [], // Reset safe foods if user changed
-             premium: prev.uid === authUser.uid ? prev.premium : false, // Reset premium if user changed
+             safeFoods: prev.uid === authUser.uid ? prev.safeFoods : [], 
+             premium: prev.uid === authUser.uid ? prev.premium : false, 
            }));
         } finally {
             setIsDataLoading(false);
@@ -192,7 +193,7 @@ export default function FoodTimelinePage() {
   };
 
   const handleAddFoodItem = async (
-    foodItemData: Omit<LoggedFoodItem, 'id' | 'timestamp' | 'entryType'>
+    foodItemData: Omit<LoggedFoodItem, 'id' | 'timestamp' | 'entryType' | 'calories' | 'protein' | 'carbs' | 'fat'>
   ) => {
     const newItemId = `food-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     setIsLoadingAi(prev => ({ ...prev, [newItemId]: true }));
@@ -209,7 +210,7 @@ export default function FoodTimelinePage() {
         portionUnit: foodItemData.portionUnit,
       });
 
-      const itemFodmapProfileForSimilarity: FoodFODMAPProfile = fodmapAnalysis.detailedFodmapProfile || generateFallbackFodmapProfile(foodItemData.name);
+      const itemFodmapProfileForSimilarity: FoodFODMAPProfile = fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(foodItemData.name);
 
       if (userProfile.safeFoods && userProfile.safeFoods.length > 0) {
         const safeFoodItemsForSimilarity = userProfile.safeFoods.map(sf => ({
@@ -237,6 +238,10 @@ export default function FoodTimelinePage() {
         fodmapData: fodmapAnalysis,
         isSimilarToSafe: similarityOutput?.isSimilar ?? false,
         userFodmapProfile: itemFodmapProfileForSimilarity,
+        calories: fodmapAnalysis?.calories,
+        protein: fodmapAnalysis?.protein,
+        carbs: fodmapAnalysis?.carbs,
+        fat: fodmapAnalysis?.fat,
         entryType: 'food',
       };
 
@@ -269,7 +274,7 @@ export default function FoodTimelinePage() {
           toastDescription = 'There was an issue with the data sent for AI analysis or the AI\'s response format was unexpected. Food added without AI insights.';
         } else if (errorMessageLower.includes('api key') || errorMessageLower.includes('permission denied') || errorMessageLower.includes('authentication failed') || errorMessageLower.includes('credential') || errorMessageLower.includes('forbidden') || errorMessageLower.includes('access denied')) {
             toastTitle = 'AI Service Access Issue';
-            toastDescription = 'Could not access the AI service due to an authentication or permission problem. Please check your Google Cloud project setup (APIs, billing, credentials & IAM permissions for service accounts if deployed). Food added without AI insights.';
+            toastDescription = 'Could not access the AI service due to an authentication or permission problem. Ensure Google Cloud project setup (APIs, billing, credentials & IAM permissions for service accounts if deployed) is correct and gcloud auth application-default login has been run locally. Food added without AI insights.';
         } else if (errorMessageLower.includes('deadline exceeded') || errorMessageLower.includes('timeout')) {
             toastTitle = 'AI Request Timeout';
             toastDescription = 'The request to the AI service timed out. Food added without AI insights. Please try again.';
@@ -285,8 +290,12 @@ export default function FoodTimelinePage() {
         timestamp: new Date(),
         isSimilarToSafe: similarityOutput?.isSimilar ?? false,
         entryType: 'food',
-        fodmapData: fodmapAnalysis, // Save partial AI data if any
-        userFodmapProfile: fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(foodItemData.name) // Fallback if not available
+        fodmapData: fodmapAnalysis, 
+        userFodmapProfile: fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(foodItemData.name),
+        calories: fodmapAnalysis?.calories,
+        protein: fodmapAnalysis?.protein,
+        carbs: fodmapAnalysis?.carbs,
+        fat: fodmapAnalysis?.fat,
       };
        if (authUser && authUser.uid !== 'guest-user') {
         const { id, ...itemToSave } = newFoodItem;
@@ -296,7 +305,7 @@ export default function FoodTimelinePage() {
                 timestamp: Timestamp.fromDate(newFoodItem.timestamp)
             });
             newFoodItem.id = docRef.id;
-            toast({ title: "Food Logged & Saved (Partial AI)", description: `${newFoodItem.name} added. AI analysis was skipped or incomplete.` });
+            // toast({ title: "Food Logged & Saved (Partial AI)", description: `${newFoodItem.name} added. AI analysis was skipped or incomplete.` });
         } catch (saveError: any) {
             console.error("Error saving partially processed food item to Firestore:", saveError);
              let saveErrorDesc = "Could not save food item to cloud after AI failure. Please try again.";
@@ -405,7 +414,7 @@ export default function FoodTimelinePage() {
             toast({ title: "Entry Removed", description: "The timeline entry has been deleted from cloud." });
         } catch (error) {
             console.error("Error removing timeline entry from Firestore:", error);
-            if (entryToRemove) addTimelineEntry(entryToRemove); // Re-add if cloud delete failed
+            if (entryToRemove) addTimelineEntry(entryToRemove); 
             toast({ title: "Error Removing Entry", description: "Could not remove entry from cloud. Removed locally.", variant: "destructive" });
         }
     } else {
@@ -519,7 +528,7 @@ export default function FoodTimelinePage() {
             setUserProfile(prev => ({ ...prev, premium: true }));
             toast({ 
               title: "Premium Status Activated! (Simulated)", 
-              description: "Ads removed for this session. This is a simulation - no real payment was processed." 
+              description: "Ads removed. This is a simulation - no real payment was processed." 
             });
         } catch (error) {
             console.error("Error updating premium status in Firestore:", error);
@@ -552,6 +561,30 @@ export default function FoodTimelinePage() {
 
   const isAnyItemLoadingAi = Object.values(isLoadingAi).some(loading => loading);
 
+  const dailyNutritionSummary = useMemo<DailyNutritionSummary>(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1); // Start of tomorrow
+
+    let totals: DailyNutritionSummary = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+
+    timelineEntries.forEach(entry => {
+      if (entry.entryType === 'food') {
+        const entryDate = new Date(entry.timestamp);
+        if (entryDate >= today && entryDate < tomorrow) {
+          totals.calories += entry.calories || 0;
+          totals.protein += entry.protein || 0;
+          totals.carbs += entry.carbs || 0;
+          totals.fat += entry.fat || 0;
+        }
+      }
+    });
+    return totals;
+  }, [timelineEntries]);
+
+
   if (authLoading || (isDataLoading && !authUser && !timelineEntries.length && authUser === null)) {
      return (
       <div className="flex items-center justify-center min-h-[calc(100vh-128px)] bg-background">
@@ -580,6 +613,7 @@ export default function FoodTimelinePage() {
             className="w-72 h-20 text-2xl rounded-full shadow-2xl bg-white text-black hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 flex items-center justify-center"
             onClick={handleLogFoodClick}
             aria-label="Log Food"
+            disabled={showInterstitialAd && authUser && authUser.uid !== 'guest-user' && !userProfile.premium}
           >
             <PlusCircle className="mr-3 h-8 w-8" /> Tap to Log Food
           </Button>
@@ -613,6 +647,7 @@ export default function FoodTimelinePage() {
           onClose={() => handleInterstitialClosed(false)}
           onContinue={() => handleInterstitialClosed(true)}
           adUnitId={interstitialAdUnitId}
+          actionName={pendingActionAfterInterstitial === 'logFood' ? 'Log Food' : 'Get Insights'}
         />
       )}
 
@@ -624,6 +659,10 @@ export default function FoodTimelinePage() {
       )}
 
       <main className="flex-grow container mx-auto px-2 sm:px-4 py-2">
+        <div className="mb-6">
+           <DailyTotalsCard summary={dailyNutritionSummary} />
+        </div>
+       
         {aiInsights.length > 0 && (
           <Card className="mb-6 bg-card border-border shadow-md">
             <CardHeader>
@@ -705,7 +744,6 @@ export default function FoodTimelinePage() {
                           <p className="text-sm text-muted-foreground">Portion: {sf.portionSize} {sf.portionUnit}</p>
                           <p className="text-xs text-muted-foreground break-all">Ingredients: {sf.ingredients}</p>
                         </div>
-                        {/* TODO: Add a button to remove safe food from here if needed */}
                       </div>
                     </li>
                   ))}
@@ -723,7 +761,7 @@ export default function FoodTimelinePage() {
             {authUser && userProfile.premium && (
                  <p className="text-sm text-center text-green-400 mt-4">Premium User - Ads Removed</p>
             )}
-             {!authUser && authUser !== undefined && ( // Check authUser is not undefined (still loading)
+             {!authUser && authUser !== undefined && ( 
                  <p className="text-sm text-center text-muted-foreground mt-4">
                     <Link href="/login" className="underline text-primary">Login</Link> to save your safe foods and sync across devices.
                 </p>

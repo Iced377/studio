@@ -14,6 +14,10 @@ export interface LoggedFoodItem {
   fodmapData?: AnalyzeFoodItemOutput; // Result from fodmap-detection AI
   isSimilarToSafe?: boolean; // Result from food-similarity AI
   userFodmapProfile?: FoodFODMAPProfile; // Detailed profile, ideally from AI or user input
+  calories?: number; // Estimated calories
+  protein?: number; // Estimated protein in grams
+  carbs?: number; // Estimated carbs in grams
+  fat?: number; // Estimated fat in grams
   entryType: 'food';
 }
 
@@ -69,3 +73,10 @@ export interface UserProfile {
 
 // Re-export for convenience if used elsewhere, though fodmap-detection now provides it.
 export type { DetailedFodmapProfileFromAI };
+
+export interface DailyNutritionSummary {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}

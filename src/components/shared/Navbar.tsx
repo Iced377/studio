@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-const APP_VERSION = "v0.1"; // Version stamp
+const APP_VERSION = "v2.0"; // Version stamp
 
 export default function Navbar() {
   const { user, loading } = useAuthContext();
