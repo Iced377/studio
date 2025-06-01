@@ -35,7 +35,7 @@ interface SymptomLoggingDialogProps {
   onOpenChange: (isOpen: boolean) => void;
   onLogSymptoms: (symptoms: Symptom[], notes?: string, severity?: number, linkedFoodItemIds?: string[]) => void;
   allSymptoms: Symptom[];
-  context?: { foodItemIds?: string[] }; // To link symptoms to specific food items
+  context?: { foodItemIds?: string[] };
 }
 
 export default function SymptomLoggingDialog({
@@ -53,19 +53,24 @@ export default function SymptomLoggingDialog({
     defaultValues: {
       selectedSymptoms: [],
       customSymptom: '',
-      severity: 3, // Default severity
+      severity: 3,
       notes: '',
     },
   });
 
  useEffect(() => {
-    if (form.watch('selectedSymptoms').includes('other')) {
-      setShowCustomSymptom(true);
-    } else {
-      setShowCustomSymptom(false);
-      form.setValue('customSymptom', ''); // Clear custom if 'other' is deselected
-    }
-  }, [form.watch('selectedSymptoms'), form]);
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'selectedSymptoms') {
+        if (value.selectedSymptoms?.includes('other')) {
+          setShowCustomSymptom(true);
+        } else {
+          setShowCustomSymptom(false);
+          form.setValue('customSymptom', ''); 
+        }
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
 
   const handleSubmit = async (data: SymptomLogFormValues) => {
@@ -92,19 +97,19 @@ export default function SymptomLoggingDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-card text-card-foreground border-border">
         <DialogHeader>
-          <DialogTitle className="font-headline text-xl flex items-center">
-            <ListChecks className="mr-2 h-6 w-6 text-primary"/> Log Your Symptoms
+          <DialogTitle className="font-headline text-xl flex items-center text-foreground">
+            <ListChecks className="mr-2 h-6 w-6 text-gray-400"/> Log Your Symptoms
           </DialogTitle>
-          <DialogDescription>
-            Select the symptoms you're experiencing, their severity, and any relevant notes.
+          <DialogDescription className="text-muted-foreground">
+            Select symptoms, severity, and any notes.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 pt-2">
           <div>
-            <Label className="text-sm font-medium">Symptoms Experienced</Label>
-            <div className="mt-2 grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1 border rounded-md">
+            <Label className="text-sm font-medium text-foreground">Symptoms Experienced</Label>
+            <div className="mt-2 grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1 border border-input rounded-md">
               {allSymptoms.map((symptom) => (
                 <Controller
                   key={symptom.id}
@@ -121,8 +126,9 @@ export default function SymptomLoggingDialog({
                             : (field.value || []).filter((id) => id !== symptom.id);
                           field.onChange(newValue);
                         }}
+                        className="border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                       />
-                      <Label htmlFor={`symptom-${symptom.id}`} className="text-sm font-normal cursor-pointer">
+                      <Label htmlFor={`symptom-${symptom.id}`} className="text-sm font-normal cursor-pointer text-foreground">
                         {symptom.name}
                       </Label>
                     </div>
@@ -137,18 +143,18 @@ export default function SymptomLoggingDialog({
 
           {showCustomSymptom && (
             <div>
-              <Label htmlFor="customSymptom" className="text-sm font-medium">Other Symptom</Label>
+              <Label htmlFor="customSymptom" className="text-sm font-medium text-foreground">Other Symptom</Label>
               <Input
                 id="customSymptom"
                 {...form.register('customSymptom')}
                 placeholder="Describe other symptom"
-                className="mt-1"
+                className="mt-1 bg-input text-foreground placeholder:text-muted-foreground"
               />
             </div>
           )}
 
           <div>
-            <Label htmlFor="severity" className="text-sm font-medium">Severity (1: Mild - 5: Severe)</Label>
+            <Label htmlFor="severity" className="text-sm font-medium text-foreground">Severity (1: Mild - 5: Severe)</Label>
             <Controller
                 name="severity"
                 control={form.control}
@@ -162,30 +168,30 @@ export default function SymptomLoggingDialog({
                             step={1}
                             value={[value || 3]}
                             onValueChange={(vals) => onChange(vals[0])}
-                            className="w-full"
+                            className="w-full [&>span>span]:bg-primary [&>span>span]:border-primary [&>span]:bg-input"
                         />
-                        <Badge variant="outline" className="w-10 h-8 flex items-center justify-center text-base">{value || 3}</Badge>
+                        <Badge variant="outline" className="w-10 h-8 flex items-center justify-center text-base border-accent text-accent-foreground">{value || 3}</Badge>
                     </div>
                 )}
             />
           </div>
 
           <div>
-            <Label htmlFor="notes" className="text-sm font-medium">Notes (Optional)</Label>
+            <Label htmlFor="notes" className="text-sm font-medium text-foreground">Notes (Optional)</Label>
             <Textarea
               id="notes"
               {...form.register('notes')}
-              placeholder="e.g., Started 1 hour after lunch, felt better after..."
-              className="mt-1"
+              placeholder="e.g., Started 1 hour after lunch..."
+              className="mt-1 bg-input text-foreground placeholder:text-muted-foreground"
               rows={3}
             />
           </div>
 
           <DialogFooter className="pt-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+            <Button type="button" variant="outline" className="border-accent text-accent-foreground hover:bg-accent/20" onClick={() => onOpenChange(false)} disabled={isLoading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/80" disabled={isLoading}>
               {isLoading ? 'Logging...' : 'Log Symptoms'}
             </Button>
           </DialogFooter>

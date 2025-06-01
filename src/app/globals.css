@@ -4,91 +4,72 @@
 
 @layer base {
   :root {
-    --background: 217 100% 95%; /* Very light blue #E5F0FF */
-    --foreground: 210 10% 23%; /* Dark blue-gray for text */
+    /* Elegant Black & White Theme */
+    --background: 0 0% 0%; /* #000000 */
+    --foreground: 0 0% 100%; /* #FFFFFF */
 
-    --card: 0 0% 100%; /* White */
-    --card-foreground: 210 10% 23%;
+    --card: 0 0% 8%; /* Dark Gray for cards - slightly off-black for definition */
+    --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 210 10% 23%;
+    --popover: 0 0% 5%; /* Darker Gray for popovers */
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 213 100% 74%; /* Soft blue #7AB4FF */
-    --primary-foreground: 210 40% 98%; /* Light color for text on primary */
+    /* Primary actions (e.g., central scan button) often white on black, or a very light gray */
+    /* For buttons that need to stand out but aren't the 'central white' one, use a muted gray */
+    --primary: 0 0% 80%; /* #CCCCCC - Light Muted Gray for general buttons */
+    --primary-foreground: 0 0% 0%; /* Black text on light gray buttons */
+    
+    /* Central Scan Button Specific - to be handled by direct styling in component if needed for glow etc. */
+    /* For now, can use a variant or specific classes */
 
-    --secondary: 213 80% 85%; /* Lighter soft blue */
-    --secondary-foreground: 210 10% 23%;
+    --secondary: 0 0% 20%; /* #333333 - Darker Muted Gray */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 217 50% 90%; /* Lighter shade of background blue */
-    --muted-foreground: 215 20% 45%; /* Slightly darker muted text */
+    --muted: 0 0% 15%; /* #262626 - Very Dark Gray for muted elements */
+    --muted-foreground: 0 0% 60%; /* #999999 - Lighter Gray for muted text */
 
-    --accent: 262 46% 73%; /* Pale violet #B19CD9 */
-    --accent-foreground: 260 40% 98%; /* Light color for text on accent */
+    --accent: 0 0% 53%; /* #888888 - Mid Muted Gray for accent lines/secondary buttons */
+    --accent-foreground: 0 0% 100%; /* White text on mid-gray accent */
 
-    --destructive: 0 72% 51%; /* A clearer red for destructive actions */
-    --destructive-foreground: 0 0% 98%;
+    /* Destructive actions retain some color, but can be toned down */
+    --destructive: 0 72% 51%; /* Standard Red, can be #F44336 equivalent */
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217 30% 85%;
-    --input: 217 30% 88%;
-    --ring: 213 90% 65%; /* A slightly darker shade of primary for focus rings */
+    --border: 0 0% 20%; /* #333333 - Visible border for dark theme */
+    --input: 0 0% 10%; /* #1A1A1A - Dark input background */
+    --ring: 0 0% 80%; /* #CCCCCC - Light gray for focus rings */
 
     --radius: 0.5rem;
 
+    /* Chart colors remain for consistency if charts are used, but may need adjustment for dark theme */
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-
-    /* Sidebar specific variables (can be adjusted if sidebar is used extensively) */
-    --sidebar-background: 217 80% 92%;
-    --sidebar-foreground: 210 10% 23%;
-    --sidebar-primary: 213 100% 74%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 262 46% 73%;
-    --sidebar-accent-foreground: 260 40% 98%;
-    --sidebar-border: 217 30% 80%;
-    --sidebar-ring: 213 90% 65%;
   }
 
+  /* Apply dark theme variables directly as it's the default and only theme */
   .dark {
-    --background: 210 10% 15%; /* Dark blue-gray */
-    --foreground: 210 40% 95%; /* Light gray for text */
-
-    --card: 210 10% 20%;
-    --card-foreground: 210 40% 95%;
-
-    --popover: 210 10% 10%;
-    --popover-foreground: 210 40% 95%;
-
-    --primary: 213 90% 65%; /* Slightly desaturated blue for dark mode */
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 210 10% 25%;
-    --secondary-foreground: 210 40% 95%;
-
-    --muted: 210 10% 25%;
-    --muted-foreground: 210 20% 65%;
-
-    --accent: 262 40% 65%; /* Slightly desaturated violet for dark mode */
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 60% 50%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 210 10% 30%;
-    --input: 210 10% 30%;
-    --ring: 213 80% 55%;
-
-    /* Dark Sidebar specific variables */
-    --sidebar-background: 210 10% 12%;
-    --sidebar-foreground: 210 40% 95%;
-    --sidebar-primary: 213 90% 65%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 262 40% 65%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 210 10% 25%;
-    --sidebar-ring: 213 80% 55%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 0 0% 80%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 0 0% 53%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 10%;
+    --ring: 0 0% 80%;
   }
 }
 
@@ -98,7 +79,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-inter), sans-serif;
+    font-family: var(--font-inter), sans-serif; /* Inter is a good sleek sans-serif */
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline;

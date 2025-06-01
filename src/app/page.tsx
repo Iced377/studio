@@ -4,13 +4,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { LoggedFoodItem, SafeFood, UserProfile, TimelineEntry, Symptom, SymptomLog } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, Utensils, ShieldCheck, PlusCircle, ListChecks, Brain, Star } from 'lucide-react';
+import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info } from 'lucide-react'; // Activity for history/timeline
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
 import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow';
 
 import { useToast } from '@/hooks/use-toast';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AddFoodItemDialog from '@/components/food-logging/AddFoodItemDialog';
@@ -42,13 +42,12 @@ const generateFallbackFodmapProfile = (foodName: string): FoodFODMAPProfile => {
   };
 };
 
-
 const initialUserProfile: UserProfile = {
   uid: 'local-user',
   email: null,
   displayName: 'Guest User',
   safeFoods: [],
-  premium: false, // Initialize as non-premium
+  premium: false,
 };
 
 export default function FoodTimelinePage() {
@@ -259,26 +258,17 @@ export default function FoodTimelinePage() {
     }
   }, [timelineEntries, userProfile.premium, fetchAiInsightsInternal]);
 
-
   useEffect(() => {
-    if (timelineEntries.length > 0) {
-        const foodEntriesCount = timelineEntries.filter(e => e.entryType === 'food').length;
-        const symptomEntriesCount = timelineEntries.filter(e => e.entryType === 'symptom').length;
-        if (foodEntriesCount > 0 || symptomEntriesCount > 0) {
-             // Do not auto-fetch on timeline change anymore, user will click button.
-             // triggerFetchAiInsights(); 
-        }
-    } else {
+    // Auto-fetch logic removed, user triggers insights via button
+    if (timelineEntries.length === 0) {
         setAiInsights([]); 
     }
   }, [timelineEntries]);
 
   const handleUpgradeToPremium = () => {
-    // Simulate IAP
     setUserProfile(prev => ({ ...prev, premium: true }));
     toast({ title: "Upgrade Successful!", description: "You are now a Premium user. Ads have been removed." });
-    // TODO: Persist premium status in Firestore once Firebase Auth is re-integrated.
-    // e.g., await updateUserProfileInFirestore(userProfile.uid, { premium: true });
+    // TODO: Persist premium status in Firestore.
   };
 
   const handleInterstitialClosed = (continuedToInsights: boolean) => {
@@ -291,33 +281,28 @@ export default function FoodTimelinePage() {
   const isAnyItemLoadingAi = Object.values(isLoadingAi).some(loading => loading);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="sticky top-[calc(var(--navbar-height,64px)+1rem)] bg-background/80 backdrop-blur-md z-40 py-4 mb-4 shadow rounded-b-lg">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
+      {/* Main Action Area */}
+      <header className="sticky top-[calc(var(--navbar-height,64px)+0.5rem)] bg-background/80 backdrop-blur-md z-40 py-6 mb-6 shadow-xl rounded-b-2xl">
         <div className="container mx-auto flex flex-col items-center gap-4">
           <Button 
             size="lg" 
-            className="w-full max-w-md h-16 text-xl rounded-full shadow-xl bg-primary hover:bg-primary/90"
+            className="w-72 h-20 text-2xl rounded-full shadow-2xl bg-white text-black hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 flex items-center justify-center"
             onClick={() => setIsAddFoodDialogOpen(true)}
+            aria-label="Log Food"
           >
             <PlusCircle className="mr-3 h-8 w-8" /> Tap to Log Food
           </Button>
-          <div className="flex flex-wrap justify-center gap-2">
-            <Button variant="outline" onClick={() => openSymptomDialog()}>
+          <div className="flex flex-wrap justify-center gap-3 mt-3">
+            <Button variant="outline" className="border-accent text-accent-foreground hover:bg-accent/20" onClick={() => openSymptomDialog()}>
               <ListChecks className="mr-2 h-5 w-5" /> Log Symptoms
             </Button>
-            <Button variant="outline" onClick={triggerFetchAiInsights} disabled={isLoadingInsights || showInterstitialAd}>
+            <Button variant="outline" className="border-accent text-accent-foreground hover:bg-accent/20" onClick={triggerFetchAiInsights} disabled={isLoadingInsights || showInterstitialAd}>
               {isLoadingInsights ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Brain className="mr-2 h-5 w-5" />}
               Get Insights
             </Button>
-             {!userProfile.premium && (
-              <Button variant="outline" onClick={handleUpgradeToPremium} className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                <Star className="mr-2 h-5 w-5" /> Upgrade to Premium
-              </Button>
-            )}
           </div>
-           <p className="text-sm text-muted-foreground">
-              Status: {userProfile.premium ? <span className="font-semibold text-primary">Premium User</span> : <span className="font-semibold">Free User</span>}
-            </p>
+           {/* Premium status and upgrade button are removed from here, would go in a settings/profile page */}
         </div>
       </header>
       
@@ -348,12 +333,12 @@ export default function FoodTimelinePage() {
         </div>
       )}
 
-      <main className="flex-grow container mx-auto px-4 py-2">
+      <main className="flex-grow container mx-auto px-2 sm:px-4 py-2">
         {aiInsights.length > 0 && (
-          <Card className="mb-6 bg-secondary/20 border-primary/30">
+          <Card className="mb-6 bg-card border-border shadow-md">
             <CardHeader>
-              <CardTitle className="font-headline text-2xl flex items-center text-primary">
-                <Brain className="mr-3 h-7 w-7" /> AI Insights
+              <CardTitle className="font-headline text-xl sm:text-2xl flex items-center text-foreground">
+                <Brain className="mr-3 h-6 w-6 sm:h-7 sm:w-7 text-gray-400" /> AI Insights
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -364,13 +349,14 @@ export default function FoodTimelinePage() {
           </Card>
         )}
         
+        {/* Timeline Section */}
         <div className="space-y-6">
           {timelineEntries.length === 0 && !isAnyItemLoadingAi && (
-            <Card className="text-center py-12">
+            <Card className="text-center py-12 bg-card border-border shadow-md">
               <CardContent>
                 <Utensils className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-                <h2 className="text-2xl font-semibold font-headline mb-2">Your Food Timeline is Empty</h2>
-                <p className="text-muted-foreground mb-6">Tap the button above to log your first food item or symptom.</p>
+                <h2 className="text-2xl font-semibold font-headline mb-2 text-foreground">Your Timeline is Empty</h2>
+                <p className="text-muted-foreground mb-6">Tap the central button to log your first food item or symptom.</p>
               </CardContent>
             </Card>
           )}
@@ -408,10 +394,10 @@ export default function FoodTimelinePage() {
           </div>
         )}
 
-        <Card className="mt-12">
+        <Card className="mt-12 bg-card border-border shadow-md">
           <CardHeader>
-            <CardTitle className="font-headline text-2xl flex items-center">
-              <ShieldCheck className="mr-3 h-7 w-7 text-primary" />
+            <CardTitle className="font-headline text-xl sm:text-2xl flex items-center text-foreground">
+              <Activity className="mr-3 h-6 w-6 sm:h-7 sm:w-7 text-gray-400" />
               Your Safe Foods
             </CardTitle>
           </CardHeader>
@@ -422,10 +408,10 @@ export default function FoodTimelinePage() {
               <ScrollArea className="h-60">
                 <ul className="space-y-3 pr-4">
                   {userProfile.safeFoods.map(sf => (
-                    <li key={sf.id} className="p-4 border rounded-lg bg-card shadow-sm">
+                    <li key={sf.id} className="p-4 border border-border rounded-lg bg-card shadow-sm">
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="font-semibold text-lg">{sf.name}</p>
+                          <p className="font-semibold text-lg text-foreground">{sf.name}</p>
                           <p className="text-sm text-muted-foreground">Portion: {sf.portionSize} {sf.portionUnit}</p>
                           <p className="text-xs text-muted-foreground break-all">Ingredients: {sf.ingredients}</p>
                         </div>
@@ -435,8 +421,28 @@ export default function FoodTimelinePage() {
                 </ul>
               </ScrollArea>
             )}
+             {!userProfile.premium && (
+                <div className="mt-6 text-center">
+                    <Button onClick={handleUpgradeToPremium} className="bg-gray-200 text-black hover:bg-gray-300">
+                        Upgrade to Premium - Remove Ads
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-2">Current Status: Free User</p>
+                </div>
+            )}
+            {userProfile.premium && (
+                 <p className="text-sm text-center text-green-400 mt-4">Premium User - Ads Removed</p>
+            )}
           </CardContent>
         </Card>
+         <div className="py-8 text-center">
+            <Info className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+            <p className="text-sm text-muted-foreground">
+                FODMAPSafe helps you track food and symptoms.
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+                This app is not a substitute for professional medical advice.
+            </p>
+        </div>
       </main>
     </div>
   );
