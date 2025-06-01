@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -27,7 +28,7 @@ const FoodFODMAPProfileSchema = z.object({
 
 export type FoodFODMAPProfile = z.infer<typeof FoodFODMAPProfileSchema>;
 
-// We need to include portion information for the food item being checked and for the safe foods.
+// This is the schema for the main flow input. fodmapProfile is an object.
 const FoodItemWithPortionProfileSchema = z.object({
   name: z.string().describe("Name of the food item."),
   portionSize: z.string().describe("Portion size (e.g., '100', '1/2')."),
@@ -41,6 +42,23 @@ const FoodSimilarityInputSchema = z.object({
 });
 
 export type FoodSimilarityInput = z.infer<typeof FoodSimilarityInputSchema>;
+
+// This is the schema for the prompt's input. fodmapProfile is a JSON string.
+const PromptInputSchema = z.object({
+  currentFoodItem: z.object({
+    name: z.string(),
+    portionSize: z.string(),
+    portionUnit: z.string(),
+    fodmapProfile: z.string().describe('JSON string of the detailed FODMAP profile.'),
+  }),
+  userSafeFoodItems: z.array(z.object({
+    name: z.string(),
+    portionSize: z.string(),
+    portionUnit: z.string(),
+    fodmapProfile: z.string().describe('JSON string of the detailed FODMAP profile.'),
+  })),
+});
+
 
 const FoodSimilarityOutputSchema = z.object({
   isSimilar: z.boolean().describe('Indicates whether the current food item is similar to any of the user-defined safe foods, considering both FODMAP profile and portion context.'),
@@ -58,21 +76,21 @@ export async function isSimilarToSafeFoods(input: FoodSimilarityInput): Promise<
 
 const foodSimilarityPrompt = ai.definePrompt({
   name: 'foodSimilarityPrompt',
-  input: {schema: FoodSimilarityInputSchema},
+  input: {schema: PromptInputSchema}, // Use the schema with stringified profiles
   output: {schema: FoodSimilarityOutputSchema},
   prompt: `You are an AI assistant that determines whether a given food item (with its specific portion) is similar to any of a user's "safe" foods (each with their specific saved portion and FODMAP profile).
 
   Current Food Item to Check:
   Name: {{{currentFoodItem.name}}}
   Portion: {{{currentFoodItem.portionSize}}} {{{currentFoodItem.portionUnit}}}
-  FODMAP Profile (estimated for this portion): {{JSON.stringify currentFoodItem.fodmapProfile}}
+  FODMAP Profile (estimated for this portion, as JSON string): {{{currentFoodItem.fodmapProfile}}}
 
-  User's Safe Foods (with their saved "safe" portions and profiles):
+  User's Safe Foods (with their saved "safe" portions and profiles, as JSON strings):
   {{#each userSafeFoodItems}}
-  - Name: {{{this.name}}}, Portion: {{{this.portionSize}}} {{{this.portionUnit}}}, FODMAP Profile: {{JSON.stringify this.fodmapProfile}}
+  - Name: {{{this.name}}}, Portion: {{{this.portionSize}}} {{{this.portionUnit}}}, FODMAP Profile: {{{this.fodmapProfile}}}
   {{/each}}
 
-  Analyze the FODMAP profiles AND the portion contexts.
+  Analyze the FODMAP profiles (provided as JSON strings) AND the portion contexts.
   A food is "similar" if its FODMAP profile at the given portion is comparable to the FODMAP profile of one of the user's safe foods *at its saved safe portion*.
   Consider if the types and levels of FODMAPs (fructans, GOS, lactose, excess fructose, sorbitol, mannitol) in the current item are low AND align with at least one safe food's profile.
   Minor variations in portion might be acceptable if the FODMAP load remains similar and low.
@@ -87,14 +105,27 @@ const foodSimilarityPrompt = ai.definePrompt({
 const foodSimilarityFlow = ai.defineFlow(
   {
     name: 'foodSimilarityFlow',
-    inputSchema: FoodSimilarityInputSchema,
+    inputSchema: FoodSimilarityInputSchema, // Original schema for the flow's external contract
     outputSchema: FoodSimilarityOutputSchema,
   },
-  async input => {
-    const {output} = await foodSimilarityPrompt(input);
+  async (input: FoodSimilarityInput): Promise<FoodSimilarityOutput> => { // Typed with original input
+    // Transform input for the prompt: stringify FODMAP profiles
+    const promptInputData = {
+      currentFoodItem: {
+        ...input.currentFoodItem,
+        fodmapProfile: JSON.stringify(input.currentFoodItem.fodmapProfile),
+      },
+      userSafeFoodItems: input.userSafeFoodItems.map(item => ({
+        ...item,
+        fodmapProfile: JSON.stringify(item.fodmapProfile),
+      })),
+    };
+
+    const {output} = await foodSimilarityPrompt(promptInputData); // Pass transformed input to the prompt
     return output!;
   }
 );
 
 // Export the detailed profile type for use in fodmap-detection or other places
 export type { DetailedFodmapProfileFromAI };
+
