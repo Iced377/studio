@@ -2,14 +2,15 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { LoggedFoodItem, SafeFood, UserProfile, TimelineEntry, Symptom, SymptomLog } from '@/types';
+import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info } from 'lucide-react'; // Activity for history/timeline
+import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info } from 'lucide-react';
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
 import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow';
 
 import { useToast } from '@/hooks/use-toast';
+import { useAuthContext } from '@/hooks/use-auth-context'; // Import useAuthContext
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -42,18 +43,19 @@ const generateFallbackFodmapProfile = (foodName: string): FoodFODMAPProfile => {
   };
 };
 
-const initialUserProfile: UserProfile = {
-  uid: 'local-user',
+const initialGuestProfile: UserProfile = {
+  uid: 'guest-user',
   email: null,
   displayName: 'Guest User',
   safeFoods: [],
-  premium: false, // Initialize as non-premium
+  premium: false,
 };
 
 export default function FoodTimelinePage() {
   const { toast } = useToast();
+  const { user: authUser, loading: authLoading } = useAuthContext(); // Get auth user
 
-  const [userProfile, setUserProfile] = useState<UserProfile>(initialUserProfile);
+  const [userProfile, setUserProfile] = useState<UserProfile>(initialGuestProfile);
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
   const [isLoadingAi, setIsLoadingAi] = useState<Record<string, boolean>>({});
   const [isAddFoodDialogOpen, setIsAddFoodDialogOpen] = useState(false);
@@ -65,6 +67,30 @@ export default function FoodTimelinePage() {
 
   const bannerAdUnitId = process.env.NEXT_PUBLIC_BANNER_AD_UNIT_ID;
   const interstitialAdUnitId = process.env.NEXT_PUBLIC_INTERSTITIAL_AD_UNIT_ID;
+
+  // Effect to update userProfile when authUser changes
+  useEffect(() => {
+    if (!authLoading) {
+      if (authUser) {
+        // TODO: Load user-specific data (safeFoods, premium status) from Firestore here
+        setUserProfile({
+          uid: authUser.uid,
+          email: authUser.email,
+          displayName: authUser.displayName,
+          safeFoods: [], // Placeholder, should be loaded from Firestore
+          premium: false, // Placeholder, should be loaded from Firestore
+        });
+        // Clear timeline if user changes, or load user-specific timeline
+        setTimelineEntries([]); 
+        setAiInsights([]);
+      } else {
+        setUserProfile(initialGuestProfile);
+        setTimelineEntries([]);
+        setAiInsights([]);
+      }
+    }
+  }, [authUser, authLoading]);
+
 
   const addTimelineEntry = (entry: TimelineEntry) => {
     setTimelineEntries(prevEntries => [...prevEntries, entry].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
@@ -181,10 +207,14 @@ export default function FoodTimelinePage() {
       fodmapProfile: foodItem.userFodmapProfile, 
       originalAnalysis: foodItem.fodmapData,
     };
-    setUserProfile(prev => ({
-      ...prev,
-      safeFoods: [...prev.safeFoods, newSafeFood],
-    }));
+    setUserProfile(prev => {
+        const updatedProfile = {
+         ...prev,
+          safeFoods: [...prev.safeFoods, newSafeFood],
+        };
+        // TODO: If authUser exists, save updatedProfile.safeFoods to Firestore for authUser.uid
+        return updatedProfile;
+    });
     toast({ title: 'Marked as Safe!', description: `${foodItem.name} (${foodItem.portionSize} ${foodItem.portionUnit}) added to your safe foods.`, variant: 'default' });
   };
 
@@ -254,24 +284,29 @@ export default function FoodTimelinePage() {
       setAiInsights([]);
       return;
     }
-    if (!userProfile.premium) {
+    if (!userProfile.premium && authUser) { // Only show ad if logged in and not premium
       setShowInterstitialAd(true);
     } else {
       fetchAiInsightsInternal();
     }
-  }, [timelineEntries, userProfile.premium, fetchAiInsightsInternal]);
+  }, [timelineEntries, userProfile.premium, fetchAiInsightsInternal, authUser]);
 
   useEffect(() => {
-    // Auto-fetch logic removed, user triggers insights via button
     if (timelineEntries.length === 0) {
         setAiInsights([]); 
     }
   }, [timelineEntries]);
 
   const handleUpgradeToPremium = () => {
-    setUserProfile(prev => ({ ...prev, premium: true }));
+    setUserProfile(prev => {
+        const updatedProfile = { ...prev, premium: true };
+        // TODO: If authUser exists, save updatedProfile.premium to Firestore for authUser.uid
+        if (authUser) {
+            console.log(`Simulating saving premium status for user ${authUser.uid} to Firestore.`);
+        }
+        return updatedProfile;
+    });
     toast({ title: "Upgrade Successful!", description: "You are now a Premium user. Ads have been removed." });
-    // TODO: Persist premium status in Firestore once auth is re-integrated.
   };
 
   const handleInterstitialClosed = (continuedToInsights: boolean) => {
@@ -283,9 +318,16 @@ export default function FoodTimelinePage() {
 
   const isAnyItemLoadingAi = Object.values(isLoadingAi).some(loading => loading);
 
+  if (authLoading) {
+     return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-128px)] bg-background">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
-      {/* Main Action Area */}
       <header className="sticky top-[calc(var(--navbar-height,64px)+0.5rem)] bg-background/80 backdrop-blur-md z-40 py-6 mb-6 shadow-xl rounded-b-2xl">
         <div className="container mx-auto flex flex-col items-center gap-4">
           <Button 
@@ -300,7 +342,7 @@ export default function FoodTimelinePage() {
             <Button variant="outline" className="border-accent text-accent-foreground hover:bg-accent/20" onClick={() => openSymptomDialog()}>
               <ListChecks className="mr-2 h-5 w-5" /> Log Symptoms
             </Button>
-            <Button variant="outline" className="border-accent text-accent-foreground hover:bg-accent/20" onClick={triggerFetchAiInsights} disabled={isLoadingInsights || showInterstitialAd}>
+            <Button variant="outline" className="border-accent text-accent-foreground hover:bg-accent/20" onClick={triggerFetchAiInsights} disabled={isLoadingInsights || (showInterstitialAd && authUser && !userProfile.premium) }>
               {isLoadingInsights ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Brain className="mr-2 h-5 w-5" />}
               Get Insights
             </Button>
@@ -320,7 +362,7 @@ export default function FoodTimelinePage() {
         context={symptomDialogContext}
         allSymptoms={COMMON_SYMPTOMS}
       />
-      {showInterstitialAd && !userProfile.premium && (
+      {showInterstitialAd && authUser && !userProfile.premium && (
         <InterstitialAdPlaceholder
           isOpen={showInterstitialAd}
           onClose={() => handleInterstitialClosed(false)}
@@ -352,7 +394,6 @@ export default function FoodTimelinePage() {
           </Card>
         )}
         
-        {/* Timeline Section */}
         <div className="space-y-6">
           {timelineEntries.length === 0 && !isAnyItemLoadingAi && (
             <Card className="text-center py-12 bg-card border-border shadow-md">
@@ -360,6 +401,7 @@ export default function FoodTimelinePage() {
                 <Utensils className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
                 <h2 className="text-2xl font-semibold font-headline mb-2 text-foreground">Your Timeline is Empty</h2>
                 <p className="text-muted-foreground mb-6">Tap the central button to log your first food item or symptom.</p>
+                 {!authUser && <p className="text-muted-foreground">Consider <Link href="/login" className="underline text-primary">logging in</Link> to save your data.</p>}
               </CardContent>
             </Card>
           )}
@@ -391,7 +433,7 @@ export default function FoodTimelinePage() {
           })}
         </div>
         
-        {!userProfile.premium && (
+        {authUser && !userProfile.premium && (
           <div className="mt-8">
             <BannerAdPlaceholder adUnitId={bannerAdUnitId} />
           </div>
@@ -424,7 +466,7 @@ export default function FoodTimelinePage() {
                 </ul>
               </ScrollArea>
             )}
-             {!userProfile.premium && (
+             {authUser && !userProfile.premium && (
                 <div className="mt-6 text-center">
                     <Button onClick={handleUpgradeToPremium} className="bg-gray-200 text-black hover:bg-gray-300">
                         Upgrade to Premium - Remove Ads
@@ -432,8 +474,13 @@ export default function FoodTimelinePage() {
                     <p className="text-xs text-muted-foreground mt-2">Current Status: Free User</p>
                 </div>
             )}
-            {userProfile.premium && (
+            {authUser && userProfile.premium && (
                  <p className="text-sm text-center text-green-400 mt-4">Premium User - Ads Removed</p>
+            )}
+             {!authUser && (
+                 <p className="text-sm text-center text-muted-foreground mt-4">
+                    <Link href="/login" className="underline text-primary">Login</Link> to save your safe foods and sync across devices.
+                </p>
             )}
           </CardContent>
         </Card>
