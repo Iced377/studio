@@ -6,7 +6,8 @@ export type FodmapScore = 'Green' | 'Yellow' | 'Red';
 
 export interface LoggedFoodItem {
   id: string; // Unique ID for the logged item
-  name: string;
+  name: string; // Can be user-defined or AI-generated witty name
+  originalName?: string; // If name is witty, this can store the AI-derived primary food item name
   ingredients: string; // Comma-separated
   portionSize: string; // e.g., "100", "0.5", "1"
   portionUnit: string; // e.g., "g", "cup", "medium apple"
@@ -19,6 +20,7 @@ export interface LoggedFoodItem {
   carbs?: number; // Estimated carbs in grams
   fat?: number; // Estimated fat in grams
   entryType: 'food';
+  sourceDescription?: string; // For new logging flow: the raw user description
 }
 
 export interface Symptom {
@@ -57,9 +59,7 @@ export interface SafeFood {
   ingredients: string;
   portionSize: string;
   portionUnit: string;
-  // This is the detailed FODMAP profile required by isSimilarToSafeFoods
   fodmapProfile: FoodFODMAPProfile;
-  // Store original AI analysis if available
   originalAnalysis?: AnalyzeFoodItemOutput;
 }
 
@@ -68,10 +68,9 @@ export interface UserProfile {
   email: string | null;
   displayName: string | null;
   safeFoods: SafeFood[];
-  premium?: boolean; // Added for premium status
+  premium?: boolean;
 }
 
-// Re-export for convenience if used elsewhere, though fodmap-detection now provides it.
 export type { DetailedFodmapProfileFromAI };
 
 export interface DailyNutritionSummary {
@@ -79,4 +78,10 @@ export interface DailyNutritionSummary {
   protein: number;
   carbs: number;
   fat: number;
+}
+
+export interface DailyFodmapCount {
+  green: number;
+  yellow: number;
+  red: number;
 }

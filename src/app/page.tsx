@@ -3,12 +3,14 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary } from '@/types';
+import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary, DailyFodmapCount } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp } from 'lucide-react';
+import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp, CircleDotDashed } from 'lucide-react'; // Added CircleDotDashed
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
 import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow';
+import { processMealDescription, type ProcessMealDescriptionOutput } from '@/ai/flows/process-meal-description-flow';
+
 
 import { useToast } from '@/hooks/use-toast';
 import { useAuthContext } from '@/hooks/use-auth-context';
@@ -33,7 +35,9 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import AddFoodItemDialog from '@/components/food-logging/AddFoodItemDialog';
+import SimplifiedAddFoodDialog from '@/components/food-logging/SimplifiedAddFoodDialog';
 import TimelineFoodCard from '@/components/food-logging/TimelineFoodCard';
 import TimelineSymptomCard from '@/components/food-logging/TimelineSymptomCard';
 import SymptomLoggingDialog from '@/components/food-logging/SymptomLoggingDialog';
@@ -41,6 +45,9 @@ import InsightCard from '@/components/insights/InsightCard';
 import DailyTotalsCard from '@/components/insights/DailyTotalsCard';
 import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder';
 import InterstitialAdPlaceholder from '@/components/ads/InterstitialAdPlaceholder';
+import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet'; // New Premium Sheet
+import Navbar from '@/components/shared/Navbar'; // Import Navbar for non-premium
+
 
 const generateFallbackFodmapProfile = (foodName: string): FoodFODMAPProfile => {
   let hash = 0;
@@ -71,7 +78,7 @@ const initialGuestProfile: UserProfile = {
   premium: false,
 };
 
-type PendingAction = 'logFood' | 'getInsights' | null;
+type PendingAction = 'logFood' | 'getInsights' | 'simplifiedLogFood' | null;
 
 export default function FoodTimelinePage() {
   const { toast } = useToast();
@@ -81,6 +88,7 @@ export default function FoodTimelinePage() {
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
   const [isLoadingAi, setIsLoadingAi] = useState<Record<string, boolean>>({});
   const [isAddFoodDialogOpen, setIsAddFoodDialogOpen] = useState(false);
+  const [isSimplifiedAddFoodDialogOpen, setIsSimplifiedAddFoodDialogOpen] = useState(false);
   const [isSymptomLogDialogOpen, setIsSymptomLogDialogOpen] = useState(false);
   const [symptomDialogContext, setSymptomDialogContext] = useState<{ foodItemIds?: string[] }>({});
   const [aiInsights, setAiInsights] = useState<SymptomCorrelationOutput['insights']>([]);
@@ -88,6 +96,8 @@ export default function FoodTimelinePage() {
   const [showInterstitialAd, setShowInterstitialAd] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [pendingActionAfterInterstitial, setPendingActionAfterInterstitial] = useState<PendingAction>(null);
+  const [isPremiumDashboardOpen, setIsPremiumDashboardOpen] = useState(false);
+  const [isCentralPopoverOpen, setIsCentralPopoverOpen] = useState(false);
 
 
   const bannerAdUnitId = process.env.NEXT_PUBLIC_BANNER_AD_UNIT_ID;
@@ -98,12 +108,11 @@ export default function FoodTimelinePage() {
       setIsDataLoading(true);
 
       if (authLoading) {
-        // toast({ title: "Authenticating...", description: "Please wait while we check your session." });
         return;
       }
 
       if (authUser) {
-        toast({ title: "Loading User Data", description: "Fetching your profile and timeline..." });
+        // toast({ title: "Loading User Data", description: "Fetching your profile and timeline..." });
         const userDocRef = doc(db, 'users', authUser.uid);
         const timelineEntriesColRef = collection(db, 'users', authUser.uid, 'timelineEntries');
 
@@ -118,9 +127,9 @@ export default function FoodTimelinePage() {
               safeFoods: data.safeFoods || [],
               premium: data.premium || false,
             });
-            toast({ title: "Profile Loaded", description: `Welcome back, ${authUser.displayName || 'User'}! Your settings are up to date.` });
+            // toast({ title: "Profile Loaded", description: `Welcome back, ${authUser.displayName || 'User'}! Your settings are up to date.` });
           } else {
-            toast({ title: "New User Setup", description: "Creating your profile..." });
+            // toast({ title: "New User Setup", description: "Creating your profile..." });
             const newUserProfile: UserProfile = {
               uid: authUser.uid,
               email: authUser.email,
@@ -130,7 +139,7 @@ export default function FoodTimelinePage() {
             };
             await setDoc(userDocRef, newUserProfile);
             setUserProfile(newUserProfile);
-            toast({ title: "Profile Created!", description: `Welcome, ${authUser.displayName || 'User'}! Your new profile is ready.` });
+            // toast({ title: "Profile Created!", description: `Welcome, ${authUser.displayName || 'User'}! Your new profile is ready.` });
           }
 
           const q = query(timelineEntriesColRef, orderBy('timestamp', 'desc'));
@@ -144,12 +153,6 @@ export default function FoodTimelinePage() {
             } as TimelineEntry;
           });
           setTimelineEntries(fetchedEntries);
-
-          if (fetchedEntries.length > 0) {
-            toast({ title: "Timeline Loaded", description: "Your food and symptom history is ready." });
-          } else {
-             toast({ title: "Timeline Ready", description: "Your timeline is empty. Start logging!" });
-          }
           
         } catch (error) {
           console.error("Error loading user data from Firestore:", error);
@@ -179,7 +182,7 @@ export default function FoodTimelinePage() {
         setUserProfile(initialGuestProfile);
         setTimelineEntries([]);
         setAiInsights([]);
-        toast({ title: "Guest Mode", description: "Log in to save your data and access personalized insights."});
+        // toast({ title: "Guest Mode", description: "Log in to save your data and access personalized insights."});
         setIsDataLoading(false);
       }
     };
@@ -193,7 +196,7 @@ export default function FoodTimelinePage() {
   };
 
   const handleAddFoodItem = async (
-    foodItemData: Omit<LoggedFoodItem, 'id' | 'timestamp' | 'entryType' | 'calories' | 'protein' | 'carbs' | 'fat'>
+    foodItemData: Omit<LoggedFoodItem, 'id' | 'timestamp' | 'entryType' | 'calories' | 'protein' | 'carbs' | 'fat' | 'sourceDescription' | 'originalName'>
   ) => {
     const newItemId = `food-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     setIsLoadingAi(prev => ({ ...prev, [newItemId]: true }));
@@ -258,7 +261,6 @@ export default function FoodTimelinePage() {
       }
       addTimelineEntry(newFoodItem);
 
-
     } catch (error: any) {
       console.error('AI analysis or food logging failed:', error);
       let toastTitle = 'Error Logging Food';
@@ -305,7 +307,6 @@ export default function FoodTimelinePage() {
                 timestamp: Timestamp.fromDate(newFoodItem.timestamp)
             });
             newFoodItem.id = docRef.id;
-            // toast({ title: "Food Logged & Saved (Partial AI)", description: `${newFoodItem.name} added. AI analysis was skipped or incomplete.` });
         } catch (saveError: any) {
             console.error("Error saving partially processed food item to Firestore:", saveError);
              let saveErrorDesc = "Could not save food item to cloud after AI failure. Please try again.";
@@ -323,6 +324,145 @@ export default function FoodTimelinePage() {
       setIsAddFoodDialogOpen(false);
     }
   };
+
+  const handleProcessMealDescription = async (description: string) => {
+    const newItemId = `food-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    setIsLoadingAi(prev => ({ ...prev, [newItemId]: true }));
+    
+    let mealDescriptionOutput: ProcessMealDescriptionOutput | undefined;
+    let fodmapAnalysis: AnalyzeFoodItemOutput | undefined;
+    let similarityOutput: FoodSimilarityOutput | undefined;
+    let newFoodItem: LoggedFoodItem;
+
+    try {
+      // Step 1: Process description for witty name and structured data
+      mealDescriptionOutput = await processMealDescription({ mealDescription: description });
+
+      // Step 2: Analyze extracted data for FODMAPs and nutrition
+      fodmapAnalysis = await analyzeFoodItem({
+        foodItem: mealDescriptionOutput.primaryFoodItemForAnalysis,
+        ingredients: mealDescriptionOutput.consolidatedIngredients,
+        portionSize: mealDescriptionOutput.estimatedPortionSize,
+        portionUnit: mealDescriptionOutput.estimatedPortionUnit,
+      });
+      
+      const itemFodmapProfileForSimilarity: FoodFODMAPProfile = fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(mealDescriptionOutput.primaryFoodItemForAnalysis);
+
+      // Step 3: Check similarity with safe foods (if any)
+      if (userProfile.safeFoods && userProfile.safeFoods.length > 0) {
+         const safeFoodItemsForSimilarity = userProfile.safeFoods.map(sf => ({
+            name: sf.name,
+            portionSize: sf.portionSize,
+            portionUnit: sf.portionUnit,
+            fodmapProfile: sf.fodmapProfile,
+        }));
+        similarityOutput = await isSimilarToSafeFoods({
+          currentFoodItem: {
+            name: mealDescriptionOutput.primaryFoodItemForAnalysis,
+            portionSize: mealDescriptionOutput.estimatedPortionSize,
+            portionUnit: mealDescriptionOutput.estimatedPortionUnit,
+            fodmapProfile: itemFodmapProfileForSimilarity
+          },
+          userSafeFoodItems: safeFoodItemsForSimilarity,
+        });
+      }
+
+      newFoodItem = {
+        id: newItemId,
+        name: mealDescriptionOutput.wittyName, // Use witty name for display
+        originalName: mealDescriptionOutput.primaryFoodItemForAnalysis, // Store original name for reference
+        ingredients: mealDescriptionOutput.consolidatedIngredients,
+        portionSize: mealDescriptionOutput.estimatedPortionSize,
+        portionUnit: mealDescriptionOutput.estimatedPortionUnit,
+        sourceDescription: description, // Store the original user input
+        timestamp: new Date(),
+        fodmapData: fodmapAnalysis,
+        isSimilarToSafe: similarityOutput?.isSimilar ?? false,
+        userFodmapProfile: itemFodmapProfileForSimilarity,
+        calories: fodmapAnalysis?.calories,
+        protein: fodmapAnalysis?.protein,
+        carbs: fodmapAnalysis?.carbs,
+        fat: fodmapAnalysis?.fat,
+        entryType: 'food',
+      };
+
+      if (authUser && authUser.uid !== 'guest-user') {
+        const { id, ...itemToSave } = newFoodItem;
+        const docRef = await addDoc(collection(db, 'users', authUser.uid, 'timelineEntries'), {
+            ...itemToSave,
+            timestamp: Timestamp.fromDate(newFoodItem.timestamp)
+        });
+        newFoodItem.id = docRef.id; // Update with Firestore ID
+        toast({ title: "Meal Logged!", description: `"${newFoodItem.name}" added with AI insights.` });
+      } else {
+         toast({ title: "Meal Logged (Locally)", description: `"${newFoodItem.name}" added. Login to save.` });
+      }
+      addTimelineEntry(newFoodItem);
+
+    } catch (error: any) {
+        console.error('Full AI meal processing failed:', error);
+        let toastTitle = 'Error Logging Meal';
+        let toastDescription = 'Could not fully process meal. Saved with available data.';
+        // Enhanced error feedback logic similar to handleAddFoodItem
+        if (error?.message && typeof error.message === 'string') {
+          const errorMessageLower = error.message.toLowerCase();
+          if (errorMessageLower.includes('503') || errorMessageLower.includes('model is overloaded') || errorMessageLower.includes('resource has been exhausted')) {
+            toastTitle = 'AI Model Overloaded';
+            toastDescription = 'AI is busy. Meal added with basic info. Try AI analysis again later.';
+          } else if (errorMessageLower.includes('400') || errorMessageLower.includes('schema validation') || errorMessageLower.includes('invalid argument')) {
+            toastTitle = 'AI Analysis Input/Output Error';
+            toastDescription = 'AI had trouble understanding the meal. Meal added with basic info.';
+          } else if (errorMessageLower.includes('api key') || errorMessageLower.includes('permission denied')) {
+              toastTitle = 'AI Service Access Issue';
+              toastDescription = 'Could not access AI services. Meal added with basic info.';
+          } else {
+              toastDescription = `Error: ${error.message.substring(0,100)}. Meal added with basic info.`;
+          }
+        }
+        toast({ title: toastTitle, description: toastDescription, variant: 'destructive', duration: 9000 });
+
+        // Fallback: Log with whatever data was processed, or just the description
+        newFoodItem = {
+            id: newItemId,
+            name: mealDescriptionOutput?.wittyName || "Meal (Analysis Pending)",
+            originalName: mealDescriptionOutput?.primaryFoodItemForAnalysis || description.substring(0,30) + "...",
+            ingredients: mealDescriptionOutput?.consolidatedIngredients || "See description",
+            portionSize: mealDescriptionOutput?.estimatedPortionSize || "N/A",
+            portionUnit: mealDescriptionOutput?.estimatedPortionUnit || "",
+            sourceDescription: description,
+            timestamp: new Date(),
+            fodmapData: fodmapAnalysis, // Might be undefined
+            isSimilarToSafe: similarityOutput?.isSimilar ?? false, // Default to false
+            userFodmapProfile: fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(mealDescriptionOutput?.primaryFoodItemForAnalysis || "fallback"),
+            calories: fodmapAnalysis?.calories,
+            protein: fodmapAnalysis?.protein,
+            carbs: fodmapAnalysis?.carbs,
+            fat: fodmapAnalysis?.fat,
+            entryType: 'food',
+        };
+
+        if (authUser && authUser.uid !== 'guest-user') {
+            const { id, ...itemToSave } = newFoodItem;
+            try {
+                const docRef = await addDoc(collection(db, 'users', authUser.uid, 'timelineEntries'), {
+                    ...itemToSave,
+                    timestamp: Timestamp.fromDate(newFoodItem.timestamp)
+                });
+                newFoodItem.id = docRef.id;
+            } catch (saveError: any) {
+                 console.error("Error saving partially processed meal item to Firestore:", saveError);
+                 toast({ title: "Meal Save Error (Partial AI)", description: "Could not save meal to cloud after AI issue. Item logged locally only.", variant: 'destructive'});
+            }
+        } else {
+             toast({ title: "Meal Logged (Locally, Partial AI)", description: `Meal added with limited AI analysis. Login to save.`, variant: 'destructive'});
+        }
+        addTimelineEntry(newFoodItem);
+    } finally {
+      setIsLoadingAi(prev => ({ ...prev, [newItemId]: false }));
+      setIsSimplifiedAddFoodDialogOpen(false);
+    }
+  };
+
 
   const handleLogSymptoms = async (symptoms: Symptom[], notes?: string, severity?: number, linkedFoodItemIds?: string[]) => {
     let newSymptomLog: SymptomLog = {
@@ -425,6 +565,7 @@ export default function FoodTimelinePage() {
   const openSymptomDialog = (foodItemIds?: string[]) => {
     setSymptomDialogContext({ foodItemIds });
     setIsSymptomLogDialogOpen(true);
+    setIsCentralPopoverOpen(false); // Close popover if open
   };
 
   const fetchAiInsightsInternal = useCallback(async () => {
@@ -434,7 +575,7 @@ export default function FoodTimelinePage() {
         .filter((e): e is LoggedFoodItem => e.entryType === 'food')
         .map(e => ({
           id: e.id,
-          name: e.name,
+          name: e.originalName || e.name, // Use original name for analysis if witty name exists
           ingredients: e.ingredients,
           portionSize: e.portionSize,
           portionUnit: e.portionUnit,
@@ -492,6 +633,7 @@ export default function FoodTimelinePage() {
   }, [timelineEntries, userProfile.safeFoods, toast]);
 
   const handleGetInsightsClick = () => {
+    setIsCentralPopoverOpen(false); // Close popover
     if (timelineEntries.filter(e => e.entryType === 'food').length < 1 && timelineEntries.filter(e => e.entryType === 'symptom').length < 1) {
       setAiInsights([]);
       toast({title: "No Data for Insights", description: "Please log some food items or symptoms first.", variant: "default"});
@@ -506,6 +648,7 @@ export default function FoodTimelinePage() {
   };
 
   const handleLogFoodClick = () => {
+    setIsCentralPopoverOpen(false); // Close popover
     if (authUser && authUser.uid !== 'guest-user' && !userProfile.premium) {
       setPendingActionAfterInterstitial('logFood');
       setShowInterstitialAd(true);
@@ -513,6 +656,18 @@ export default function FoodTimelinePage() {
       setIsAddFoodDialogOpen(true);
     }
   };
+  
+  const handleSimplifiedLogFoodClick = () => {
+    setIsCentralPopoverOpen(false); // Close popover
+    if (authUser && authUser.uid !== 'guest-user' && !userProfile.premium) {
+      // For simplicity, simplified logging might be a premium feature itself or follow same ad logic
+      setPendingActionAfterInterstitial('simplifiedLogFood');
+      setShowInterstitialAd(true);
+    } else {
+      setIsSimplifiedAddFoodDialogOpen(true);
+    }
+  };
+
 
   useEffect(() => {
     if (timelineEntries.length === 0 && !isDataLoading && authUser && !authLoading) {
@@ -528,7 +683,7 @@ export default function FoodTimelinePage() {
             setUserProfile(prev => ({ ...prev, premium: true }));
             toast({ 
               title: "Premium Status Activated! (Simulated)", 
-              description: "Ads removed. This is a simulation - no real payment was processed." 
+              description: "Ads removed & premium features unlocked. This is a simulation - no real payment was processed." 
             });
         } catch (error) {
             console.error("Error updating premium status in Firestore:", error);
@@ -542,9 +697,11 @@ export default function FoodTimelinePage() {
         setUserProfile(prev => ({ ...prev, premium: true }));
         toast({ 
           title: "Premium Activated (Locally, Simulated)", 
-          description: "Ads removed for this session. Login to save this status. (This is a simulation - no real payment was processed)." 
+          description: "Ads removed & premium features unlocked for this session. Login to save this status. (This is a simulation - no real payment was processed)." 
         });
     }
+    // Close dashboard if it was open to reflect changes, or if upgrade button is inside it.
+    setIsPremiumDashboardOpen(false);
   };
 
   const handleInterstitialClosed = (continued: boolean) => {
@@ -552,6 +709,8 @@ export default function FoodTimelinePage() {
     if (continued) {
       if (pendingActionAfterInterstitial === 'logFood') {
         setIsAddFoodDialogOpen(true);
+      } else if (pendingActionAfterInterstitial === 'simplifiedLogFood') {
+        setIsSimplifiedAddFoodDialogOpen(true);
       } else if (pendingActionAfterInterstitial === 'getInsights') {
         fetchAiInsightsInternal();
       }
@@ -563,10 +722,10 @@ export default function FoodTimelinePage() {
 
   const dailyNutritionSummary = useMemo<DailyNutritionSummary>(() => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Start of today
+    today.setHours(0, 0, 0, 0); 
 
     const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1); // Start of tomorrow
+    tomorrow.setDate(today.getDate() + 1); 
 
     let totals: DailyNutritionSummary = { calories: 0, protein: 0, carbs: 0, fat: 0 };
 
@@ -584,10 +743,31 @@ export default function FoodTimelinePage() {
     return totals;
   }, [timelineEntries]);
 
+  const dailyFodmapCount = useMemo<DailyFodmapCount>(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    const counts: DailyFodmapCount = { green: 0, yellow: 0, red: 0 };
+    timelineEntries.forEach(entry => {
+      if (entry.entryType === 'food') {
+        const entryDate = new Date(entry.timestamp);
+        if (entryDate >= today && entryDate < tomorrow) {
+          const risk = entry.fodmapData?.overallRisk;
+          if (risk === 'Green') counts.green++;
+          else if (risk === 'Yellow') counts.yellow++;
+          else if (risk === 'Red') counts.red++;
+        }
+      }
+    });
+    return counts;
+  }, [timelineEntries]);
+
 
   if (authLoading || (isDataLoading && !authUser && !timelineEntries.length && authUser === null)) {
      return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-128px)] bg-background">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
          <p className="ml-4 text-lg text-foreground">{authLoading ? "Authenticating..." : "Initializing App..."}</p>
       </div>
@@ -596,16 +776,118 @@ export default function FoodTimelinePage() {
   
   if (isDataLoading && authUser && !authLoading) {
      return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-128px)] bg-background">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
          <p className="ml-4 text-lg text-foreground">Loading your personalized data...</p>
       </div>
     );
   }
 
+  // Premium User UI
+  if (userProfile.premium) {
+    return (
+      <div className="min-h-screen flex flex-col bg-black text-white relative overflow-hidden">
+        {/* Central Action Button */}
+        <div className="flex-grow flex items-center justify-center">
+          <Popover open={isCentralPopoverOpen} onOpenChange={setIsCentralPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="rounded-full h-32 w-32 sm:h-40 sm:w-40 border-2 border-white bg-transparent animate-pulse-soft hover:bg-white/10 focus:bg-white/10 focus:ring-white focus:ring-offset-black focus:ring-offset-2"
+                aria-label="Open Actions Menu"
+                // onClick={() => console.log("Haptic feedback placeholder")} // Placeholder for haptic feedback
+              >
+                <CircleDotDashed className="h-16 w-16 sm:h-20 sm:w-20 text-white" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent 
+                side="top" 
+                align="center" 
+                className="w-auto bg-card text-card-foreground border-border shadow-xl rounded-xl p-0"
+                onInteractOutside={() => setIsCentralPopoverOpen(false)}
+            >
+                <div className="flex flex-col gap-1 p-2">
+                     <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 hover:bg-accent" onClick={handleSimplifiedLogFoodClick}>
+                        <PlusCircle className="mr-3 h-5 w-5" /> Log Food (AI)
+                    </Button>
+                    <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 hover:bg-accent" onClick={() => openSymptomDialog()}>
+                        <ListChecks className="mr-3 h-5 w-5" /> Log Symptoms
+                    </Button>
+                    <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 hover:bg-accent" onClick={handleGetInsightsClick} disabled={isLoadingInsights}>
+                        {isLoadingInsights ? <Loader2 className="mr-3 h-5 w-5 animate-spin" /> : <Brain className="mr-3 h-5 w-5" />}
+                        Get Insights
+                    </Button>
+                </div>
+            </PopoverContent>
+          </Popover>
+        </div>
 
+        {/* Slide-Up Dashboard Panel Trigger (Subtle) */}
+        {/* The actual trigger is the children of PremiumDashboardSheet */}
+        <PremiumDashboardSheet
+            isOpen={isPremiumDashboardOpen}
+            onOpenChange={setIsPremiumDashboardOpen}
+            userProfile={userProfile}
+            timelineEntries={timelineEntries}
+            dailyNutritionSummary={dailyNutritionSummary}
+            dailyFodmapCount={dailyFodmapCount}
+            isLoadingAi={isLoadingAi}
+            onMarkAsSafe={handleMarkAsSafe}
+            onRemoveTimelineEntry={handleRemoveTimelineEntry}
+            onLogSymptomsForFood={openSymptomDialog}
+            onUpgradeClick={handleUpgradeToPremium} // Pass it down
+            onEditIngredients={(itemToEdit) => {
+              // Placeholder for edit functionality if needed
+              toast({title: "Edit Meal", description: `Editing "${itemToEdit.name}" (functionality to be implemented).`});
+            }}
+        >
+            <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4">
+                <Button 
+                    variant="ghost" 
+                    className="text-xs text-muted-foreground/70 hover:text-muted-foreground hover:bg-white/5 py-1 px-3 rounded-full"
+                    onClick={() => setIsPremiumDashboardOpen(true)}
+                    aria-label="Open Dashboard"
+                >
+                    Swipe Up or Tap to View Dashboard
+                </Button>
+            </div>
+        </PremiumDashboardSheet>
+        
+        <SimplifiedAddFoodDialog
+          isOpen={isSimplifiedAddFoodDialogOpen}
+          onOpenChange={setIsSimplifiedAddFoodDialogOpen}
+          onProcessDescription={handleProcessMealDescription}
+        />
+        <SymptomLoggingDialog
+            isOpen={isSymptomLogDialogOpen}
+            onOpenChange={setIsSymptomLogDialogOpen}
+            onLogSymptoms={handleLogSymptoms}
+            context={symptomDialogContext}
+            allSymptoms={COMMON_SYMPTOMS}
+        />
+        {isAnyItemLoadingAi && (
+            <div className="fixed bottom-20 right-4 bg-gray-800 text-white p-3 rounded-lg shadow-lg flex items-center space-x-2 z-50">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>AI is analyzing...</span>
+            </div>
+        )}
+        <style jsx global>{`
+            .animate-pulse-soft {
+                animation: pulse-soft 2.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
+            }
+            @keyframes pulse-soft {
+                0%, 100% { box-shadow: 0 0 0 0px rgba(255, 255, 255, 0.3); }
+                50% { box-shadow: 0 0 0 15px rgba(255, 255, 255, 0); }
+            }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Standard (Non-Premium) User UI
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <Navbar onUpgradeClick={handleUpgradeToPremium} isPremium={userProfile.premium || false} />
       <header className="sticky top-16 bg-background/80 backdrop-blur-md z-40 py-6 mb-6 shadow-xl rounded-b-2xl">
         <div className="container mx-auto flex flex-col items-center gap-4">
           <Button
@@ -647,7 +929,7 @@ export default function FoodTimelinePage() {
           onClose={() => handleInterstitialClosed(false)}
           onContinue={() => handleInterstitialClosed(true)}
           adUnitId={interstitialAdUnitId}
-          actionName={pendingActionAfterInterstitial === 'logFood' ? 'Log Food' : 'Get Insights'}
+          actionName={pendingActionAfterInterstitial === 'logFood' ? 'Log Food' : pendingActionAfterInterstitial === 'simplifiedLogFood' ? 'Log Food (AI)' : 'Get Insights'}
         />
       )}
 
@@ -701,6 +983,9 @@ export default function FoodTimelinePage() {
                   onLogSymptoms={() => openSymptomDialog([entry.id])}
                   isSafeFood={userProfile.safeFoods.some(sf => sf.name === entry.name && sf.ingredients === entry.ingredients && sf.portionSize === entry.portionSize && sf.portionUnit === entry.portionUnit)}
                   isLoadingAi={!!isLoadingAi[entry.id]}
+                  onEditIngredients={(itemToEdit) => {
+                      toast({title: "Edit Meal", description: `Editing "${itemToEdit.name}" (functionality to be implemented for standard UI).`});
+                  }}
                 />
               );
             }
@@ -753,7 +1038,7 @@ export default function FoodTimelinePage() {
              {authUser && authUser.uid !== 'guest-user' && !userProfile.premium && (
                 <div className="mt-6 text-center">
                     <Button onClick={handleUpgradeToPremium} className="bg-gray-200 text-black hover:bg-gray-300">
-                        Upgrade to Premium - Remove Ads (Simulated)
+                        <Zap className="mr-2 h-4 w-4" /> Upgrade to Premium (Simulated)
                     </Button>
                     <p className="text-xs text-muted-foreground mt-2">Current Status: Free User</p>
                 </div>

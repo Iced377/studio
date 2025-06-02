@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import FodmapIndicator from '@/components/shared/FodmapIndicator';
 import { Badge } from '@/components/ui/badge';
-import { ThumbsUp, Trash2, CheckCheck, ListChecks, Loader2, Flame, Beef, Wheat, Droplet } from 'lucide-react';
+import { ThumbsUp, Trash2, CheckCheck, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3 } from 'lucide-react'; // Added Edit3
 import { formatDistanceToNow } from 'date-fns';
 
 interface TimelineFoodCardProps {
@@ -16,6 +16,7 @@ interface TimelineFoodCardProps {
   onLogSymptoms: (foodItemId?: string) => void;
   isSafeFood: boolean;
   isLoadingAi: boolean;
+  onEditIngredients?: (item: LoggedFoodItem) => void; // Optional: For editing
 }
 
 export default function TimelineFoodCard({ 
@@ -24,7 +25,8 @@ export default function TimelineFoodCard({
     onRemoveItem, 
     onLogSymptoms,
     isSafeFood,
-    isLoadingAi
+    isLoadingAi,
+    onEditIngredients
 }: TimelineFoodCardProps) {
 
   const handleMarkAsSafeClick = () => {
@@ -54,12 +56,19 @@ export default function TimelineFoodCard({
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="text-lg font-semibold font-headline text-foreground">{item.name}</CardTitle>
+            {item.originalName && item.originalName !== item.name && (
+              <p className="text-xs text-muted-foreground italic">(Analyzed as: {item.originalName})</p>
+            )}
             <p className="text-sm text-muted-foreground">Portion: {item.portionSize} {item.portionUnit}</p>
           </div>
           {item.fodmapData && <FodmapIndicator score={item.fodmapData.overallRisk} reason={item.fodmapData.reason} />}
           {!item.fodmapData && !isLoadingAi && <FodmapIndicator score={undefined} reason="FODMAP analysis pending or failed." />}
         </div>
-        <p className="text-xs text-muted-foreground break-words pt-1">Ingredients: {item.ingredients || 'Not specified'}</p>
+         {item.sourceDescription ? (
+           <p className="text-xs text-muted-foreground/70 italic pt-1 truncate">Original: "{item.sourceDescription}"</p>
+         ) : (
+           <p className="text-xs text-muted-foreground break-words pt-1">Ingredients: {item.ingredients || 'Not specified'}</p>
+         )}
         <p className="text-xs text-muted-foreground pt-1">Logged: {timeAgo}</p>
       </CardHeader>
       <CardContent className="px-4 pb-2 pt-1">
@@ -95,15 +104,30 @@ export default function TimelineFoodCard({
         )}
       </CardContent>
       <CardFooter className="flex flex-wrap justify-between items-center px-4 pb-4 pt-2 gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onLogSymptoms(item.id)}
-          disabled={isLoadingAi}
-          className="border-accent text-accent-foreground hover:bg-accent/20"
-        >
-          <ListChecks className="mr-2 h-4 w-4" /> Log Symptoms
-        </Button>
+        <div className="flex gap-2">
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onLogSymptoms(item.id)}
+                disabled={isLoadingAi}
+                className="border-accent text-accent-foreground hover:bg-accent/20"
+                aria-label="Log Symptoms for this item"
+            >
+                <ListChecks className="mr-2 h-4 w-4" /> Log Symptoms
+            </Button>
+            {onEditIngredients && ( // Optional Edit Button
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onEditIngredients(item)}
+                    disabled={isLoadingAi}
+                    className="border-accent text-accent-foreground hover:bg-accent/20"
+                    aria-label="Edit ingredients for this item"
+                >
+                    <Edit3 className="mr-2 h-4 w-4" /> Edit
+                </Button>
+            )}
+        </div>
         <div className="flex gap-2">
             <Button
             variant={isSafeFood ? "default" : "outline"}
@@ -111,11 +135,12 @@ export default function TimelineFoodCard({
             onClick={handleMarkAsSafeClick}
             disabled={isSafeFood || !item.fodmapData || isLoadingAi}
             className={isSafeFood ? "bg-gray-600 hover:bg-gray-500 text-white cursor-not-allowed" : "border-accent text-accent-foreground hover:bg-accent/20"}
+            aria-label={isSafeFood ? 'Marked as Safe' : 'Mark as Safe'}
             >
             {isSafeFood ? <CheckCheck className="mr-2 h-4 w-4" /> : <ThumbsUp className="mr-2 h-4 w-4" />}
-            {isSafeFood ? 'Marked Safe' : 'Mark as Safe'}
+            {isSafeFood ? 'Safe' : 'Safe?'}
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => onRemoveItem(item.id)} className="text-destructive hover:bg-destructive/20"  disabled={isLoadingAi}>
+            <Button variant="ghost" size="sm" onClick={() => onRemoveItem(item.id)} className="text-destructive hover:bg-destructive/20"  disabled={isLoadingAi} aria-label="Remove this item">
             <Trash2 className="mr-2 h-4 w-4" /> Remove
             </Button>
         </div>
