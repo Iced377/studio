@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary, DailyFodmapCount } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp, CircleDotDashed, Zap } from 'lucide-react'; 
+import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp, CircleDotDashed, Zap, Palette } from 'lucide-react'; 
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
 import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow';
@@ -158,6 +158,12 @@ export default function FoodTimelinePage() {
               errorDescription = "You appear to be offline. Could not fetch data.";
             } else if (error.message.includes("Function setDoc() called with invalid data")) {
               errorDescription = "There was an error creating your profile. Please try again.";
+            } else if (error.message.includes("FirebaseError: Missing or insufficient permissions.")) {
+              errorDescription = "Action failed due to Firestore security rules. Please check your rules configuration.";
+            } else if (error.message.includes("Firebase: Error (auth/network-request-failed)")) {
+              errorDescription = "Network error during authentication. Please check your internet connection.";
+            } else if (error.message.toLowerCase().includes("api key not valid")) {
+                errorDescription = "Firebase API Key is not valid. Please check your .env configuration.";
             }
           }
           toast({ title: "Data Load Error", description: errorDescription, variant: "destructive", duration: 9000 });
@@ -209,7 +215,7 @@ export default function FoodTimelinePage() {
       });
 
       const itemFodmapProfileForSimilarity: FoodFODMAPProfile = fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(foodItemData.name);
-      let isSimilar = false; // Default to false
+      let isSimilar = false; 
       if (userProfile.safeFoods && userProfile.safeFoods.length > 0) {
         const safeFoodItemsForSimilarity = userProfile.safeFoods.map(sf => ({
             name: sf.name,
@@ -228,6 +234,8 @@ export default function FoodTimelinePage() {
           userSafeFoodItems: safeFoodItemsForSimilarity,
         });
         isSimilar = similarityOutput?.isSimilar ?? false;
+      } else {
+        isSimilar = false; // Ensure isSimilar is always a boolean
       }
 
 
@@ -360,6 +368,8 @@ export default function FoodTimelinePage() {
           userSafeFoodItems: safeFoodItemsForSimilarity,
         });
         isSimilar = similarityOutput?.isSimilar ?? false;
+      } else {
+        isSimilar = false;
       }
 
       newFoodItem = {
@@ -696,7 +706,7 @@ export default function FoodTimelinePage() {
           description: "Ads removed & premium features unlocked for this session. Login to save this status. (This is a simulation - no real payment was processed)." 
         });
     }
-    setIsPremiumDashboardOpen(false);
+    setIsPremiumDashboardOpen(false); // Close dashboard if open during upgrade
   };
 
   const handleInterstitialClosed = (continued: boolean) => {
@@ -760,20 +770,20 @@ export default function FoodTimelinePage() {
   }, [timelineEntries]);
 
 
-  if (authLoading || (isDataLoading && !authUser && !timelineEntries.length && authUser === null)) {
+  if (authLoading) {
      return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
-         <p className="ml-4 text-lg text-foreground">{authLoading ? "Authenticating..." : "Initializing App..."}</p>
+         <p className="ml-4 text-lg text-foreground">Authenticating...</p>
       </div>
     );
   }
   
-  if (isDataLoading && authUser && !authLoading) {
+  if (isDataLoading) { // Simplified initial loading check
      return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
-         <p className="ml-4 text-lg text-foreground">Loading your personalized data...</p>
+         <p className="ml-4 text-lg text-foreground">{authUser ? "Loading your personalized data..." : "Initializing App..."}</p>
       </div>
     );
   }
@@ -782,7 +792,8 @@ export default function FoodTimelinePage() {
   if (userProfile.premium) {
     return (
       <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden">
-        {/* Central Action Button */}
+        {/* Navbar now part of PremiumDashboardSheet header */}
+        
         <div className="flex-grow flex items-center justify-center">
           <Popover open={isCentralPopoverOpen} onOpenChange={setIsCentralPopoverOpen}>
             <PopoverTrigger asChild>
@@ -831,10 +842,12 @@ export default function FoodTimelinePage() {
             onEditIngredients={(itemToEdit) => {
               toast({title: "Edit Meal", description: `Editing "${itemToEdit.name}" (functionality to be implemented).`});
             }}
-        >
+        />
+        {/* Trigger for the dashboard sheet - visible when sheet is closed */}
+        {!isPremiumDashboardOpen && (
             <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4">
-                <Button 
-                    variant="ghost" 
+                <Button
+                    variant="ghost"
                     className="text-xs text-muted-foreground/70 hover:text-muted-foreground hover:bg-muted/30 py-1 px-3 rounded-full"
                     onClick={() => setIsPremiumDashboardOpen(true)}
                     aria-label="Open Dashboard"
@@ -842,7 +855,7 @@ export default function FoodTimelinePage() {
                     Swipe Up or Tap to View Dashboard
                 </Button>
             </div>
-        </PremiumDashboardSheet>
+        )}
         
         <SimplifiedAddFoodDialog
           isOpen={isSimplifiedAddFoodDialogOpen}
@@ -922,7 +935,7 @@ export default function FoodTimelinePage() {
         context={symptomDialogContext}
         allSymptoms={COMMON_SYMPTOMS}
       />
-      {showInterstitialAd && authUser && authUser.uid !== 'guest-user' && !userProfile.premium && (
+      {showInterstitialAd && authUser && authUser.uid !== 'guest-user' && !userProfile.premium && interstitialAdUnitId && (
         <InterstitialAdPlaceholder
           isOpen={showInterstitialAd}
           onClose={() => handleInterstitialClosed(false)}
@@ -966,7 +979,7 @@ export default function FoodTimelinePage() {
                 <Utensils className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
                 <h2 className="text-2xl font-semibold font-headline mb-2 text-foreground">Your Timeline is Empty</h2>
                 <p className="text-muted-foreground mb-6">Tap a log button above to record your first food item or symptom.</p>
-                 {!authUser && authUser !== undefined && <p className="text-muted-foreground">Consider <Link href="/login" className="underline text-primary">logging in</Link> to save your data.</p>}
+                 {!authUser && <p className="text-muted-foreground">Consider <Link href="/login" className="underline text-primary">logging in</Link> to save your data.</p>}
               </CardContent>
             </Card>
           )}
@@ -1045,7 +1058,7 @@ export default function FoodTimelinePage() {
             {authUser && userProfile.premium && (
                  <p className="text-sm text-center text-green-400 mt-4">Premium User - Ads Removed</p>
             )}
-             {!authUser && authUser !== undefined && ( 
+             {!authUser && ( 
                  <p className="text-sm text-center text-muted-foreground mt-4">
                     <Link href="/login" className="underline text-primary">Login</Link> to save your safe foods and sync across devices.
                 </p>
