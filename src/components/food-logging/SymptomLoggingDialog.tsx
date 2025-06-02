@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -20,6 +21,7 @@ import type { Symptom } from '@/types';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { ListChecks } from 'lucide-react';
+import { Input } from '@/components/ui/input'; // Added import for Input
 
 const symptomLogSchema = z.object({
   selectedSymptoms: z.array(z.string()).min(1, { message: 'Please select at least one symptom.' }),
