@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 @layer base {
-  /* Default Light Mode Variables */
+  /* Default Light Mode Variables (Used by theme-black in light mode) */
   :root, html:not(.dark) {
     --background: 0 0% 98%; /* Almost white: #FAFAFA */
     --foreground: 0 0% 20%; /* Dark Gray: #333333 */
@@ -35,9 +35,9 @@
     --ring: 0 0% 30%; /* #4D4D4D - Darker Gray for focus rings */
   }
 
-  /* Black Theme (Light Mode) - essentially the :root defaults */
+  /* Black Theme (Light Mode) - inherits from :root (light default) */
   html:not(.dark).theme-black {
-    /* Uses the :root defaults defined above */
+    /* No overrides needed, inherits light defaults */
   }
 
   /* Black Theme (Dark Mode) */
@@ -87,14 +87,14 @@
 
   /* Green Theme (Light Mode - Calo Inspired) */
   html:not(.dark).theme-green {
-    --background: 0 0% 99%;            /* #FDFDFD / #FAFAFA */
+    --background: 0 0% 99%;            /* #FDFDFD */
     --foreground: 0 0% 20%;          /* #333333 */
 
     --card: 0 0% 100%;                 /* White */
     --card-foreground: 0 0% 20%;      /* #333333 */
 
     --popover: 0 0% 100%;              /* White */
-    --popover-foreground: 0 0% 20%;
+    --popover-foreground: 0 0% 20%;   /* #333333 */
 
     --primary: 145 63% 42%;              /* Calo Brand Green: #27AE60 */
     --primary-foreground: 0 0% 100%;     /* White text */
@@ -115,6 +115,7 @@
     --input: 0 0% 96%;                /* Very light gray input: #F5F5F5 */
     --ring: 145 63% 42%;                 /* Calo Brand Green for focus */
 
+    /* Specific for Calo Green theme success indication if needed beyond component specific styling */
     --success-indicator-bg: 136 59% 50%;   /* #34C759 */
     --success-indicator-text: 0 0% 100%; /* White */
   }
