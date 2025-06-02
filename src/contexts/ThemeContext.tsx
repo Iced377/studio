@@ -4,11 +4,9 @@
 import type { ReactNode } from 'react';
 import { createContext, useContext, useEffect, useState, useMemo } from 'react';
 
-type Theme = 'black' | 'orange' | 'green' | 'red';
+// Removed Theme type and related logic for multi-theme switching
 
 interface ThemeContextType {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
 }
@@ -16,25 +14,15 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('black');
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true); // Default to dark mode
 
   useEffect(() => {
-    const storedTheme = localStorage.getItem('app-theme') as Theme | null;
-    if (storedTheme && ['black', 'orange', 'green', 'red'].includes(storedTheme)) {
-      setThemeState(storedTheme);
-    }
-
+    // Removed localStorage logic for 'app-theme'
     const storedDarkMode = localStorage.getItem('app-dark-mode');
     if (storedDarkMode !== null) {
       setIsDarkMode(storedDarkMode === 'true');
     }
   }, []);
-
-  const setTheme = (newTheme: Theme) => {
-    localStorage.setItem('app-theme', newTheme);
-    setThemeState(newTheme);
-  };
 
   const toggleDarkMode = () => {
     setIsDarkMode(prevMode => {
@@ -46,17 +34,22 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove('theme-black', 'theme-orange', 'theme-green', 'theme-red');
-    root.classList.add(`theme-${theme}`);
+    
+    // Ensure 'theme-black' is the only color theme class and remove others
+    const themesToRemove = ['theme-orange', 'theme-green', 'theme-red'];
+    themesToRemove.forEach(t => root.classList.remove(t));
+    if (!root.classList.contains('theme-black')) {
+        root.classList.add('theme-black');
+    }
 
     if (isDarkMode) {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
-  }, [theme, isDarkMode]);
+  }, [isDarkMode]); // Dependency array now only includes isDarkMode
   
-  const value = useMemo(() => ({ theme, setTheme, isDarkMode, toggleDarkMode }), [theme, isDarkMode]);
+  const value = useMemo(() => ({ isDarkMode, toggleDarkMode }), [isDarkMode]);
 
   return (
     <ThemeContext.Provider value={value}>

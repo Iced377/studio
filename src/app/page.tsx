@@ -859,7 +859,11 @@ export default function FoodTimelinePage() {
                   Replace this SmilePlus icon with your actual logo.
                   Consider creating an SVG component for your logo that can be styled.
                 */}
-                <SmilePlus className="h-16 w-16 sm:h-20 sm:w-20 text-primary" />
+              <img
+                 src="/Gutcheck_logo.png"
+                 alt="GutCheck Logo"
+                 className="h-16 w-16 sm:h-20 sm:w-20 object-contain"
+                  />
               </Button>
             </PopoverTrigger>
             <PopoverContent

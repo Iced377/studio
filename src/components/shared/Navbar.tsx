@@ -2,7 +2,8 @@
 'use client';
 
 import Link from 'next/link';
-import { LogOut, LogIn, Sun, Moon, BarChart3, SmilePlus } from 'lucide-react'; // Added SmilePlus, removed LifeBuoy
+import Image from 'next/image';
+import { LogOut, LogIn, Sun, Moon, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -57,20 +58,19 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
   const trendsLinkHandler = (e: React.MouseEvent) => {
     if (pathname === '/trends') {
       e.preventDefault();
-      router.push('/'); 
+      router.push('/');
     } else {
-       router.push('/trends');
+      router.push('/trends');
     }
   };
 
-
   const headerBaseClasses = "sticky top-0 z-50 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-background/60";
-  const guestHeaderClasses = "bg-calo-green border-white/20 text-white"; 
+  const guestHeaderClasses = "bg-calo-green border-white/20 text-white";
   const defaultHeaderClasses = "border-border/40 bg-background/95 text-foreground";
 
   const logoIconBaseClasses = "h-7 w-7";
   const guestLogoIconClasses = "text-white";
-  const defaultLogoIconClasses = "text-primary";
+  // defaultLogoIconClasses is effectively replaced by conditional logic below
 
   const appNameBaseClasses = "font-bold font-headline sm:inline-block text-xl";
 
@@ -78,15 +78,22 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
     <header className={cn(headerBaseClasses, isGuest ? guestHeaderClasses : defaultHeaderClasses)}>
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <Link href="/" className="mr-auto flex items-center space-x-2">
-          {/* 
-            Placeholder App Logo: 
-            Replace this SmilePlus icon with your actual logo.
-            Consider creating an SVG component for your logo or using next/image.
-            Example with next/image (if logo.png is in public folder):
-            import Image from 'next/image';
-            <Image src="/logo.png" alt="GutCheck Logo" width={28} height={28} className={cn(logoIconBaseClasses, isGuest ? guestLogoIconClasses : defaultLogoIconClasses)} />
-          */}
-          <SmilePlus className={cn(logoIconBaseClasses, isGuest ? guestLogoIconClasses : defaultLogoIconClasses)} />
+          {/* If Gutcheck_logo.png is an SVG and its paths use `fill="currentColor"`, this will work.
+              If it's a raster image (PNG/JPG), text-black/text-primary won't change its color.
+              You might need two versions of the logo or an SVG that can be styled. */}
+          <Image
+            src="/Gutcheck_logo.png"
+            alt="GutCheck Logo"
+            width={28}
+            height={28}
+            className={cn(
+              "object-contain",
+              logoIconBaseClasses,
+              isGuest
+                ? guestLogoIconClasses // white for guest
+                : (isDarkMode ? "text-primary" : "text-black") // text-primary (light gray) for dark mode, text-black for light mode
+            )}
+          />
           <span className={cn(appNameBaseClasses, isGuest ? 'text-white' : 'text-foreground')}>
             {APP_NAME}
           </span>
