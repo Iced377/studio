@@ -47,7 +47,7 @@ import InterstitialAdPlaceholder from '@/components/ads/InterstitialAdPlaceholde
 import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet';
 import Navbar from '@/components/shared/Navbar';
 import GuestHomePage from '@/components/guest/GuestHomePage';
-import { useRouter } from 'next/navigation'; // Added router import
+import { useRouter } from 'next/navigation';
 
 
 const generateFallbackFodmapProfile = (foodName: string): FoodFODMAPProfile => {
@@ -84,7 +84,7 @@ type PendingAction = 'logFood' | 'simplifiedLogFood' | 'logPreviousMeal_AI' | 'l
 export default function FoodTimelinePage() {
   const { toast } = useToast();
   const { user: authUser, loading: authLoading } = useAuth();
-  const router = useRouter(); // Initialized router
+  const router = useRouter();
 
   const [userProfile, setUserProfile] = useState<UserProfile>(initialGuestProfile);
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
@@ -916,15 +916,15 @@ export default function FoodTimelinePage() {
                 >
                    <div className="flex flex-col items-center mr-2">
                       <ChevronUp
-                        className="h-3 w-3 text-white animate-neon-chevron-pulse"
+                        className="h-3 w-3 text-primary animate-neon-chevron-pulse"
                         style={{ animationDelay: '0s' }}
                       />
                       <ChevronUp
-                        className="h-3 w-3 text-white animate-neon-chevron-pulse -mt-1"
+                        className="h-3 w-3 text-primary animate-neon-chevron-pulse -mt-1"
                         style={{ animationDelay: '0.2s' }}
                       />
                       <ChevronUp
-                        className="h-3 w-3 text-white animate-neon-chevron-pulse -mt-1"
+                        className="h-3 w-3 text-primary animate-neon-chevron-pulse -mt-1"
                         style={{ animationDelay: '0.4s' }}
                       />
                     </div>
