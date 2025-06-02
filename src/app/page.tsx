@@ -477,7 +477,7 @@ export default function FoodTimelinePage() {
       symptoms,
       notes,
       severity,
-      linkedFoodItemIds,
+      linkedFoodItemIds: linkedFoodItemIds || [], // Ensure linkedFoodItemIds is an array
       timestamp: new Date(),
       entryType: 'symptom',
     };
@@ -491,9 +491,15 @@ export default function FoodTimelinePage() {
             });
             newSymptomLog.id = docRef.id;
             toast({ title: "Symptoms Logged & Saved", description: "Your symptoms have been recorded." });
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error saving symptom log to Firestore:", error);
-            toast({ title: "Symptoms Logged (Locally)", description: "Could not save symptoms to cloud. Firestore rules or connection might be an issue.", variant: "destructive" });
+            let errorDescription = "Could not save symptoms to cloud. Please try again.";
+            if (error.message && error.message.includes("Missing or insufficient permissions")) {
+                errorDescription = "Could not save symptoms due to Firestore security rules. Please check your rules configuration.";
+            } else if (error.message && error.message.includes("invalid data") && error.message.includes("undefined")) {
+                errorDescription = "Could not save symptoms: data format issue (undefined field). Logged locally only.";
+            }
+            toast({ title: "Symptoms Logged (Locally)", description: errorDescription, variant: "destructive" });
         }
     } else {
         toast({ title: "Symptoms Logged (Locally)", description: "Login to save your symptoms." });
@@ -841,7 +847,10 @@ export default function FoodTimelinePage() {
             onEditIngredients={(itemToEdit) => {
               toast({title: "Edit Meal", description: `Editing "${itemToEdit.name}" (functionality to be implemented).`});
             }}
-        />
+        >
+         {/* This children prop for PremiumDashboardSheet was missing in the original code, adding a placeholder */}
+         <div></div>
+        </PremiumDashboardSheet>
         
         {!isPremiumDashboardOpen && (
             <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4">
