@@ -973,7 +973,7 @@ export default function FoodTimelinePage() {
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="rounded-full h-32 w-32 sm:h-40 sm:w-40 border-2 border-primary bg-transparent animate-pulse-soft hover:bg-primary/10 focus:bg-primary/10 focus:ring-primary focus:ring-offset-background focus:ring-offset-2"
+                className="rounded-full h-32 w-32 sm:h-40 sm:w-40 border-2 border-primary bg-transparent animate-pulse-glow hover:bg-primary/10 focus:bg-primary/10 focus:ring-primary focus:ring-offset-background focus:ring-offset-2"
                 aria-label="Open Actions Menu"
               >
                 <CircleDotDashed className="h-16 w-16 sm:h-20 sm:w-20 text-primary" />
@@ -1083,7 +1083,7 @@ export default function FoodTimelinePage() {
         <div className="container mx-auto flex flex-col items-center gap-4">
           <Button
             size="lg"
-            className="w-72 h-20 text-2xl rounded-full shadow-2xl bg-primary text-primary-foreground hover:bg-primary/80 focus:ring-4 ring-ring flex items-center justify-center"
+            className="w-72 h-20 text-2xl rounded-full bg-primary text-primary-foreground hover:bg-primary/80 focus:ring-4 ring-ring flex items-center justify-center animate-pulse-glow"
             onClick={handleLogFoodClick}
             aria-label="Log Food"
             disabled={(showInterstitialAd && authUser && authUser.uid !== 'guest-user' && !userProfile.premium) || isAnyItemLoadingAi}
