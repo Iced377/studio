@@ -13,10 +13,11 @@ interface LoggedSafetyTrendChartProps {
 }
 
 // Using chart-X variables consistent with SymptomOccurrenceChart
+// Unsafe: chart-1, Safe: chart-2, Not Marked: chart-3
 const getColors = (theme: string, isDarkMode: boolean) => {
   return {
-    safe: 'hsl(var(--chart-1))', 
-    unsafe: 'hsl(var(--chart-2))',   
+    unsafe: 'hsl(var(--chart-1))',   
+    safe: 'hsl(var(--chart-2))', 
     notMarked: 'hsl(var(--chart-3))', 
     grid: isDarkMode ? "hsl(var(--border))" : "hsl(var(--border))",
     text: isDarkMode ? "hsl(var(--muted-foreground))" : "hsl(var(--muted-foreground))",
@@ -27,8 +28,8 @@ export default function LoggedSafetyTrendChart({ data, theme, isDarkMode }: Logg
   const colors = getColors(theme, isDarkMode);
   
   const chartConfig = {
-    safe: { label: "Safe", color: colors.safe },
     unsafe: { label: "Unsafe", color: colors.unsafe },
+    safe: { label: "Safe", color: colors.safe },
     notMarked: { label: "Not Marked", color: colors.notMarked },
   } satisfies import("@/components/ui/chart").ChartConfig;
 
@@ -66,8 +67,9 @@ export default function LoggedSafetyTrendChart({ data, theme, isDarkMode }: Logg
           cursor={true}
           content={<ChartTooltipContent indicator="dot" />}
         />
-        <Bar dataKey="safe" stackId="a" fill="var(--color-safe)" radius={[0, 4, 4, 0]} barSize={20}/>
-        <Bar dataKey="unsafe" stackId="a" fill="var(--color-unsafe)" barSize={20} />
+        {/* Order: Unsafe, Safe, Not Marked */}
+        <Bar dataKey="unsafe" stackId="a" fill="var(--color-unsafe)" radius={[0, 4, 4, 0]} barSize={20} />
+        <Bar dataKey="safe" stackId="a" fill="var(--color-safe)" barSize={20}/>
         <Bar dataKey="notMarked" stackId="a" fill="var(--color-notMarked)" radius={[4, 0, 0, 4]} barSize={20} />
         <ChartLegend content={<ChartLegendContent />} />
       </BarChart>
