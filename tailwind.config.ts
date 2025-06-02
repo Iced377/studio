@@ -92,10 +92,12 @@ export default {
         },
         "pulse-glow": {
           "0%, 100%": {
-            boxShadow: "0 0 10px 5px rgba(57, 255, 20, 0.7), 0 0 20px 10px rgba(57, 255, 20, 0.5)",
+            /* Base glow - less intense, slightly smaller spread */
+            boxShadow: "0 0 15px 8px rgba(57, 255, 20, 0.6), 0 0 30px 15px rgba(57, 255, 20, 0.4)",
           },
           "50%": {
-            boxShadow: "0 0 20px 10px rgba(57, 255, 20, 0.9), 0 0 35px 15px rgba(57, 255, 20, 0.7)",
+            /* Peak glow - very bright, large spread */
+            boxShadow: "0 0 30px 20px rgba(57, 255, 20, 1), 0 0 60px 35px rgba(57, 255, 20, 0.7)",
           },
         },
       },
