@@ -90,23 +90,21 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        "pulse-glow": { // Added from user prompt
+        "pulse-glow": {
           "0%, 100%": {
-            boxShadow: "0 0 8px 2px rgba(200, 255, 200, 0.3), 0 0 12px 4px rgba(200, 255, 200, 0.2)",
+            boxShadow: "0 0 7px 3px rgba(255, 255, 255, 0.4), 0 0 12px 5px rgba(255, 255, 255, 0.25)",
           },
           "50%": {
-            boxShadow: "0 0 16px 6px rgba(200, 255, 200, 0.5), 0 0 24px 8px rgba(200, 255, 200, 0.3)",
+            boxShadow: "0 0 15px 7px rgba(255, 255, 255, 0.6), 0 0 25px 10px rgba(255, 255, 255, 0.4)",
           },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "pulse-glow": "pulse-glow 3s infinite ease-in-out", // Added from user prompt
+        "pulse-glow": "pulse-glow 3s infinite ease-in-out",
       },
     },
   },
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;
-
-    

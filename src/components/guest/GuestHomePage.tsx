@@ -41,10 +41,7 @@ export default function GuestHomePage({
       <main className="flex-grow flex flex-col items-center justify-center p-4 relative text-center">
         <Button
           onClick={handleMainButtonClick}
-          className="bg-white text-calo-green text-xl font-semibold rounded-full h-16 w-4/5 max-w-xs shadow-lg animate-pulse-glow hover:bg-gray-50 focus:ring-4 focus:ring-green-300"
-          style={{
-            boxShadow: '0 4px 14px 0 rgba(39, 174, 96, 0.3)', 
-          }}
+          className="bg-white text-calo-green text-xl font-semibold rounded-full h-16 w-4/5 max-w-xs animate-pulse-glow hover:bg-gray-50 focus:ring-4 focus:ring-green-300"
         >
           {mainButtonText}
         </Button>
