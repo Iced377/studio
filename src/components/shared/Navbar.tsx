@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { LifeBuoy, LogOut, LogIn, UserCircle, Settings, Zap, Palette, Sun, Moon, BarChart3 } from 'lucide-react'; 
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
-import { useRouter, usePathname } from 'next/navigation'; // Added usePathname
+import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,17 +22,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from '@/contexts/ThemeContext'; 
 
 const APP_NAME = "GutCheck";
-const APP_VERSION = "v2.5"; // Incremented version
+export const APP_VERSION = "v2.5";
 
 interface NavbarProps {
   onUpgradeClick?: () => void; 
   isPremium?: boolean; 
+  isGuest?: boolean; // New prop for guest view
 }
 
-export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
+export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const pathname = usePathname(); // Get current pathname
+  const pathname = usePathname();
   const { toast } = useToast();
   const { theme, setTheme, isDarkMode, toggleDarkMode } = useTheme();
 
@@ -56,29 +57,29 @@ export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
   const trendsLink = pathname === '/trends' ? '/' : '/trends';
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className={`sticky top-0 z-50 w-full border-b border-border/40 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${isGuest ? 'bg-calo-green text-white border-white/20' : 'bg-background/95'}`}>
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <Link href="/" className="mr-auto flex items-center space-x-2">
-          <LifeBuoy className="h-7 w-7 text-primary" /> 
-          <span className="font-bold font-headline sm:inline-block text-xl text-foreground">
+          <LifeBuoy className={`h-7 w-7 ${isGuest ? 'text-white' : 'text-primary'}`} /> 
+          <span className={`font-bold font-headline sm:inline-block text-xl ${isGuest ? 'text-white' : 'text-foreground'}`}>
             {APP_NAME}
           </span>
-          <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
+          {!isGuest && <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>}
         </Link>
         
-        <div className="flex items-center space-x-1 sm:space-x-1.5"> {/* Adjusted spacing for icons */}
-          {!loading && user && onUpgradeClick && !isPremium && (
+        <div className="flex items-center space-x-1 sm:space-x-1.5">
+          {!loading && user && !isGuest && onUpgradeClick && !isPremium && (
              <Button onClick={onUpgradeClick} size="sm" variant="outline" className="border-yellow-500 text-yellow-500 hover:bg-yellow-500/10 h-8">
                 <Zap className="mr-2 h-4 w-4" /> Upgrade
             </Button>
           )}
-           {!loading && user && isPremium && (
+           {!loading && user && !isGuest && isPremium && (
             <span className="text-xs font-medium text-primary border border-primary/50 bg-primary/10 px-2 py-1 rounded-md flex items-center h-8">
                 <Zap className="mr-1 h-3 w-3" /> Premium
             </span>
           )}
           
-          {!loading && user && (
+          {!loading && user && !isGuest && (
             <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Trends">
               <Link href={trendsLink}>
                 <BarChart3 className="h-5 w-5" /> 
@@ -86,37 +87,42 @@ export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
             </Button>
           )}
 
-          <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="h-8 w-8" aria-label="Toggle dark mode">
-            {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Change theme">
-                <Palette className="h-5 w-5" />
+          {!isGuest && ( // Hide theme and dark mode for guest on main navbar to avoid conflict with GuestHomePage style
+            <>
+              <Button variant="ghost" size="icon" onClick={toggleDarkMode} className={`h-8 w-8 ${isGuest ? 'text-white hover:bg-white/10' : ''}`} aria-label="Toggle dark mode">
+                {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Select Theme</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup value={theme} onValueChange={(value) => setTheme(value as 'black' | 'orange' | 'green' | 'red')}>
-                <DropdownMenuRadioItem value="black">
-                  Black (Default)
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="orange">
-                  Orange
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="green">
-                  Green
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="red">
-                  Red
-                </DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
 
-          {!loading && user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className={`h-8 w-8 ${isGuest ? 'text-white hover:bg-white/10' : ''}`} aria-label="Change theme">
+                    <Palette className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Select Theme</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuRadioGroup value={theme} onValueChange={(value) => setTheme(value as 'black' | 'orange' | 'green' | 'red')}>
+                    <DropdownMenuRadioItem value="black">
+                      Black (Default)
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="orange">
+                      Orange
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="green">
+                      Green
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="red">
+                      Red
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          )}
+
+
+          {!loading && user && !isGuest ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -153,8 +159,8 @@ export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : !loading && !user ? (
-            <Button asChild variant="outline" size="sm" className="h-8">
+          ) : !loading && (isGuest || !user) ? ( // Show login if guest or not logged in
+            <Button asChild variant="outline" size="sm" className={`h-8 ${isGuest ? 'text-calo-green bg-white hover:bg-gray-100 border-gray-300' : ''}`}>
               <Link href="/login">
                 <LogIn className="mr-2 h-4 w-4" /> Login
               </Link>
@@ -166,3 +172,4 @@ export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
   );
 }
 
+    

@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary, DailyFodmapCount } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp, CircleDotDashed, Zap, Palette, Edit3, Pencil } from 'lucide-react'; // Added Pencil
+import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp, CircleDotDashed, Zap, Palette, Edit3, Pencil } from 'lucide-react';
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
 import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow';
@@ -47,7 +47,7 @@ import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder';
 import InterstitialAdPlaceholder from '@/components/ads/InterstitialAdPlaceholder';
 import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet';
 import Navbar from '@/components/shared/Navbar';
-
+import GuestHomePage from '@/components/guest/GuestHomePage'; // New Guest Home Page
 
 const generateFallbackFodmapProfile = (foodName: string): FoodFODMAPProfile => {
   let hash = 0;
@@ -99,6 +99,10 @@ export default function FoodTimelinePage() {
   const [pendingActionAfterInterstitial, setPendingActionAfterInterstitial] = useState<PendingAction>(null);
   const [isPremiumDashboardOpen, setIsPremiumDashboardOpen] = useState(false);
   const [isCentralPopoverOpen, setIsCentralPopoverOpen] = useState(false);
+
+  // Guest specific state
+  const [lastGuestFoodItem, setLastGuestFoodItem] = useState<LoggedFoodItem | null>(null);
+  const [isGuestLogFoodDialogOpen, setIsGuestLogFoodDialogOpen] = useState(false);
 
 
   const bannerAdUnitId = process.env.NEXT_PUBLIC_BANNER_AD_UNIT_ID;
@@ -483,12 +487,10 @@ export default function FoodTimelinePage() {
       id: newItemId,
       timestamp: new Date(),
       entryType: 'manual_macro',
-      // Fill in other required LoggedFoodItem fields with defaults or placeholders
-      ingredients: "Manual entry",
+      ingredients: "Manual entry", 
       portionSize: "1",
       portionUnit: "serving",
       userFeedback: null,
-      // Optional fields like fodmapData, isSimilarToSafe, etc., can be omitted or explicitly set to undefined
     };
 
     if (authUser && authUser.uid !== 'guest-user') {
@@ -503,7 +505,7 @@ export default function FoodTimelinePage() {
       } catch (error: any) {
         console.error("Error saving manual macro entry to Firestore:", error);
         toast({ title: "Save Error", description: "Could not save manual macro entry.", variant: "destructive" });
-        return; // Don't add locally if cloud save fails
+        return; 
       }
     } else {
       toast({ title: "Manual Macros Logged (Locally)", description: `${newEntry.name} added. Login to save.` });
@@ -540,6 +542,8 @@ export default function FoodTimelinePage() {
                 errorDescription = "Could not save symptoms due to Firestore security rules. Please check your rules configuration.";
             } else if (error.message && error.message.includes("invalid data") && error.message.includes("undefined")) {
                 errorDescription = "Could not save symptoms: data format issue (undefined field). Logged locally only.";
+            } else if (error.message && typeof error.message === 'string' && error.message.includes('linkedFoodItemIds')) {
+               errorDescription = "Could not save symptoms: issue with linked food items. Logged locally only.";
             }
             toast({ title: "Symptoms Logged (Locally)", description: errorDescription, variant: "destructive" });
         }
@@ -554,11 +558,13 @@ export default function FoodTimelinePage() {
   const handleSetFoodFeedback = async (itemId: string, feedback: 'safe' | 'unsafe' | null) => {
     setTimelineEntries(prevEntries =>
       prevEntries.map(entry =>
-        entry.id === itemId && entry.entryType === 'food'
+        entry.id === itemId && (entry.entryType === 'food' || entry.entryType === 'manual_macro')
           ? { ...entry, userFeedback: feedback }
           : entry
       )
     );
+    const item = timelineEntries.find(e => e.id === itemId);
+
 
     if (authUser && authUser.uid !== 'guest-user') {
       const entryDocRef = doc(db, 'users', authUser.uid, 'timelineEntries', itemId);
@@ -567,11 +573,10 @@ export default function FoodTimelinePage() {
         toast({ title: "Feedback Saved", description: `Food item marked as ${feedback || 'neutral'}.` });
       } catch (error) {
         console.error("Error saving food feedback to Firestore:", error);
-        // Revert local state if Firestore update fails
         setTimelineEntries(prevEntries =>
           prevEntries.map(entry =>
-            entry.id === itemId && entry.entryType === 'food'
-              ? { ...entry, userFeedback: timelineEntries.find(e => e.id === itemId)?.userFeedback === feedback ? timelineEntries.find(e => e.id === itemId)?.userFeedback : item.userFeedback  } // Revert to original
+            entry.id === itemId && (entry.entryType === 'food' || entry.entryType === 'manual_macro')
+              ? { ...entry, userFeedback: item?.userFeedback === feedback ? item?.userFeedback : item?.userFeedback  } 
               : entry
           )
         );
@@ -634,7 +639,7 @@ export default function FoodTimelinePage() {
             if (Array.isArray(e.linkedFoodItemIds)) {
                 sanitizedLinkedFoodItemIds = e.linkedFoodItemIds;
             } else if (typeof e.linkedFoodItemIds === 'string' && e.linkedFoodItemIds.length > 0) {
-                sanitizedLinkedFoodItemIds = [e.linkedFoodItemIds];
+                sanitizedLinkedFoodItemIds = [e.linkedFoodItemIds]; 
             } else {
                 sanitizedLinkedFoodItemIds = [];
             }
@@ -680,6 +685,9 @@ export default function FoodTimelinePage() {
         } else if (errorMessageLower.includes('invalid_argument') && errorMessageLower.includes('schema validation')) { 
             toastTitle = 'AI Insights Data Error';
             toastDescription = `There was an issue with the data format sent for AI analysis: ${error.message.substring(0, 150)}. Please check your logs.`;
+        } else if (errorMessageLower.includes('linkedfooditemids') && errorMessageLower.includes('must be array')) {
+            toastTitle = 'AI Insights Data Error';
+            toastDescription = 'Symptom data for AI is not correctly formatted (linkedFoodItemIds). Please try re-logging recent symptoms.';
         }
       }
       toast({title: toastTitle, description: toastDescription, variant: "destructive", duration: 9000});
@@ -806,7 +814,7 @@ export default function FoodTimelinePage() {
 
     const counts: DailyFodmapCount = { green: 0, yellow: 0, red: 0 };
     timelineEntries.forEach(entry => {
-      if (entry.entryType === 'food') { // Manual macro entries don't have FODMAP data
+      if (entry.entryType === 'food') { 
         const entryDate = new Date(entry.timestamp);
         if (entryDate >= today && entryDate < tomorrow) {
           const risk = entry.fodmapData?.overallRisk;
@@ -818,6 +826,34 @@ export default function FoodTimelinePage() {
     });
     return counts;
   }, [timelineEntries]);
+
+  // Guest specific "Log My Food" handler
+  const handleGuestLogFoodOpen = () => {
+    setIsGuestLogFoodDialogOpen(true);
+  };
+
+  const handleGuestLogFoodSubmit = (description: string) => {
+    const guestFoodItem: LoggedFoodItem = {
+      id: `guest-food-${Date.now()}`,
+      name: description.length > 30 ? description.substring(0, 27) + "..." : description,
+      originalName: description,
+      ingredients: "N/A (Guest Log)",
+      portionSize: "1",
+      portionUnit: "serving",
+      timestamp: new Date(),
+      entryType: 'food',
+      userFeedback: null,
+      // Mock FODMAP data for guest display - always green
+      fodmapData: {
+        overallRisk: 'Green',
+        reason: 'Guest logs are not analyzed for FODMAPs.',
+        ingredientFodmapScores: [],
+      }
+    };
+    setLastGuestFoodItem(guestFoodItem);
+    toast({title: "Food Noted (Locally)", description: "Register to save and analyze your logs!"});
+    setIsGuestLogFoodDialogOpen(false);
+  };
 
 
   if (authLoading || (isDataLoading && authUser)) { 
@@ -831,7 +867,20 @@ export default function FoodTimelinePage() {
     );
   }
   
+  // Guest User UI
+  if (!authUser && !authLoading) {
+    return (
+      <GuestHomePage
+        onLogFoodClick={handleGuestLogFoodOpen}
+        isLogFoodDialogOpen={isGuestLogFoodDialogOpen}
+        onLogFoodDialogChange={setIsGuestLogFoodDialogOpen}
+        onGuestLogFoodSubmit={handleGuestLogFoodSubmit}
+        lastLoggedItem={lastGuestFoodItem}
+      />
+    );
+  }
 
+  // Registered User UI
   if (userProfile.premium) {
     return (
       <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden">
@@ -1140,3 +1189,5 @@ export default function FoodTimelinePage() {
     </div>
   );
 }
+
+    

@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -19,7 +20,7 @@ export default {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
         headline: ['Inter', 'sans-serif'],
-        sans: ['Inter', 'sans-serif'], // Make Inter the default sans-serif
+        sans: ['Inter', 'sans-serif'], 
         code: ['monospace'],
       },
       colors: {
@@ -73,6 +74,7 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        'calo-green': '#27AE60', // Added Calo green
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -88,12 +90,23 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "pulse-glow": { // Added from user prompt
+          "0%, 100%": {
+            boxShadow: "0 0 8px 2px rgba(200, 255, 200, 0.3), 0 0 12px 4px rgba(200, 255, 200, 0.2)",
+          },
+          "50%": {
+            boxShadow: "0 0 16px 6px rgba(200, 255, 200, 0.5), 0 0 24px 8px rgba(200, 255, 200, 0.3)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "pulse-glow": "pulse-glow 3s infinite ease-in-out", // Added from user prompt
       },
     },
   },
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;
+
+    
