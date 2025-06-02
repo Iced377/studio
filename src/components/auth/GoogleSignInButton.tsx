@@ -2,34 +2,28 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button, type ButtonProps } from '@/components/ui/button'; // Import ButtonProps
 import { useToast } from '@/hooks/use-toast';
 import { signInWithGoogle } from '@/lib/firebase/auth';
-import { Chrome } from 'lucide-react'; // Using Chrome icon for Google
+import { Chrome } from 'lucide-react'; 
 import type { UserCredential, AuthError } from 'firebase/auth';
+import { cn } from '@/lib/utils';
 
-export default function GoogleSignInButton() {
+interface GoogleSignInButtonProps extends Omit<ButtonProps, 'onClick' | 'disabled' | 'children'> {
+  variant?: ButtonProps['variant'] | 'guest'; // Allow 'guest' as a special variant
+}
+
+export default function GoogleSignInButton({ variant, className, ...props }: GoogleSignInButtonProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      // signInWithGoogle might navigate away if it uses signInWithRedirect (on mobile)
-      // or it might return a UserCredential if it uses signInWithPopup (on desktop)
       const result = await signInWithGoogle();
-
-      // If signInWithPopup was used (desktop) and was successful, result will be UserCredential
-      // If signInWithRedirect was used (mobile), this part might not be reached if redirect happens.
-      // The redirect result is handled in AuthProvider.
-      if (result && (result as UserCredential).user) {
-         // This case is primarily for desktop (signInWithPopup)
+      if (result && (result as UserCredential).user && variant !== 'guest') { // Only toast if not guest variant (handled by AuthProvider)
         toast({ title: 'Login Successful', description: 'Welcome!' });
-        // Optionally, redirect here for desktop, or let AuthProvider handle global state.
-        // router.push('/');
       }
-      // If signInWithRedirect is initiated, the page navigates away, so setLoading(false)
-      // might not be called here. This is fine as AuthProvider handles the post-redirect state.
     } catch (error) {
       console.error("Google login error:", error);
       toast({
@@ -37,20 +31,22 @@ export default function GoogleSignInButton() {
         description: (error as AuthError).message || 'Could not sign in with Google.',
         variant: 'destructive',
       });
-      setLoading(false); // Ensure loading is false on error
+      setLoading(false); 
     }
-    // Do not set setLoading(false) here if a redirect might have occurred,
-    // as the component instance might be destroyed.
-    // It's set to false only in the error case above.
-    // If it's a popup that didn't error, it usually means success and navigation/state change will happen.
+    // setLoading(false) is tricky with redirects; AuthProvider handles loading state.
   };
+
+  const buttonClasses = variant === 'guest' 
+    ? "bg-transparent text-white border-white hover:bg-white/10 h-9 px-4" 
+    : "w-full max-w-xs";
 
   return (
     <Button
-      variant="outline"
-      className="w-full max-w-xs"
+      variant={variant === 'guest' ? 'outline' : 'outline'} // Shadcn variant
+      className={cn(buttonClasses, className)}
       onClick={handleGoogleLogin}
       disabled={loading}
+      {...props}
     >
       <Chrome className="mr-2 h-5 w-5" />
       {loading ? 'Signing in...' : 'Sign in with Google'}

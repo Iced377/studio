@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from '@/contexts/ThemeContext'; 
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton'; // Import GoogleSignInButton
 
 const APP_NAME = "GutCheck";
 export const APP_VERSION = "v2.5";
@@ -27,7 +28,7 @@ export const APP_VERSION = "v2.5";
 interface NavbarProps {
   onUpgradeClick?: () => void; 
   isPremium?: boolean; 
-  isGuest?: boolean; // New prop for guest view
+  isGuest?: boolean; 
 }
 
 export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarProps) {
@@ -56,46 +57,65 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
 
   const trendsLink = pathname === '/trends' ? '/' : '/trends';
 
+  // Define base classes
+  const headerBaseClasses = "sticky top-0 z-50 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-background/60";
+  const guestHeaderClasses = "bg-calo-green border-white/20 text-white";
+  const defaultHeaderClasses = "border-border/40 bg-background/95 text-foreground";
+
+  const logoIconBaseClasses = "h-7 w-7";
+  const guestLogoIconClasses = "text-white";
+  const defaultLogoIconClasses = "text-primary";
+  
+  const appNameBaseClasses = "font-bold font-headline sm:inline-block text-xl";
+
+
   return (
-    <header className={`sticky top-0 z-50 w-full border-b border-border/40 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${isGuest ? 'bg-calo-green text-white border-white/20' : 'bg-background/95'}`}>
+    <header className={cn(headerBaseClasses, isGuest ? guestHeaderClasses : defaultHeaderClasses)}>
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <Link href="/" className="mr-auto flex items-center space-x-2">
-          <LifeBuoy className={`h-7 w-7 ${isGuest ? 'text-white' : 'text-primary'}`} /> 
-          <span className={`font-bold font-headline sm:inline-block text-xl ${isGuest ? 'text-white' : 'text-foreground'}`}>
+          <LifeBuoy className={cn(logoIconBaseClasses, isGuest ? guestLogoIconClasses : defaultLogoIconClasses)} /> 
+          <span className={cn(appNameBaseClasses, isGuest ? 'text-white' : 'text-foreground')}>
             {APP_NAME}
           </span>
           {!isGuest && <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>}
         </Link>
         
         <div className="flex items-center space-x-1 sm:space-x-1.5">
-          {!loading && user && !isGuest && onUpgradeClick && !isPremium && (
-             <Button onClick={onUpgradeClick} size="sm" variant="outline" className="border-yellow-500 text-yellow-500 hover:bg-yellow-500/10 h-8">
-                <Zap className="mr-2 h-4 w-4" /> Upgrade
-            </Button>
-          )}
-           {!loading && user && !isGuest && isPremium && (
-            <span className="text-xs font-medium text-primary border border-primary/50 bg-primary/10 px-2 py-1 rounded-md flex items-center h-8">
-                <Zap className="mr-1 h-3 w-3" /> Premium
-            </span>
-          )}
-          
-          {!loading && user && !isGuest && (
-            <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Trends">
-              <Link href={trendsLink}>
-                <BarChart3 className="h-5 w-5" /> 
-              </Link>
-            </Button>
-          )}
-
-          {!isGuest && ( // Hide theme and dark mode for guest on main navbar to avoid conflict with GuestHomePage style
+          {isGuest ? (
+            <GoogleSignInButton variant="guest" />
+          ) : (
             <>
-              <Button variant="ghost" size="icon" onClick={toggleDarkMode} className={`h-8 w-8 ${isGuest ? 'text-white hover:bg-white/10' : ''}`} aria-label="Toggle dark mode">
+              {!loading && user && onUpgradeClick && !isPremium && (
+                <Button onClick={onUpgradeClick} size="sm" variant="outline" className="border-yellow-500 text-yellow-500 hover:bg-yellow-500/10 h-8">
+                    <Zap className="mr-2 h-4 w-4" /> Upgrade
+                </Button>
+              )}
+              {!loading && user && isPremium && (
+                <span className="text-xs font-medium text-primary border border-primary/50 bg-primary/10 px-2 py-1 rounded-md flex items-center h-8">
+                    <Zap className="mr-1 h-3 w-3" /> Premium
+                </span>
+              )}
+              
+              {!loading && user && (
+                <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Trends" onClick={(e) => {
+                  if (pathname === '/trends') {
+                    e.preventDefault();
+                    router.push('/');
+                  }
+                }}>
+                  <Link href={trendsLink}>
+                    <BarChart3 className="h-5 w-5" /> 
+                  </Link>
+                </Button>
+              )}
+
+              <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="h-8 w-8" aria-label="Toggle dark mode">
                 {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </Button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className={`h-8 w-8 ${isGuest ? 'text-white hover:bg-white/10' : ''}`} aria-label="Change theme">
+                  <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Change theme">
                     <Palette className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -118,50 +138,40 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
                   </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              {!loading && user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
+                        <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none text-foreground">
+                          {user.displayName || 'User'}
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : null}
             </>
           )}
-
-
-          {!loading && user && !isGuest ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
-                    <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none text-foreground">
-                      {user.displayName || 'User'}
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user.email}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {/* Profile and Settings items removed */}
-                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : !loading && (isGuest || !user) ? ( // Show login if guest or not logged in
-            <Button asChild variant="outline" size="sm" className={`h-8 ${isGuest ? 'text-calo-green bg-white hover:bg-gray-100 border-gray-300' : ''}`}>
-              <Link href="/login">
-                <LogIn className="mr-2 h-4 w-4" /> Login
-              </Link>
-            </Button>
-          ) : null}
         </div>
       </div>
     </header>
   );
 }
-
-    
