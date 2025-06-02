@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { LifeBuoy, LogOut, LogIn, UserCircle, Settings, Zap, Palette, Sun, Moon, BarChart3 } from 'lucide-react'; 
+import { LifeBuoy, LogOut, LogIn, UserCircle, Settings, Zap, Palette, Sun, Moon, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -19,16 +19,17 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useTheme } from '@/contexts/ThemeContext'; 
-import GoogleSignInButton from '@/components/auth/GoogleSignInButton'; // Import GoogleSignInButton
+import { useTheme } from '@/contexts/ThemeContext';
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
+import { cn } from '@/lib/utils'; // Added this import
 
 const APP_NAME = "GutCheck";
 export const APP_VERSION = "v2.5";
 
 interface NavbarProps {
-  onUpgradeClick?: () => void; 
-  isPremium?: boolean; 
-  isGuest?: boolean; 
+  onUpgradeClick?: () => void;
+  isPremium?: boolean;
+  isGuest?: boolean;
 }
 
 export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarProps) {
@@ -44,7 +45,7 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
       toast({ title: 'Logout Failed', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Logged Out', description: 'You have been successfully logged out.' });
-      router.push('/'); 
+      router.push('/');
     }
   };
 
@@ -55,7 +56,15 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
     return (names[0][0]?.toUpperCase() || '') + (names[names.length - 1][0]?.toUpperCase() || '');
   };
 
-  const trendsLink = pathname === '/trends' ? '/' : '/trends';
+  const trendsLinkHandler = (e: React.MouseEvent) => {
+    if (pathname === '/trends') {
+      e.preventDefault();
+      router.push('/');
+    } else {
+      router.push('/trends');
+    }
+  };
+
 
   // Define base classes
   const headerBaseClasses = "sticky top-0 z-50 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-background/60";
@@ -65,7 +74,7 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
   const logoIconBaseClasses = "h-7 w-7";
   const guestLogoIconClasses = "text-white";
   const defaultLogoIconClasses = "text-primary";
-  
+
   const appNameBaseClasses = "font-bold font-headline sm:inline-block text-xl";
 
 
@@ -73,13 +82,13 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
     <header className={cn(headerBaseClasses, isGuest ? guestHeaderClasses : defaultHeaderClasses)}>
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <Link href="/" className="mr-auto flex items-center space-x-2">
-          <LifeBuoy className={cn(logoIconBaseClasses, isGuest ? guestLogoIconClasses : defaultLogoIconClasses)} /> 
+          <LifeBuoy className={cn(logoIconBaseClasses, isGuest ? guestLogoIconClasses : defaultLogoIconClasses)} />
           <span className={cn(appNameBaseClasses, isGuest ? 'text-white' : 'text-foreground')}>
             {APP_NAME}
           </span>
           {!isGuest && <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>}
         </Link>
-        
+
         <div className="flex items-center space-x-1 sm:space-x-1.5">
           {isGuest ? (
             <GoogleSignInButton variant="guest" />
@@ -95,17 +104,10 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
                     <Zap className="mr-1 h-3 w-3" /> Premium
                 </span>
               )}
-              
+
               {!loading && user && (
-                <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Trends" onClick={(e) => {
-                  if (pathname === '/trends') {
-                    e.preventDefault();
-                    router.push('/');
-                  }
-                }}>
-                  <Link href={trendsLink}>
-                    <BarChart3 className="h-5 w-5" /> 
-                  </Link>
+                <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Trends" onClick={trendsLinkHandler}>
+                  <BarChart3 className="h-5 w-5" />
                 </Button>
               )}
 
