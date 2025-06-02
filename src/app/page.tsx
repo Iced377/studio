@@ -102,7 +102,7 @@ export default function FoodTimelinePage() {
 
   // Guest specific state
   const [lastGuestFoodItem, setLastGuestFoodItem] = useState<LoggedFoodItem | null>(null);
-  const [isGuestLogFoodDialogOpen, setIsGuestLogFoodDialogOpen] = useState(false); // For triggering SimplifiedAddFoodDialog in guest mode
+  const [isGuestLogFoodDialogOpen, setIsGuestLogFoodDialogOpen] = useState(false); 
   const [isGuestSheetOpen, setIsGuestSheetOpen] = useState(false);
 
 
@@ -190,7 +190,7 @@ export default function FoodTimelinePage() {
         setUserProfile(initialGuestProfile);
         setTimelineEntries([]);
         setAiInsights([]);
-        setLastGuestFoodItem(null); // Clear guest item on logout/initial guest load
+        setLastGuestFoodItem(null); 
         setIsDataLoading(false);
       }
     };
@@ -269,7 +269,6 @@ export default function FoodTimelinePage() {
         newFoodItem.id = docRef.id;
         toast({ title: "Food Logged & Saved", description: `${newFoodItem.name} added with AI analysis.` });
       } else {
-        // This path shouldn't be hit if guest uses dedicated guest logging
         toast({ title: "Food Logged (Locally)", description: `${newFoodItem.name} added with AI analysis. Login to save.` });
       }
       addTimelineEntry(newFoodItem);
@@ -330,7 +329,6 @@ export default function FoodTimelinePage() {
             toast({ title: "Food Save Error (Partial AI)", description: saveErrorDesc, variant: 'destructive'});
         }
       } else {
-         // This path shouldn't be hit if guest uses dedicated guest logging
          toast({ title: "Food Logged (Locally, Partial AI)", description: `${newFoodItem.name} added. AI analysis failed or incomplete. Login to save.`, variant: 'destructive'});
       }
       addTimelineEntry(newFoodItem);
@@ -411,9 +409,6 @@ export default function FoodTimelinePage() {
         newFoodItem.id = docRef.id; 
         toast({ title: "Meal Logged!", description: `"${newFoodItem.name}" added with AI insights.` });
       } else {
-        // This specific function `handleProcessMealDescription` is for authenticated users.
-        // Guest users will have `handleGuestProcessMealDescription`.
-        // If somehow called by guest, this toast is a fallback.
         toast({ title: "Meal Logged (Locally)", description: `"${newFoodItem.name}" added. Login to save.` });
       }
       addTimelineEntry(newFoodItem);
@@ -515,7 +510,6 @@ export default function FoodTimelinePage() {
         return; 
       }
     } else {
-      // This flow is for authenticated users; guests have a different mechanism if needed.
       toast({ title: "Manual Macros Logged (Locally)", description: `${newEntry.name} added. Login to save.` });
     }
     addTimelineEntry(newEntry);
@@ -556,7 +550,6 @@ export default function FoodTimelinePage() {
             toast({ title: "Symptoms Logged (Locally)", description: errorDescription, variant: "destructive" });
         }
     } else {
-        // Guest symptom logging would update local state only if implemented
         toast({ title: "Symptoms Logged (Locally)", description: "Login to save your symptoms." });
     }
 
@@ -836,9 +829,8 @@ export default function FoodTimelinePage() {
     return counts;
   }, [timelineEntries]);
 
-  // Guest specific "Log My Food" handler - triggers SimplifiedAddFoodDialog
   const handleGuestLogFoodOpen = () => {
-    setIsGuestLogFoodDialogOpen(true); // This state now controls SimplifiedAddFoodDialog for guests
+    setIsGuestLogFoodDialogOpen(true);
   };
 
   const handleGuestProcessMealDescription = async (description: string) => {
@@ -847,7 +839,6 @@ export default function FoodTimelinePage() {
     
     let mealDescriptionOutput: ProcessMealDescriptionOutput | undefined;
     let fodmapAnalysis: AnalyzeFoodItemOutput | undefined;
-    let similarityOutput: FoodSimilarityOutput | undefined; // Though likely not used for guest display
     let newFoodItem: LoggedFoodItem;
 
     try {
@@ -858,7 +849,6 @@ export default function FoodTimelinePage() {
         portionSize: mealDescriptionOutput.estimatedPortionSize,
         portionUnit: mealDescriptionOutput.estimatedPortionUnit,
       });
-      // Similarity to safe foods is not relevant for guests as they don't have saved safe foods
       
       newFoodItem = {
         id: newItemId,
@@ -870,7 +860,7 @@ export default function FoodTimelinePage() {
         sourceDescription: description,
         timestamp: new Date(),
         fodmapData: fodmapAnalysis,
-        isSimilarToSafe: false, // Default to false for guests
+        isSimilarToSafe: false, 
         userFodmapProfile: fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(mealDescriptionOutput.primaryFoodItemForAnalysis),
         calories: fodmapAnalysis?.calories,
         protein: fodmapAnalysis?.protein,
@@ -881,7 +871,7 @@ export default function FoodTimelinePage() {
       };
       setLastGuestFoodItem(newFoodItem);
       toast({title: "Meal Noted (Locally)", description: "Sign in with Google to save and track!"});
-      setIsGuestSheetOpen(true); // Open the sheet to show the logged item
+      setIsGuestSheetOpen(true); 
     } catch (error: any) {
         console.error('Guest AI meal processing failed:', error);
         let toastTitle = 'Error Noting Meal';
@@ -894,7 +884,6 @@ export default function FoodTimelinePage() {
              }
          }
         toast({ title: toastTitle, description: toastDescription, variant: 'destructive', duration: 9000 });
-        // Store a simplified version if AI fails
         setLastGuestFoodItem({
             id: newItemId,
             name: description.substring(0,30) + "...",
@@ -909,7 +898,7 @@ export default function FoodTimelinePage() {
         setIsGuestSheetOpen(true);
     } finally {
       setIsLoadingAi(prev => ({ ...prev, [newItemId]: false }));
-      setIsGuestLogFoodDialogOpen(false); // Close the SimplifiedAddFoodDialog
+      setIsGuestLogFoodDialogOpen(false); 
     }
   };
 
@@ -940,7 +929,6 @@ export default function FoodTimelinePage() {
     );
   }
   
-  // Guest User UI
   if (!authUser && !authLoading) {
     return (
       <>
@@ -953,11 +941,11 @@ export default function FoodTimelinePage() {
           onRemoveItem={handleGuestRemoveFoodItem}
           isLoadingAiForItem={lastGuestFoodItem ? !!isLoadingAi[lastGuestFoodItem.id] : false}
         />
-        {/* SimplifiedAddFoodDialog is used for guest food logging */}
         <SimplifiedAddFoodDialog
             isOpen={isGuestLogFoodDialogOpen}
             onOpenChange={setIsGuestLogFoodDialogOpen}
             onProcessDescription={handleGuestProcessMealDescription}
+            isGuestView={true}
         />
       </>
     );
@@ -1043,6 +1031,7 @@ export default function FoodTimelinePage() {
           isOpen={isSimplifiedAddFoodDialogOpen}
           onOpenChange={setIsSimplifiedAddFoodDialogOpen}
           onProcessDescription={handleProcessMealDescription}
+          isGuestView={false}
         />
         <SymptomLoggingDialog
             isOpen={isSymptomLogDialogOpen}
@@ -1114,6 +1103,7 @@ export default function FoodTimelinePage() {
         isOpen={isSimplifiedAddFoodDialogOpen}
         onOpenChange={setIsSimplifiedAddFoodDialogOpen}
         onProcessDescription={handleProcessMealDescription}
+        isGuestView={false}
       />
        <AddManualMacroEntryDialog
         isOpen={isAddManualMacroDialogOpen}
