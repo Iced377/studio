@@ -23,11 +23,11 @@ export default function FodmapIndicator({ score, reason }: FodmapIndicatorProps)
     );
   }
 
-  // Using direct hex codes for specific FODMAP colors as per PRD
+  // Updated hex codes as per user specification
   const indicatorMap = {
-    Green: { icon: <CheckCircle2 className="h-5 w-5 text-[#4CAF50]" />, text: 'Low FODMAP', colorClass: 'text-[#4CAF50] bg-[#4CAF50]/10 border-[#4CAF50]/30' },
-    Yellow: { icon: <AlertTriangle className="h-5 w-5 text-[#FFEB3B]" />, text: 'Moderate FODMAP', colorClass: 'text-[#FFEB3B] bg-[#FFEB3B]/10 border-[#FFEB3B]/30' },
-    Red: { icon: <XCircle className="h-5 w-5 text-[#F44336]" />, text: 'High FODMAP', colorClass: 'text-[#F44336] bg-[#F44336]/10 border-[#F44336]/30' },
+    Green: { icon: <CheckCircle2 className="h-5 w-5 text-[#34C759]" />, text: 'Low FODMAP', colorClass: 'text-[#34C759] bg-[#34C759]/10 border-[#34C759]/30' },
+    Yellow: { icon: <AlertTriangle className="h-5 w-5 text-[#FFD600]" />, text: 'Moderate FODMAP', colorClass: 'text-[#FFD600] bg-[#FFD600]/10 border-[#FFD600]/30' },
+    Red: { icon: <XCircle className="h-5 w-5 text-[#EB5757]" />, text: 'High FODMAP', colorClass: 'text-[#EB5757] bg-[#EB5757]/10 border-[#EB5757]/30' },
   };
 
   const currentIndicator = indicatorMap[score];
@@ -43,7 +43,7 @@ export default function FodmapIndicator({ score, reason }: FodmapIndicatorProps)
         </TooltipTrigger>
         <TooltipContent className="max-w-xs bg-popover text-popover-foreground border-border p-3">
           <p className={`font-semibold ${
-            score === 'Green' ? 'text-[#4CAF50]' : score === 'Yellow' ? 'text-[#FFEB3B]' : 'text-[#F44336]'
+            score === 'Green' ? 'text-[#34C759]' : score === 'Yellow' ? 'text-[#FFD600]' : 'text-[#EB5757]'
           }`}>{currentIndicator.text}</p>
           {reason && <p className="text-sm text-muted-foreground mt-1">{reason}</p>}
           {!reason && score && <p className="text-sm text-muted-foreground mt-1">This item is rated as {score.toLowerCase()} FODMAP.</p>}

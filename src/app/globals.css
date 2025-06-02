@@ -4,12 +4,12 @@
 @tailwind utilities;
 
 @layer base {
-  /* Default variables for the "black" theme */
+  /* Default variables for the "black" theme (dark mode) */
   .dark.theme-black {
     --background: 0 0% 0%; /* #000000 */
     --foreground: 0 0% 100%; /* #FFFFFF */
 
-    --card: 0 0% 8%; /* Dark Gray for cards - slightly off-black for definition */
+    --card: 0 0% 8%; /* Dark Gray for cards */
     --card-foreground: 0 0% 100%;
 
     --popover: 0 0% 5%; /* Darker Gray for popovers */
@@ -35,15 +35,47 @@
     --ring: 0 0% 80%; /* #CCCCCC - Light gray for focus rings */
   }
 
+  /* Calo-inspired Green Theme (dark mode) */
+  .dark.theme-green {
+    --background: 145 20% 8%;            /* Dark, desaturated Calo green */
+    --foreground: 145 50% 95%;          /* Light, slightly green-tinted white */
+
+    --card: 145 20% 12%;                 /* Slightly lighter dark green for cards */
+    --card-foreground: 145 50% 95%;      /* Same as main foreground */
+
+    --popover: 145 20% 10%;              /* Darker green for popovers */
+    --popover-foreground: 145 50% 95%;
+
+    --primary: 145 63% 42%;              /* Calo Brand Green: #27AE60 */
+    --primary-foreground: 0 0% 100%;     /* White text on primary buttons */
+    
+    --secondary: 145 63% 36%;            /* Calo Supportive Green: #219653 */
+    --secondary-foreground: 0 0% 100%;   /* White text on secondary buttons */
+
+    --muted: 145 20% 25%;                /* Muted green for less prominent elements */
+    --muted-foreground: 145 30% 70%;     /* Lighter green text for muted content */
+
+    --accent: 145 63% 40%;               /* Slightly variant green for accents */
+    --accent-foreground: 0 0% 100%;      /* White text on accent */
+
+    --destructive: 0 82% 63%;            /* Warning Red: #EB5757 */
+    --destructive-foreground: 0 0% 100%; /* White text on destructive */
+
+    --border: 145 50% 30%;               /* Greenish border */
+    --input: 145 20% 15%;                /* Dark green input background (for fields) */
+                                         /* Note: outline button borders use 'border-input', so they'd use this too. 
+                                            If outline buttons need #27AE60 border, then --input-border (new var) or adjust */
+    --ring: 145 63% 55%;                 /* Brighter Calo green for focus rings */
+
+    /* Specific for Calo green theme success indicators */
+    --success-indicator-bg: 136 59% 50%;   /* #34C759 */
+    --success-indicator-text: 0 0% 100%; /* White */
+  }
+
+
   .dark.theme-orange {
     --background: 25 10% 4%; /* Even darker orange-black for background */
     --foreground: 25 80% 95%; 
-    /* Other variables like --card, --primary etc. will inherit from .dark.theme-black */
-  }
-
-  .dark.theme-green {
-    --background: 145 15% 4%; 
-    --foreground: 145 60% 95%; 
     /* Other variables like --card, --primary etc. will inherit from .dark.theme-black */
   }
 

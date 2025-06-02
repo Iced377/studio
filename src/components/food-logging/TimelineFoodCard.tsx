@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import FodmapIndicator from '@/components/shared/FodmapIndicator';
 import { Badge } from '@/components/ui/badge';
-import { ThumbsUp, Trash2, CheckCheck, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3 } from 'lucide-react'; // Added Edit3
+import { ThumbsUp, Trash2, CheckCheck, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface TimelineFoodCardProps {
@@ -16,7 +16,7 @@ interface TimelineFoodCardProps {
   onLogSymptoms: (foodItemId?: string) => void;
   isSafeFood: boolean;
   isLoadingAi: boolean;
-  onEditIngredients?: (item: LoggedFoodItem) => void; // Optional: For editing
+  onEditIngredients?: (item: LoggedFoodItem) => void;
 }
 
 export default function TimelineFoodCard({ 
@@ -73,7 +73,17 @@ export default function TimelineFoodCard({
       </CardHeader>
       <CardContent className="px-4 pb-2 pt-1">
         {item.isSimilarToSafe && (
-          <Badge variant="secondary" className="mb-2 text-sm bg-gray-700 text-gray-200 border-gray-600">
+          <Badge
+            variant="default" // Use default variant and override styles
+            className="mb-2 text-sm"
+            style={{
+              backgroundColor: '#34C759', // Calo success green
+              color: 'white',
+              borderColor: '#27AE60', // Calo brand green for border
+              borderWidth: '1px',
+              borderStyle: 'solid',
+            }}
+          >
             <CheckCheck className="mr-1 h-4 w-4" /> Similar to your Safe Foods
           </Badge>
         )}
@@ -93,7 +103,7 @@ export default function TimelineFoodCard({
             <ul className="list-disc list-inside pl-1 space-y-0.5">
               {item.fodmapData.ingredientFodmapScores.map((entry) => (
                 <li key={entry.ingredient} className={`text-xs ${
-                  entry.score === 'Green' ? 'text-[#4CAF50]' : entry.score === 'Yellow' ? 'text-[#FFEB3B]' : 'text-[#F44336]'
+                  entry.score === 'Green' ? 'text-[#34C759]' : entry.score === 'Yellow' ? 'text-[#FFD600]' : 'text-[#EB5757]'
                 }`}>
                   {entry.ingredient}: <span className="font-medium">{entry.score}</span>
                   {entry.reason && <span className="text-muted-foreground italic text-[10px]"> ({entry.reason})</span>}
@@ -115,7 +125,7 @@ export default function TimelineFoodCard({
             >
                 <ListChecks className="mr-2 h-4 w-4" /> Log Symptoms
             </Button>
-            {onEditIngredients && ( // Optional Edit Button
+            {onEditIngredients && ( 
                 <Button
                     variant="outline"
                     size="sm"
@@ -134,7 +144,7 @@ export default function TimelineFoodCard({
             size="sm"
             onClick={handleMarkAsSafeClick}
             disabled={isSafeFood || !item.fodmapData || isLoadingAi}
-            className={isSafeFood ? "bg-gray-600 hover:bg-gray-500 text-white cursor-not-allowed" : "border-accent text-accent-foreground hover:bg-accent/20"}
+            className={isSafeFood ? "bg-primary hover:bg-primary/90 text-primary-foreground cursor-not-allowed" : "border-accent text-accent-foreground hover:bg-accent/20"}
             aria-label={isSafeFood ? 'Marked as Safe' : 'Mark as Safe'}
             >
             {isSafeFood ? <CheckCheck className="mr-2 h-4 w-4" /> : <ThumbsUp className="mr-2 h-4 w-4" />}
