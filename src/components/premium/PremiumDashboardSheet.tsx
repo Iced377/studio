@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Sheet, SheetContent, SheetHeader, SheetTrigger, SheetTitle, SheetDescription, SheetClose, SheetFooter } from "@/components/ui/sheet" // Added SheetFooter
+import { Sheet, SheetContent, SheetHeader, SheetTrigger, SheetTitle, SheetDescription, SheetClose, SheetFooter } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import Navbar from "@/components/shared/Navbar"
@@ -24,7 +24,7 @@ interface PremiumDashboardSheetProps {
   onRemoveTimelineEntry: (entryId: string) => void;
   onLogSymptomsForFood: (foodItemId?: string) => void;
   onUpgradeClick: () => void;
-  onEditIngredients?: (item: any) => void; // Added optional prop
+  onEditIngredients?: (item: any) => void;
 }
 
 export default function PremiumDashboardSheet({
@@ -49,6 +49,7 @@ export default function PremiumDashboardSheet({
       <SheetContent side="bottom" className="h-[90vh] flex flex-col p-0 bg-background text-foreground border-t-2 border-border">
         <SheetHeader className="p-0">
           {/* Navbar integration for Profile, Settings, Upgrade status */}
+          <SheetTitle className="sr-only">Main Dashboard and Timeline</SheetTitle> {/* Visually hidden title for accessibility */}
           <Navbar onUpgradeClick={onUpgradeClick} isPremium={userProfile.premium} />
         </SheetHeader>
 
