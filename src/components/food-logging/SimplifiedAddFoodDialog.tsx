@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Added useEffect
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -30,32 +30,50 @@ type SimplifiedFoodLogFormValues = z.infer<typeof simplifiedFoodLogSchema>;
 interface SimplifiedAddFoodDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onProcessDescription: (description: string) => Promise<void>;
-  isGuestView?: boolean; // Added prop
+  onSubmitDescription: (description: string) => Promise<void>; // Renamed prop
+  isGuestView?: boolean;
+  isEditing?: boolean; // New prop for edit mode
+  initialValues?: { mealDescription: string }; // New prop for prefilling
 }
 
-export default function SimplifiedAddFoodDialog({ isOpen, onOpenChange, onProcessDescription, isGuestView = false }: SimplifiedAddFoodDialogProps) {
+export default function SimplifiedAddFoodDialog({ 
+  isOpen, 
+  onOpenChange, 
+  onSubmitDescription, 
+  isGuestView = false,
+  isEditing = false,
+  initialValues 
+}: SimplifiedAddFoodDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<SimplifiedFoodLogFormValues>({
     resolver: zodResolver(simplifiedFoodLogSchema),
-    defaultValues: {
+    defaultValues: initialValues || {
       mealDescription: '',
     },
   });
 
+  useEffect(() => {
+    if (isEditing && initialValues) {
+      form.reset({ mealDescription: initialValues.mealDescription });
+    } else if (!isEditing) {
+      form.reset({ mealDescription: '' }); // Reset if opening for new entry
+    }
+  }, [isOpen, isEditing, initialValues, form]);
+
+
   const handleSubmit = async (data: SimplifiedFoodLogFormValues) => {
     setIsLoading(true);
     try {
-      await onProcessDescription(data.mealDescription);
-      form.reset();
+      await onSubmitDescription(data.mealDescription);
+      if (!isEditing) form.reset(); // Only reset if not editing, or handled by onOpenChange(false)
       onOpenChange(false);
     } catch (error: any) {
       console.error("Error processing meal description:", error);
       toast({ 
-        title: 'Error Processing Meal', 
-        description: error.message || 'Could not process your meal description with AI.', 
+        title: `Error ${isEditing ? 'Updating' : 'Processing'} Meal`, 
+        description: error.message || `Could not ${isEditing ? 'update' : 'process'} your meal description with AI.`, 
         variant: 'destructive' 
       });
     } finally {
@@ -79,12 +97,12 @@ export default function SimplifiedAddFoodDialog({ isOpen, onOpenChange, onProces
 
   const sproutIconClasses = cn(
     "mr-2 h-6 w-6",
-    isGuestView ? "text-white/80" : "text-gray-400" // Default to gray-400 for registered user
+    isGuestView ? "text-white/80" : "text-gray-400"
   );
   
   const sproutSubmitIconClasses = cn(
     "mr-2 h-5 w-5",
-    isGuestView ? "" : "" // Sprout icon in submit button retains its color from button text
+    isGuestView ? "" : "" 
   );
 
 
@@ -108,9 +126,17 @@ export default function SimplifiedAddFoodDialog({ isOpen, onOpenChange, onProces
   );
   
   const labelClasses = cn(
-    "text-sm font-medium sr-only", // sr-only as it was before
-    isGuestView ? "text-white/90" : "text-foreground" // Effectively hidden, but for consistency
+    "text-sm font-medium sr-only", 
+    isGuestView ? "text-white/90" : "text-foreground" 
   );
+
+  const dialogTitleText = isGuestView 
+    ? "What did you eat?" 
+    : (isEditing ? "Edit Meal Description" : "Log Food with AI");
+  
+  const submitButtonText = isLoading 
+    ? (isEditing ? 'Updating...' : 'Analyzing...')
+    : (isGuestView ? 'Check Meal' : (isEditing ? 'Update Meal' : 'Analyze Meal'));
 
 
   return (
@@ -118,12 +144,15 @@ export default function SimplifiedAddFoodDialog({ isOpen, onOpenChange, onProces
       <DialogContent className={dialogContentClasses}>
         <DialogHeader>
           <DialogTitle className={titleClasses}>
-            <Sprout className={sproutIconClasses} /> {isGuestView ? "What did you eat?" : "Log Food with AI"}
+            <Sprout className={sproutIconClasses} /> {dialogTitleText}
           </DialogTitle>
           <DialogDescription className={descriptionClasses}>
             {isGuestView 
               ? "Tell us what you ate, including ingredients and their approximate portion sizes." 
-              : "Describe your meal in natural language, and our AI will help break it down."}
+              : (isEditing 
+                  ? "Update the description of your meal. The AI will re-analyze it."
+                  : "Describe your meal in natural language, and our AI will help break it down.")
+            }
           </DialogDescription>
         </DialogHeader>
         
@@ -149,7 +178,7 @@ export default function SimplifiedAddFoodDialog({ isOpen, onOpenChange, onProces
             </DialogClose>
             <Button type="submit" className={submitButtonClasses} disabled={isLoading}>
               {isLoading ? <Loader2 className={cn("animate-spin h-5 w-5 mr-2", isGuestView ? "text-calo-green" : "text-primary-foreground" )} /> : <Sprout className={sproutSubmitIconClasses} />}
-              {isLoading ? 'Analyzing...' : (isGuestView ? 'Check Meal' : 'Analyze Meal')}
+              {submitButtonText}
             </Button>
           </DialogFooter>
         </form>

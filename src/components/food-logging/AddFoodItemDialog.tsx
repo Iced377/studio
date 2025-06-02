@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Added useEffect
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -18,9 +18,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { LoggedFoodItem } from '@/types';
-import { Sprout } from 'lucide-react';
+import { Sprout, Loader2 } from 'lucide-react'; // Added Loader2
 import { useToast } from '@/hooks/use-toast';
-import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder'; // Import the ad placeholder
+import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder';
 
 const manualEntrySchema = z.object({
   name: z.string().min(1, { message: 'Food name is required' }),
@@ -29,21 +29,29 @@ const manualEntrySchema = z.object({
   portionUnit: z.string().min(1, { message: 'Portion unit is required (e.g., slice, cup, g)'}),
 });
 
-type ManualEntryFormValues = z.infer<typeof manualEntrySchema>;
+export type ManualEntryFormValues = z.infer<typeof manualEntrySchema>;
 
 interface AddFoodItemDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onAddFoodItem: (foodItemData: Omit<LoggedFoodItem, 'id' | 'timestamp' | 'entryType'>) => Promise<void>;
+  onSubmitFoodItem: (foodItemData: Omit<LoggedFoodItem, 'id' | 'timestamp' | 'entryType'>) => Promise<void>; // Renamed prop
+  isEditing?: boolean; // New prop
+  initialValues?: Partial<ManualEntryFormValues>; // New prop
 }
 
-export default function AddFoodItemDialog({ isOpen, onOpenChange, onAddFoodItem }: AddFoodItemDialogProps) {
+export default function AddFoodItemDialog({ 
+  isOpen, 
+  onOpenChange, 
+  onSubmitFoodItem,
+  isEditing = false,
+  initialValues
+}: AddFoodItemDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<ManualEntryFormValues>({
     resolver: zodResolver(manualEntrySchema),
-    defaultValues: {
+    defaultValues: initialValues || {
       name: '',
       ingredients: '',
       portionSize: '',
@@ -51,44 +59,55 @@ export default function AddFoodItemDialog({ isOpen, onOpenChange, onAddFoodItem 
     },
   });
 
-  const handleManualSubmit = async (data: ManualEntryFormValues) => {
+  useEffect(() => {
+    if (isEditing && initialValues) {
+      form.reset(initialValues);
+    } else if (!isEditing) {
+      form.reset({ name: '', ingredients: '', portionSize: '', portionUnit: '' });
+    }
+  }, [isOpen, isEditing, initialValues, form]);
+
+  const handleFormSubmit = async (data: ManualEntryFormValues) => {
     setIsLoading(true);
     try {
-      await onAddFoodItem({
+      await onSubmitFoodItem({
         name: data.name,
         ingredients: data.ingredients,
         portionSize: data.portionSize,
         portionUnit: data.portionUnit,
       });
-      form.reset();
+      if (!isEditing) form.reset();
       onOpenChange(false); 
     } catch (error) {
-      console.error("Error adding food item from dialog:", error);
-      toast({ title: 'Error', description: 'Could not add food item.', variant: 'destructive' });
+      console.error(`Error ${isEditing ? 'updating' : 'adding'} food item from dialog:`, error);
+      toast({ title: 'Error', description: `Could not ${isEditing ? 'update' : 'add'} food item.`, variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
   };
+
+  const dialogTitleText = isEditing ? "Edit Food Item" : "Log Food Item";
+  const submitButtonText = isLoading 
+    ? (isEditing ? 'Updating...' : 'Adding...') 
+    : (isEditing ? 'Update Food Item' : 'Add to Timeline');
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[520px] bg-card text-card-foreground border-border">
         <DialogHeader>
           <DialogTitle className="font-headline text-xl flex items-center text-foreground">
-            <Sprout className="mr-2 h-6 w-6 text-gray-400" /> Log Food Item
+            <Sprout className="mr-2 h-6 w-6 text-gray-400" /> {dialogTitleText}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Add a new food item to your timeline.
+            {isEditing ? "Update the details of this food item." : "Add a new food item to your timeline."}
           </DialogDescription>
         </DialogHeader>
         
-        {/* Ad Placeholder added here */}
         <div className="my-4">
           <BannerAdPlaceholder />
         </div>
         
-        {/* Manual Entry Form directly */}
-        <form onSubmit={form.handleSubmit(handleManualSubmit)} className="space-y-4 pt-2">
+        <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 pt-2">
           <div>
             <Label htmlFor="name" className="text-sm font-medium text-foreground">Food Name</Label>
             <Input id="name" {...form.register('name')} placeholder="e.g., Chicken Salad Sandwich" className="mt-1 bg-input text-foreground placeholder:text-muted-foreground" />
@@ -132,7 +151,8 @@ export default function AddFoodItemDialog({ isOpen, onOpenChange, onAddFoodItem 
               Cancel
             </Button>
             <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/80" disabled={isLoading}>
-              {isLoading ? 'Adding...' : 'Add to Timeline'}
+              {isLoading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : null}
+              {submitButtonText}
             </Button>
           </DialogFooter>
         </form>
