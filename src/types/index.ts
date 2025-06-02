@@ -22,6 +22,7 @@ export interface LoggedFoodItem {
   entryType: 'food' | 'manual_macro'; // Added 'manual_macro'
   sourceDescription?: string; // For new logging flow: the raw user description
   userFeedback?: 'safe' | 'unsafe' | null; // New field for user feedback
+  macrosOverridden?: boolean; // True if macros were manually edited for an AI-analyzed item
 }
 
 export interface Symptom {
@@ -113,3 +114,4 @@ export interface SymptomFrequency {
   name: string; // Symptom name
   value: number; // Count or percentage
 }
+

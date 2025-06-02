@@ -1,0 +1,110 @@
+
+'use client';
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { Calendar } from '@/components/ui/calendar';
+import { Brain, Pencil, CalendarDays } from 'lucide-react';
+import { format } from 'date-fns';
+
+interface LogPreviousMealDialogProps {
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  onDateSelect: (date?: Date) => void;
+  onLogMethodSelect: (method: 'AI' | 'Manual') => void;
+  currentSelectedDate?: Date;
+}
+
+export default function LogPreviousMealDialog({
+  isOpen,
+  onOpenChange,
+  onDateSelect,
+  onLogMethodSelect,
+  currentSelectedDate,
+}: LogPreviousMealDialogProps) {
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(currentSelectedDate || new Date());
+
+  const handleDateSelect = (date?: Date) => {
+    setSelectedDate(date);
+    onDateSelect(date); // Update parent state immediately
+  };
+
+  const handleLogWithAI = () => {
+    if (!selectedDate) {
+        alert("Please select a date first.");
+        return;
+    }
+    onLogMethodSelect('AI');
+    onOpenChange(false); // Close this dialog
+  };
+
+  const handleLogManually = () => {
+     if (!selectedDate) {
+        alert("Please select a date first.");
+        return;
+    }
+    onLogMethodSelect('Manual');
+    onOpenChange(false); // Close this dialog
+  };
+  
+  const today = new Date();
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => {
+        if(!open) onDateSelect(undefined); // Clear selected date in parent if dialog is closed
+        onOpenChange(open);
+    }}>
+      <DialogContent className="sm:max-w-md bg-card text-card-foreground border-border">
+        <DialogHeader>
+          <DialogTitle className="font-headline text-xl flex items-center text-foreground">
+            <CalendarDays className="mr-2 h-6 w-6 text-gray-400" /> Log a Previous Meal
+          </DialogTitle>
+          <DialogDescription className="text-muted-foreground">
+            First, select the date the meal was consumed. Then choose how you want to log it.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="py-4 flex flex-col items-center">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={handleDateSelect}
+            className="rounded-md border border-input"
+            disabled={(date) => date > today || date < new Date("2000-01-01")}
+            initialFocus
+          />
+           {selectedDate && (
+            <p className="mt-3 text-sm text-foreground">
+              Selected date: <span className="font-semibold">{format(selectedDate, "PPP")}</span>
+            </p>
+          )}
+        </div>
+
+        <DialogFooter className="pt-2 sm:justify-between">
+          <DialogClose asChild>
+            <Button type="button" variant="outline" className="w-full sm:w-auto border-accent text-accent-foreground hover:bg-accent/20">
+              Cancel
+            </Button>
+          </DialogClose>
+          <div className="flex flex-col sm:flex-row gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
+            <Button onClick={handleLogWithAI} className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/80" disabled={!selectedDate}>
+              <Brain className="mr-2 h-5 w-5" /> Log with AI
+            </Button>
+            <Button onClick={handleLogManually} className="w-full sm:w-auto bg-secondary text-secondary-foreground hover:bg-secondary/80" disabled={!selectedDate}>
+              <Pencil className="mr-2 h-5 w-5" /> Log Manually
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { LoggedFoodItem } from '@/types';
@@ -6,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import FodmapIndicator from '@/components/shared/FodmapIndicator';
 import { Badge } from '@/components/ui/badge';
-import { ThumbsUp, ThumbsDown, Trash2, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3, CheckCheck } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Trash2, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3, CheckCheck, PencilLine } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -20,10 +19,10 @@ interface TimelineFoodCardProps {
   isGuestView?: boolean;
 }
 
-export default function TimelineFoodCard({ 
-    item, 
-    onSetFeedback, 
-    onRemoveItem, 
+export default function TimelineFoodCard({
+    item,
+    onSetFeedback,
+    onRemoveItem,
     onLogSymptoms,
     isLoadingAi,
     onEditIngredients,
@@ -46,7 +45,7 @@ export default function TimelineFoodCard({
   if (item.protein !== undefined) macroParts.push(`P: ${Math.round(item.protein)}g`);
   if (item.carbs !== undefined) macroParts.push(`C: ${Math.round(item.carbs)}g`);
   if (item.fat !== undefined) macroParts.push(`F: ${Math.round(item.fat)}g`);
-  
+
   const isManualMacroEntry = item.entryType === 'manual_macro';
 
   const cardClasses = cn(
@@ -56,6 +55,7 @@ export default function TimelineFoodCard({
 
   const mutedTextClass = isGuestView ? "text-green-700" : "text-muted-foreground";
   const primaryTextClass = isGuestView ? "text-green-900" : "text-foreground";
+  const buttonTextClass = "text-foreground"; // Ensure dark text in light mode for these buttons
 
   return (
     <Card className={cardClasses}>
@@ -88,9 +88,9 @@ export default function TimelineFoodCard({
           <Badge
             variant="default"
             className="mb-2 text-sm"
-            style={{ 
-              backgroundColor: isGuestView ? '#A7F3D0' : 'var(--success-indicator-bg, #34C759)', 
-              color: isGuestView ? '#065F46' : 'var(--success-indicator-text, white)', 
+            style={{
+              backgroundColor: isGuestView ? '#A7F3D0' : 'var(--success-indicator-bg, #34C759)',
+              color: isGuestView ? '#065F46' : 'var(--success-indicator-text, white)',
               borderColor: isGuestView ? '#065F46' : 'var(--primary, #27AE60)',
               borderWidth: '1px',
               borderStyle: 'solid',
@@ -106,6 +106,7 @@ export default function TimelineFoodCard({
                     {item.protein !== undefined && <span className="flex items-center"><Beef className="w-3 h-3 mr-1 text-red-400"/>{Math.round(item.protein)}g P</span>}
                     {item.carbs !== undefined && <span className="flex items-center"><Wheat className="w-3 h-3 mr-1 text-yellow-400"/>{Math.round(item.carbs)}g C</span>}
                     {item.fat !== undefined && <span className="flex items-center"><Droplet className="w-3 h-3 mr-1 text-blue-400"/>{Math.round(item.fat)}g F</span>}
+                    {item.macrosOverridden && <span className="flex items-center text-orange-500"><PencilLine className="w-3 h-3 mr-1"/> (Macros Edited)</span>}
                 </p>
             </div>
         )}
@@ -115,7 +116,7 @@ export default function TimelineFoodCard({
             <ul className="list-disc list-inside pl-1 space-y-0.5">
               {item.fodmapData.ingredientFodmapScores.map((entry) => (
                 <li key={entry.ingredient} className={`text-xs ${
-                  entry.score === 'Green' ? 'text-green-500' : entry.score === 'Yellow' ? 'text-yellow-500' : 'text-red-500' 
+                  entry.score === 'Green' ? 'text-green-500' : entry.score === 'Yellow' ? 'text-yellow-500' : 'text-red-500'
                 }`}>
                   {entry.ingredient}: <span className="font-medium">{entry.score}</span>
                   {entry.reason && <span className={cn("italic text-[10px]", mutedTextClass)}> ({entry.reason})</span>}
@@ -134,20 +135,20 @@ export default function TimelineFoodCard({
                     size="sm"
                     onClick={() => onLogSymptoms(item.id)}
                     disabled={isLoadingAi}
-                    className="border-accent text-foreground hover:bg-accent hover:text-accent-foreground"
+                    className={cn("border-accent hover:bg-accent hover:text-accent-foreground", buttonTextClass)}
                     aria-label="Log Symptoms for this item"
                 >
                     <ListChecks className="mr-2 h-4 w-4" /> Log Symptoms
                 </Button>
               )}
-              {!isManualMacroEntry && onEditIngredients && ( 
+              {onEditIngredients && (  // Show edit button for both food and manual_macro types
                   <Button
                       variant="outline"
                       size="sm"
                       onClick={() => onEditIngredients(item)}
                       disabled={isLoadingAi}
-                      className="border-accent text-foreground hover:bg-accent hover:text-accent-foreground"
-                      aria-label="Edit ingredients for this item"
+                      className={cn("border-accent hover:bg-accent hover:text-accent-foreground", buttonTextClass)}
+                      aria-label="Edit this item"
                   >
                       <Edit3 className="mr-2 h-4 w-4" /> Edit
                   </Button>
@@ -180,7 +181,7 @@ export default function TimelineFoodCard({
               )}
               {onRemoveItem && (
                 <Button variant="ghost" size="sm" onClick={() => onRemoveItem(item.id)} className="text-destructive hover:bg-destructive/20"  disabled={isLoadingAi} aria-label="Remove this item">
-                {isManualMacroEntry ? <Trash2 className="h-4 w-4" /> : <><Trash2 className="mr-2 h-4 w-4" /> Remove</>}
+                <Trash2 className="mr-2 h-4 w-4" /> Remove
                 </Button>
               )}
           </div>
