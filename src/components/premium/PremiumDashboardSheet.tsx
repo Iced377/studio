@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Sheet, SheetContent, SheetHeader, SheetTrigger, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTrigger, SheetTitle, SheetDescription, SheetClose, SheetFooter } from "@/components/ui/sheet" // Added SheetFooter
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import Navbar from "@/components/shared/Navbar"
