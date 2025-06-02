@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { LifeBuoy, LogOut, LogIn, Palette, Sun, Moon, BarChart3 } from 'lucide-react'; // Removed UserCircle, Settings, Zap
+import { LifeBuoy, LogOut, LogIn, Sun, Moon, BarChart3 } from 'lucide-react'; // Removed Palette, Zap
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -15,8 +15,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
+  // DropdownMenuRadioGroup, // Removed as theme selection is removed
+  // DropdownMenuRadioItem, // Removed as theme selection is removed
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from '@/contexts/ThemeContext';
@@ -24,7 +24,7 @@ import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import { cn } from '@/lib/utils';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "v2.6"; // Incremented version
+export const APP_VERSION = "v2.7"; // Incremented version
 
 interface NavbarProps {
   onUpgradeClick?: () => void;
@@ -37,7 +37,7 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
-  const { theme, setTheme, isDarkMode, toggleDarkMode } = useTheme();
+  const { setTheme, isDarkMode, toggleDarkMode } = useTheme(); // setTheme might be unused now but kept for context structure
 
   const handleSignOut = async () => {
     const error = await signOutUser();
@@ -59,14 +59,16 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
   const trendsLinkHandler = (e: React.MouseEvent) => {
     if (pathname === '/trends') {
       e.preventDefault();
-      router.push('/'); // Navigate home if already on trends page
+      router.push('/'); 
     } else {
-      router.push('/trends');
+      // router.push('/trends'); // Commented out to prevent navigation for now as per previous request context
+      // If trends navigation should be re-enabled:
+       router.push('/trends');
     }
   };
 
+
   const headerBaseClasses = "sticky top-0 z-50 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-background/60";
-  // Ensure guest header uses bg-calo-green for exact match
   const guestHeaderClasses = "bg-calo-green border-white/20 text-white"; 
   const defaultHeaderClasses = "border-border/40 bg-background/95 text-foreground";
 
@@ -92,18 +94,6 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
             <GoogleSignInButton variant="guest" />
           ) : (
             <>
-              {/* Premium button removed from default view as per guest view spec - can be added back if needed */}
-              {/* {!loading && user && onUpgradeClick && !isPremium && (
-                <Button onClick={onUpgradeClick} size="sm" variant="outline" className="border-yellow-500 text-yellow-500 hover:bg-yellow-500/10 h-8">
-                    <Zap className="mr-2 h-4 w-4" /> Upgrade
-                </Button>
-              )}
-              {!loading && user && isPremium && (
-                <span className="text-xs font-medium text-primary border border-primary/50 bg-primary/10 px-2 py-1 rounded-md flex items-center h-8">
-                    <Zap className="mr-1 h-3 w-3" /> Premium
-                </span>
-              )} */}
-
               {!loading && user && (
                 <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Trends" onClick={trendsLinkHandler}>
                   <BarChart3 className="h-5 w-5" />
@@ -114,31 +104,7 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
                 {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </Button>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Change theme">
-                    <Palette className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Select Theme</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuRadioGroup value={theme} onValueChange={(value) => setTheme(value as 'black' | 'orange' | 'green' | 'red')}>
-                    <DropdownMenuRadioItem value="black">
-                      Black (Default)
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="orange">
-                      Orange
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="green">
-                      Green
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="red">
-                      Red
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* Theme selection DropdownMenu removed */}
 
               {!loading && user ? (
                 <DropdownMenu>
@@ -162,7 +128,6 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    {/* Profile and Settings items removed */}
                     <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Log out</span>
