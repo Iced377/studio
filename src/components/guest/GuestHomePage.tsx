@@ -2,12 +2,12 @@
 'use client';
 
 import { useState } from 'react';
-import { LifeBuoy, ChevronUp, Loader2 } from 'lucide-react';
+import { ChevronUp } from 'lucide-react'; // Removed LifeBuoy, Loader2
 import { Button } from '@/components/ui/button';
 import GuestLastLogSheet from './GuestLastLogSheet';
 import type { LoggedFoodItem } from '@/types';
 import { APP_VERSION } from '@/components/shared/Navbar'; 
-import Navbar from '@/components/shared/Navbar'; // Import Navbar
+import Navbar from '@/components/shared/Navbar';
 
 interface GuestHomePageProps {
   onLogFoodClick: () => void;
@@ -19,8 +19,6 @@ interface GuestHomePageProps {
   isLoadingAiForItem: boolean;
 }
 
-const APP_NAME = "GutCheck";
-
 export default function GuestHomePage({
   onLogFoodClick,
   lastLoggedItem,
@@ -30,19 +28,16 @@ export default function GuestHomePage({
   onRemoveItem,
   isLoadingAiForItem,
 }: GuestHomePageProps) {
-  const [mainButtonText, setMainButtonText] = useState('Log My Food');
+  const [mainButtonText, setMainButtonText] = useState('Check My Meal'); // Updated text
 
   const handleMainButtonClick = () => {
-    setMainButtonText('What did you eat?'); // This text change might be too quick if dialog opens fast
+    // Text change on press can be handled if dialog state is managed here or via callback
     onLogFoodClick();
   };
   
-  // Reset button text if dialog is closed without submission (handled by onLogFoodDialogChange in page.tsx)
-  // For internal consistency, if onLogFoodClick directly opens dialog, that dialog's onOpenChange should reset.
-
   return (
     <div className="bg-calo-green text-white min-h-screen flex flex-col font-body antialiased">
-      <Navbar isGuest={true} /> {/* Guest-styled Navbar */}
+      <Navbar isGuest={true} />
 
       <main className="flex-grow flex flex-col items-center justify-center p-4 relative text-center">
         <Button
@@ -56,7 +51,6 @@ export default function GuestHomePage({
         </Button>
       </main>
 
-      {/* Teaser for the swipe-up panel, only if there's an item and panel is closed */}
       {lastLoggedItem && !isSheetOpen && (
          <div 
             className="fixed bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center cursor-pointer animate-bounce z-10"
@@ -75,8 +69,8 @@ export default function GuestHomePage({
         isOpen={isSheetOpen}
         onOpenChange={onSheetOpenChange}
         lastLoggedItem={lastLoggedItem}
-        onSetFeedback={onSetFeedback}
-        onRemoveItem={onRemoveItem}
+        onSetFeedback={onSetFeedback} // Will be no-op in TimelineFoodCard for guest
+        onRemoveItem={onRemoveItem}   // Will be no-op in TimelineFoodCard for guest
         isLoadingAi={isLoadingAiForItem}
       />
     </div>

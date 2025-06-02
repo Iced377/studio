@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { LifeBuoy, LogOut, LogIn, UserCircle, Settings, Zap, Palette, Sun, Moon, BarChart3 } from 'lucide-react';
+import { LifeBuoy, LogOut, LogIn, Palette, Sun, Moon, BarChart3 } from 'lucide-react'; // Removed UserCircle, Settings, Zap
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -21,10 +21,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from '@/contexts/ThemeContext';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
-import { cn } from '@/lib/utils'; // Added this import
+import { cn } from '@/lib/utils';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "v2.5";
+export const APP_VERSION = "v2.6"; // Incremented version
 
 interface NavbarProps {
   onUpgradeClick?: () => void;
@@ -59,16 +59,15 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
   const trendsLinkHandler = (e: React.MouseEvent) => {
     if (pathname === '/trends') {
       e.preventDefault();
-      router.push('/');
+      router.push('/'); // Navigate home if already on trends page
     } else {
       router.push('/trends');
     }
   };
 
-
-  // Define base classes
   const headerBaseClasses = "sticky top-0 z-50 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-background/60";
-  const guestHeaderClasses = "bg-calo-green border-white/20 text-white";
+  // Ensure guest header uses bg-calo-green for exact match
+  const guestHeaderClasses = "bg-calo-green border-white/20 text-white"; 
   const defaultHeaderClasses = "border-border/40 bg-background/95 text-foreground";
 
   const logoIconBaseClasses = "h-7 w-7";
@@ -76,7 +75,6 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
   const defaultLogoIconClasses = "text-primary";
 
   const appNameBaseClasses = "font-bold font-headline sm:inline-block text-xl";
-
 
   return (
     <header className={cn(headerBaseClasses, isGuest ? guestHeaderClasses : defaultHeaderClasses)}>
@@ -94,7 +92,8 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
             <GoogleSignInButton variant="guest" />
           ) : (
             <>
-              {!loading && user && onUpgradeClick && !isPremium && (
+              {/* Premium button removed from default view as per guest view spec - can be added back if needed */}
+              {/* {!loading && user && onUpgradeClick && !isPremium && (
                 <Button onClick={onUpgradeClick} size="sm" variant="outline" className="border-yellow-500 text-yellow-500 hover:bg-yellow-500/10 h-8">
                     <Zap className="mr-2 h-4 w-4" /> Upgrade
                 </Button>
@@ -103,7 +102,7 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
                 <span className="text-xs font-medium text-primary border border-primary/50 bg-primary/10 px-2 py-1 rounded-md flex items-center h-8">
                     <Zap className="mr-1 h-3 w-3" /> Premium
                 </span>
-              )}
+              )} */}
 
               {!loading && user && (
                 <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Trends" onClick={trendsLinkHandler}>
@@ -163,6 +162,7 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                    {/* Profile and Settings items removed */}
                     <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Log out</span>
