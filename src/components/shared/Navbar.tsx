@@ -63,15 +63,7 @@ export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
           <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
         </Link>
         
-        <div className="flex items-center space-x-2">
-          {!loading && user && (
-            <Button asChild variant="ghost" size="sm" className="h-8">
-              <Link href="/trends">
-                <BarChart3 className="mr-2 h-4 w-4" /> Trends
-              </Link>
-            </Button>
-          )}
-
+        <div className="flex items-center space-x-1 sm:space-x-2"> {/* Adjusted spacing for icons */}
           {!loading && user && onUpgradeClick && !isPremium && (
              <Button onClick={onUpgradeClick} size="sm" variant="outline" className="border-yellow-500 text-yellow-500 hover:bg-yellow-500/10 h-8">
                 <Zap className="mr-2 h-4 w-4" /> Upgrade
@@ -83,16 +75,22 @@ export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
             </span>
           )}
 
-          <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="h-8 w-8">
+          {!loading && user && (
+            <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Trends">
+              <Link href="/trends">
+                <BarChart3 className="h-5 w-5" /> 
+              </Link>
+            </Button>
+          )}
+
+          <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="h-8 w-8" aria-label="Toggle dark mode">
             {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            <span className="sr-only">Toggle dark mode</span>
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Change theme">
                 <Palette className="h-5 w-5" />
-                <span className="sr-only">Change theme</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
