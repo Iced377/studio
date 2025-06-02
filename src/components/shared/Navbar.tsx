@@ -2,8 +2,8 @@
 'use client';
 
 import Link from 'next/link';
-import { LifeBuoy, LogOut, LogIn, UserCircle, Settings, Zap, Palette, Check } from 'lucide-react'; // Added Palette, Check
-import { useAuthContext } from '@/hooks/use-auth-context';
+import { LifeBuoy, LogOut, LogIn, UserCircle, Settings, Zap, Palette, Check } from 'lucide-react'; 
+import { useAuth } from '@/components/auth/AuthProvider'; // Updated import
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -19,7 +19,7 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useTheme } from '@/contexts/ThemeContext'; // Added ThemeContext
+import { useTheme } from '@/contexts/ThemeContext'; 
 
 const APP_NAME = "GutCheck";
 const APP_VERSION = "v2.4";
@@ -30,7 +30,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
-  const { user, loading } = useAuthContext();
+  const { user, loading } = useAuth(); // Updated hook usage
   const router = useRouter();
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();

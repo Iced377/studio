@@ -1,32 +1,32 @@
+
 import {
   signInWithPopup,
   signOut,
   GoogleAuthProvider,
   type UserCredential,
   type AuthError,
+  signInWithRedirect,
+  browserLocalPersistence,
+  setPersistence,
 } from 'firebase/auth';
 import { auth } from '@/config/firebase';
 
 // Sign In with Google
-const googleProvider = new GoogleAuthProvider();
-export const signInWithGoogle = async (): Promise<UserCredential | AuthError> => {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    // This gives you a Google Access Token. You can use it to access the Google API.
-    // const credential = GoogleAuthProvider.credentialFromResult(result);
-    // const token = credential?.accessToken;
-    // The signed-in user info.
-    // const user = result.user;
-    return result;
-  } catch (error) {
-    // Handle Errors here.
-    // const errorCode = (error as AuthError).code;
-    // const errorMessage = (error as AuthError).message;
-    // The email of the user's account used.
-    // const email = (error as any).customData?.email;
-    // The AuthCredential type that was used.
-    // const credential = GoogleAuthProvider.credentialFromError(error as AuthError);
-    return error as AuthError;
+export const signInWithGoogle = async () => {
+  const provider = new GoogleAuthProvider();
+  // A simple way to detect mobile devices. More robust detection might be needed for edge cases.
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  await setPersistence(auth, browserLocalPersistence);
+
+  if (isMobile) {
+    // For mobile, use signInWithRedirect. This navigates away and comes back.
+    // The result is handled by getRedirectResult in AuthProvider.
+    return signInWithRedirect(auth, provider);
+  } else {
+    // For desktop, signInWithPopup is generally preferred.
+    // It returns a UserCredential upon successful sign-in.
+    return signInWithPopup(auth, provider);
   }
 };
 
