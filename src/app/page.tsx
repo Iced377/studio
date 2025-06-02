@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary, DailyFodmapCount } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp, CircleDotDashed, Zap, Pencil, CalendarDays, Edit3, ChevronUp } from 'lucide-react';
+import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp, SmilePlus, Zap, Pencil, CalendarDays, Edit3, ChevronUp } from 'lucide-react'; // Replaced CircleDotDashed with SmilePlus
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
 import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow';
@@ -375,14 +375,10 @@ export default function FoodTimelinePage() {
       let finalCarbs = fodmapAnalysis?.carbs;
       let finalFat = fodmapAnalysis?.fat;
 
-      // Only allow macro override if editing or when customTimestamp is not used (i.e., logging for "now" where dialog fields are visible)
-      // Or, if editing, always allow override from dialog
-      if (editingItem || (!customTimestamp && !isSimplifiedAddFoodDialogOpen)) {
-        if (typeof formData.calories === 'number' && !Number.isNaN(formData.calories)) { finalCalories = formData.calories; macrosOverridden = true; }
-        if (typeof formData.protein === 'number' && !Number.isNaN(formData.protein)) { finalProtein = formData.protein; macrosOverridden = true; }
-        if (typeof formData.carbs === 'number' && !Number.isNaN(formData.carbs)) { finalCarbs = formData.carbs; macrosOverridden = true; }
-        if (typeof formData.fat === 'number' && !Number.isNaN(formData.fat)) { finalFat = formData.fat; macrosOverridden = true; }
-      }
+      if (typeof formData.calories === 'number' && !Number.isNaN(formData.calories)) { finalCalories = formData.calories; macrosOverridden = true; }
+      if (typeof formData.protein === 'number' && !Number.isNaN(formData.protein)) { finalProtein = formData.protein; macrosOverridden = true; }
+      if (typeof formData.carbs === 'number' && !Number.isNaN(formData.carbs)) { finalCarbs = formData.carbs; macrosOverridden = true; }
+      if (typeof formData.fat === 'number' && !Number.isNaN(formData.fat)) { finalFat = formData.fat; macrosOverridden = true; }
 
 
       processedFoodItem = {
@@ -443,13 +439,13 @@ export default function FoodTimelinePage() {
             fodmapData: fodmapAnalysis,
             isSimilarToSafe: similarityOutput?.isSimilar ?? false,
             userFodmapProfile: fodmapAnalysis?.detailedFodmapProfile || editingItem?.userFodmapProfile || generateFallbackFodmapProfile(mealDescriptionOutput?.primaryFoodItemForAnalysis || "fallback"),
-            calories: editingItem?.calories,
+            calories: editingItem?.calories, // Preserve original macros if AI fails during edit
             protein: editingItem?.protein,
             carbs: editingItem?.carbs,
             fat: editingItem?.fat,
             entryType: 'food',
             userFeedback: editingItem ? editingItem.userFeedback : null,
-            macrosOverridden: editingItem ? editingItem.macrosOverridden : false,
+            macrosOverridden: editingItem ? editingItem.macrosOverridden : false, // Preserve override status
         };
         if (editingItem) {
             updateTimelineEntry(processedFoodItem);
@@ -517,8 +513,6 @@ export default function FoodTimelinePage() {
     if (itemToEdit.entryType === 'manual_macro') {
       setIsAddManualMacroDialogOpen(true);
     } else if (itemToEdit.entryType === 'food') {
-      // Always open SimplifiedAddFoodDialog for editing 'food' type,
-      // which now handles both AI-described and manual-ingredient items for editing.
       setIsSimplifiedAddFoodDialogOpen(true);
     }
   };
@@ -654,14 +648,13 @@ export default function FoodTimelinePage() {
   const handleAddManualMacroClick = (isForPreviousMeal = false) => {
     setIsCentralPopoverOpen(false);
     setEditingItem(null);
-    // Ad check not typically needed for manual macros, but can be added if desired
     setIsAddManualMacroDialogOpen(true);
   };
   
   const handleOpenLogPreviousMealDialog = () => {
     setIsCentralPopoverOpen(false);
     setEditingItem(null);
-    setSelectedLogDateForPreviousMeal(new Date()); // Default to today
+    setSelectedLogDateForPreviousMeal(new Date()); 
     setIsLogPreviousMealDialogOpen(true);
   };
 
@@ -696,7 +689,6 @@ export default function FoodTimelinePage() {
         switch(pendingActionAfterInterstitial) {
             case 'logFood': setIsAddFoodDialogOpen(true); break;
             case 'simplifiedLogFood': setIsSimplifiedAddFoodDialogOpen(true); break;
-            // Add cases for logPreviousMeal_AI and logPreviousMeal_Manual if needed
         }
     }
     setPendingActionAfterInterstitial(null);
@@ -862,7 +854,12 @@ export default function FoodTimelinePage() {
                 className="rounded-full h-32 w-32 sm:h-40 sm:w-40 border-2 border-primary bg-transparent animate-pulse-glow hover:bg-primary/10 focus:bg-primary/10 focus:ring-primary focus:ring-offset-background focus:ring-offset-2"
                 aria-label="Open Actions Menu"
               >
-                <CircleDotDashed className="h-16 w-16 sm:h-20 sm:w-20 text-primary" />
+                {/* 
+                  Placeholder App Logo for Button: 
+                  Replace this SmilePlus icon with your actual logo.
+                  Consider creating an SVG component for your logo that can be styled.
+                */}
+                <SmilePlus className="h-16 w-16 sm:h-20 sm:w-20 text-primary" />
               </Button>
             </PopoverTrigger>
             <PopoverContent
@@ -935,7 +932,10 @@ export default function FoodTimelinePage() {
 
         <SimplifiedAddFoodDialog
           isOpen={isSimplifiedAddFoodDialogOpen}
-          onOpenChange={setIsSimplifiedAddFoodDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) setEditingItem(null);
+            setIsSimplifiedAddFoodDialogOpen(open);
+          }}
           onSubmitLog={(data) => handleSubmitMealDescription(data, selectedLogDateForPreviousMeal)}
           isEditing={!!editingItem && editingItem.entryType === 'food'}
           initialValues={editingItem && editingItem.entryType === 'food' ?
@@ -958,7 +958,10 @@ export default function FoodTimelinePage() {
         />
         <AddManualMacroEntryDialog
             isOpen={isAddManualMacroDialogOpen}
-            onOpenChange={setIsAddManualMacroDialogOpen}
+            onOpenChange={(open) => {
+                if (!open) setEditingItem(null);
+                setIsAddManualMacroDialogOpen(open);
+            }}
             onSubmitEntry={(data) => handleSubmitManualMacroEntry(data, selectedLogDateForPreviousMeal)}
             isEditing={!!editingItem && editingItem.entryType === 'manual_macro'}
             initialValues={editingItem && editingItem.entryType === 'manual_macro' ?
@@ -968,9 +971,12 @@ export default function FoodTimelinePage() {
         />
          <AddFoodItemDialog
             isOpen={isAddFoodDialogOpen}
-            onOpenChange={setIsAddFoodDialogOpen}
+            onOpenChange={(open) => {
+                if (!open) setEditingItem(null);
+                setIsAddFoodDialogOpen(open);
+            }}
             onSubmitFoodItem={(data) => handleSubmitFoodItem(data, selectedLogDateForPreviousMeal)}
-            isEditing={!!editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription} // Only for truly manual ingredient items during edit
+            isEditing={!!editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription} 
             initialValues={editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription ?
               { name: editingItem.name, ingredients: editingItem.ingredients, portionSize: editingItem.portionSize, portionUnit: editingItem.portionUnit }
               : undefined
@@ -1009,16 +1015,16 @@ export default function FoodTimelinePage() {
             <PlusCircle className="mr-3 h-8 w-8" /> Tap to Log Food
           </Button>
           <div className="flex flex-wrap justify-center gap-3 mt-3">
-             <Button variant="outline" className="border-accent text-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => handleLogFoodClick()} disabled={(showInterstitialAd && authUser && authUser.uid !== 'guest-user' && !userProfile.premium) || isAnyItemLoadingAi}>
+             <Button variant="outline" className="text-foreground border-accent hover:bg-accent hover:text-accent-foreground" onClick={() => handleLogFoodClick()} disabled={(showInterstitialAd && authUser && authUser.uid !== 'guest-user' && !userProfile.premium) || isAnyItemLoadingAi}>
                 <Pencil className="mr-2 h-5 w-5" /> Log (Manual)
             </Button>
-            <Button variant="outline" className="border-accent text-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => openSymptomDialog()}>
+            <Button variant="outline" className="text-foreground border-accent hover:bg-accent hover:text-accent-foreground" onClick={() => openSymptomDialog()}>
               <ListChecks className="mr-2 h-5 w-5" /> Log Symptoms
             </Button>
-             <Button variant="outline" className="border-accent text-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => handleAddManualMacroClick()}>
+             <Button variant="outline" className="text-foreground border-accent hover:bg-accent hover:text-accent-foreground" onClick={() => handleAddManualMacroClick()}>
                 <Edit3 className="mr-2 h-5 w-5" /> Add Macros
             </Button>
-            <Button variant="outline" className="border-accent text-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleOpenLogPreviousMealDialog}>
+            <Button variant="outline" className="text-foreground border-accent hover:bg-accent hover:text-accent-foreground" onClick={handleOpenLogPreviousMealDialog}>
                 <CalendarDays className="mr-2 h-5 w-5" /> Log Previous
             </Button>
           </div>
@@ -1027,7 +1033,10 @@ export default function FoodTimelinePage() {
 
       <AddFoodItemDialog
         isOpen={isAddFoodDialogOpen}
-        onOpenChange={setIsAddFoodDialogOpen}
+        onOpenChange={(open) => {
+            if (!open) setEditingItem(null);
+            setIsAddFoodDialogOpen(open);
+        }}
         onSubmitFoodItem={(data) => handleSubmitFoodItem(data, selectedLogDateForPreviousMeal)}
         isEditing={!!editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription}
         initialValues={editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription ?
@@ -1037,7 +1046,10 @@ export default function FoodTimelinePage() {
       />
       <SimplifiedAddFoodDialog
         isOpen={isSimplifiedAddFoodDialogOpen}
-        onOpenChange={setIsSimplifiedAddFoodDialogOpen}
+        onOpenChange={(open) => {
+            if (!open) setEditingItem(null);
+            setIsSimplifiedAddFoodDialogOpen(open);
+        }}
         onSubmitLog={(data) => handleSubmitMealDescription(data, selectedLogDateForPreviousMeal)}
         isEditing={!!editingItem && editingItem.entryType === 'food'}
         initialValues={editingItem && editingItem.entryType === 'food' ?
@@ -1052,7 +1064,10 @@ export default function FoodTimelinePage() {
       />
        <AddManualMacroEntryDialog
         isOpen={isAddManualMacroDialogOpen}
-        onOpenChange={setIsAddManualMacroDialogOpen}
+        onOpenChange={(open) => {
+            if (!open) setEditingItem(null);
+            setIsAddManualMacroDialogOpen(open);
+        }}
         onSubmitEntry={(data) => handleSubmitManualMacroEntry(data, selectedLogDateForPreviousMeal)}
         isEditing={!!editingItem && editingItem.entryType === 'manual_macro'}
         initialValues={editingItem && editingItem.entryType === 'manual_macro' ?

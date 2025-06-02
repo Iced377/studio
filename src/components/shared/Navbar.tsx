@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { LifeBuoy, LogOut, LogIn, Sun, Moon, BarChart3 } from 'lucide-react'; // Removed Palette, Zap
+import { LogOut, LogIn, Sun, Moon, BarChart3, SmilePlus } from 'lucide-react'; // Added SmilePlus, removed LifeBuoy
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -15,8 +15,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  // DropdownMenuRadioGroup, // Removed as theme selection is removed
-  // DropdownMenuRadioItem, // Removed as theme selection is removed
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from '@/contexts/ThemeContext';
@@ -24,7 +22,7 @@ import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import { cn } from '@/lib/utils';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "v2.7"; // Incremented version
+export const APP_VERSION = "v2.7";
 
 interface NavbarProps {
   onUpgradeClick?: () => void;
@@ -37,7 +35,7 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
-  const { setTheme, isDarkMode, toggleDarkMode } = useTheme(); // setTheme might be unused now but kept for context structure
+  const { isDarkMode, toggleDarkMode } = useTheme();
 
   const handleSignOut = async () => {
     const error = await signOutUser();
@@ -61,8 +59,6 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
       e.preventDefault();
       router.push('/'); 
     } else {
-      // router.push('/trends'); // Commented out to prevent navigation for now as per previous request context
-      // If trends navigation should be re-enabled:
        router.push('/trends');
     }
   };
@@ -82,7 +78,15 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
     <header className={cn(headerBaseClasses, isGuest ? guestHeaderClasses : defaultHeaderClasses)}>
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <Link href="/" className="mr-auto flex items-center space-x-2">
-          <LifeBuoy className={cn(logoIconBaseClasses, isGuest ? guestLogoIconClasses : defaultLogoIconClasses)} />
+          {/* 
+            Placeholder App Logo: 
+            Replace this SmilePlus icon with your actual logo.
+            Consider creating an SVG component for your logo or using next/image.
+            Example with next/image (if logo.png is in public folder):
+            import Image from 'next/image';
+            <Image src="/logo.png" alt="GutCheck Logo" width={28} height={28} className={cn(logoIconBaseClasses, isGuest ? guestLogoIconClasses : defaultLogoIconClasses)} />
+          */}
+          <SmilePlus className={cn(logoIconBaseClasses, isGuest ? guestLogoIconClasses : defaultLogoIconClasses)} />
           <span className={cn(appNameBaseClasses, isGuest ? 'text-white' : 'text-foreground')}>
             {APP_NAME}
           </span>
@@ -103,8 +107,6 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
               <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="h-8 w-8" aria-label="Toggle dark mode">
                 {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </Button>
-
-              {/* Theme selection DropdownMenu removed */}
 
               {!loading && user ? (
                 <DropdownMenu>
