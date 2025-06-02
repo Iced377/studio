@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronUp } from 'lucide-react'; // Removed LifeBuoy, Loader2
+import { ChevronUp } from 'lucide-react'; 
 import { Button } from '@/components/ui/button';
 import GuestLastLogSheet from './GuestLastLogSheet';
 import type { LoggedFoodItem } from '@/types';
@@ -28,10 +28,9 @@ export default function GuestHomePage({
   onRemoveItem,
   isLoadingAiForItem,
 }: GuestHomePageProps) {
-  const [mainButtonText, setMainButtonText] = useState('Check My Meal'); // Updated text
+  const mainButtonText = 'Check My Meal'; 
 
   const handleMainButtonClick = () => {
-    // Text change on press can be handled if dialog state is managed here or via callback
     onLogFoodClick();
   };
   
@@ -69,8 +68,8 @@ export default function GuestHomePage({
         isOpen={isSheetOpen}
         onOpenChange={onSheetOpenChange}
         lastLoggedItem={lastLoggedItem}
-        onSetFeedback={onSetFeedback} // Will be no-op in TimelineFoodCard for guest
-        onRemoveItem={onRemoveItem}   // Will be no-op in TimelineFoodCard for guest
+        onSetFeedback={onSetFeedback} 
+        onRemoveItem={onRemoveItem}   
         isLoadingAi={isLoadingAiForItem}
       />
     </div>
