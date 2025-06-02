@@ -235,7 +235,7 @@ export default function FoodTimelinePage() {
         });
         isSimilar = similarityOutput?.isSimilar ?? false;
       } else {
-        isSimilar = false; // Ensure isSimilar is always a boolean
+        isSimilar = false; 
       }
 
 
@@ -295,7 +295,7 @@ export default function FoodTimelinePage() {
         ...foodItemData,
         id: newItemId,
         timestamp: new Date(),
-        isSimilarToSafe: similarityOutput?.isSimilar ?? false,
+        isSimilarToSafe: similarityOutput?.isSimilar ?? false, // Ensure boolean
         entryType: 'food',
         fodmapData: fodmapAnalysis, 
         userFodmapProfile: fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(foodItemData.name),
@@ -706,7 +706,7 @@ export default function FoodTimelinePage() {
           description: "Ads removed & premium features unlocked for this session. Login to save this status. (This is a simulation - no real payment was processed)." 
         });
     }
-    setIsPremiumDashboardOpen(false); // Close dashboard if open during upgrade
+    setIsPremiumDashboardOpen(false); 
   };
 
   const handleInterstitialClosed = (continued: boolean) => {
@@ -779,7 +779,7 @@ export default function FoodTimelinePage() {
     );
   }
   
-  if (isDataLoading) { // Simplified initial loading check
+  if (isDataLoading) { 
      return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -792,7 +792,6 @@ export default function FoodTimelinePage() {
   if (userProfile.premium) {
     return (
       <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden">
-        {/* Navbar now part of PremiumDashboardSheet header */}
         
         <div className="flex-grow flex items-center justify-center">
           <Popover open={isCentralPopoverOpen} onOpenChange={setIsCentralPopoverOpen}>
@@ -813,7 +812,7 @@ export default function FoodTimelinePage() {
             >
                 <div className="flex flex-col gap-1 p-2">
                      <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 hover:bg-accent/80 text-accent-foreground hover:text-accent-foreground" onClick={handleSimplifiedLogFoodClick}>
-                        <PlusCircle className="mr-3 h-5 w-5" /> Log Food (AI)
+                        <PlusCircle className="mr-3 h-5 w-5" /> Log Food
                     </Button>
                     <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 hover:bg-accent/80 text-accent-foreground hover:text-accent-foreground" onClick={() => openSymptomDialog()}>
                         <ListChecks className="mr-3 h-5 w-5" /> Log Symptoms
@@ -843,7 +842,7 @@ export default function FoodTimelinePage() {
               toast({title: "Edit Meal", description: `Editing "${itemToEdit.name}" (functionality to be implemented).`});
             }}
         />
-        {/* Trigger for the dashboard sheet - visible when sheet is closed */}
+        
         {!isPremiumDashboardOpen && (
             <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4">
                 <Button

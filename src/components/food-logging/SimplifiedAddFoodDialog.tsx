@@ -70,7 +70,6 @@ export default function SimplifiedAddFoodDialog({ isOpen, onOpenChange, onProces
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
             Tell us what you ate, including ingredients and their approximate portion sizes.
-            The AI will generate a name and analyze it for you.
           </DialogDescription>
         </DialogHeader>
         
@@ -96,7 +95,7 @@ export default function SimplifiedAddFoodDialog({ isOpen, onOpenChange, onProces
             </DialogClose>
             <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/80" disabled={isLoading}>
               {isLoading ? <Loader2 className="animate-spin h-5 w-5 mr-2" /> : <Sprout className="mr-2 h-5 w-5" />}
-              {isLoading ? 'Analyzing Meal...' : 'Log Meal with AI'}
+              {isLoading ? 'Analyzing Meal...' : 'Log Meal'}
             </Button>
           </DialogFooter>
         </form>
