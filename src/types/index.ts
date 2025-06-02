@@ -19,8 +19,9 @@ export interface LoggedFoodItem {
   protein?: number; // Estimated protein in grams
   carbs?: number; // Estimated carbs in grams
   fat?: number; // Estimated fat in grams
-  entryType: 'food';
+  entryType: 'food' | 'manual_macro'; // Added 'manual_macro'
   sourceDescription?: string; // For new logging flow: the raw user description
+  userFeedback?: 'safe' | 'unsafe' | null; // New field for user feedback
 }
 
 export interface Symptom {
@@ -84,4 +85,31 @@ export interface DailyFodmapCount {
   green: number;
   yellow: number;
   red: number;
+}
+
+// Types for Trends Page
+export type TimeRange = '1D' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
+
+export interface MacroPoint {
+  date: string; // YYYY-MM-DD
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export interface CaloriePoint {
+  date: string; // YYYY-MM-DD
+  calories: number;
+}
+
+export interface SafetyPoint {
+  date: string; // YYYY-MM-DD
+  safe: number;
+  unsafe: number;
+  notMarked: number;
+}
+
+export interface SymptomFrequency {
+  name: string; // Symptom name
+  value: number; // Count or percentage
 }

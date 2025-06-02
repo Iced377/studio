@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { LifeBuoy, LogOut, LogIn, UserCircle, Settings, Zap, Palette, Check, Sun, Moon } from 'lucide-react'; 
+import { LifeBuoy, LogOut, LogIn, UserCircle, Settings, Zap, Palette, Check, Sun, Moon, BarChart3 } from 'lucide-react'; 
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -64,13 +64,21 @@ export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
         </Link>
         
         <div className="flex items-center space-x-2">
+          {!loading && user && (
+            <Button asChild variant="ghost" size="sm" className="h-8">
+              <Link href="/trends">
+                <BarChart3 className="mr-2 h-4 w-4" /> Trends
+              </Link>
+            </Button>
+          )}
+
           {!loading && user && onUpgradeClick && !isPremium && (
-             <Button onClick={onUpgradeClick} size="sm" variant="outline" className="border-yellow-500 text-yellow-500 hover:bg-yellow-500/10">
+             <Button onClick={onUpgradeClick} size="sm" variant="outline" className="border-yellow-500 text-yellow-500 hover:bg-yellow-500/10 h-8">
                 <Zap className="mr-2 h-4 w-4" /> Upgrade
             </Button>
           )}
            {!loading && user && isPremium && (
-            <span className="text-xs font-medium text-primary border border-primary/50 bg-primary/10 px-2 py-1 rounded-md flex items-center">
+            <span className="text-xs font-medium text-primary border border-primary/50 bg-primary/10 px-2 py-1 rounded-md flex items-center h-8">
                 <Zap className="mr-1 h-3 w-3" /> Premium
             </span>
           )}
@@ -145,7 +153,7 @@ export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : !loading && !user ? (
-            <Button asChild variant="outline" size="sm">
+            <Button asChild variant="outline" size="sm" className="h-8">
               <Link href="/login">
                 <LogIn className="mr-2 h-4 w-4" /> Login
               </Link>

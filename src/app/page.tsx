@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary, DailyFodmapCount } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp, CircleDotDashed, Zap, Palette, Edit3 } from 'lucide-react';
+import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp, CircleDotDashed, Zap, Palette, Edit3, Pencil } from 'lucide-react'; // Added Pencil
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
 import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow';
@@ -13,7 +13,7 @@ import { processMealDescription, type ProcessMealDescriptionOutput } from '@/ai/
 
 
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/components/auth/AuthProvider'; // Updated import
+import { useAuth } from '@/components/auth/AuthProvider';
 import { db } from '@/config/firebase';
 import {
   doc,
@@ -28,6 +28,7 @@ import {
   query,
   orderBy,
   arrayUnion,
+  writeBatch,
 } from 'firebase/firestore';
 
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -39,6 +40,7 @@ import SimplifiedAddFoodDialog from '@/components/food-logging/SimplifiedAddFood
 import TimelineFoodCard from '@/components/food-logging/TimelineFoodCard';
 import TimelineSymptomCard from '@/components/food-logging/TimelineSymptomCard';
 import SymptomLoggingDialog from '@/components/food-logging/SymptomLoggingDialog';
+import AddManualMacroEntryDialog, { type ManualMacroFormValues } from '@/components/food-logging/AddManualMacroEntryDialog';
 import InsightCard from '@/components/insights/InsightCard';
 import DailyTotalsCard from '@/components/insights/DailyTotalsCard';
 import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder';
@@ -80,7 +82,7 @@ type PendingAction = 'logFood' | 'getInsights' | 'simplifiedLogFood' | null;
 
 export default function FoodTimelinePage() {
   const { toast } = useToast();
-  const { user: authUser, loading: authLoading } = useAuth(); // Updated hook usage
+  const { user: authUser, loading: authLoading } = useAuth(); 
 
   const [userProfile, setUserProfile] = useState<UserProfile>(initialGuestProfile);
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
@@ -88,6 +90,7 @@ export default function FoodTimelinePage() {
   const [isAddFoodDialogOpen, setIsAddFoodDialogOpen] = useState(false);
   const [isSimplifiedAddFoodDialogOpen, setIsSimplifiedAddFoodDialogOpen] = useState(false);
   const [isSymptomLogDialogOpen, setIsSymptomLogDialogOpen] = useState(false);
+  const [isAddManualMacroDialogOpen, setIsAddManualMacroDialogOpen] = useState(false);
   const [symptomDialogContext, setSymptomDialogContext] = useState<{ foodItemIds?: string[] }>({});
   const [aiInsights, setAiInsights] = useState<SymptomCorrelationOutput['insights']>([]);
   const [isLoadingInsights, setIsLoadingInsights] = useState(false);
@@ -105,7 +108,7 @@ export default function FoodTimelinePage() {
     const setupUser = async () => {
       setIsDataLoading(true);
 
-      if (authLoading) { // Rely on AuthProvider's loading state
+      if (authLoading) { 
         return;
       }
 
@@ -169,7 +172,7 @@ export default function FoodTimelinePage() {
           toast({ title: "Data Load Error", description: errorDescription, variant: "destructive", duration: 9000 });
            setUserProfile(prev => ({
              ...prev, 
-             uid: authUser.uid, // Ensure UID is from authUser if available
+             uid: authUser.uid, 
              email: authUser.email,
              displayName: authUser.displayName,
              safeFoods: prev.uid === authUser.uid ? prev.safeFoods : [], 
@@ -178,15 +181,13 @@ export default function FoodTimelinePage() {
         } finally {
             setIsDataLoading(false);
         }
-      } else { // No authUser
+      } else { 
         setUserProfile(initialGuestProfile);
         setTimelineEntries([]);
         setAiInsights([]);
         setIsDataLoading(false);
       }
     };
-
-    // setupUser will run when authLoading becomes false, or when authUser changes.
     setupUser();
   }, [authUser, authLoading, toast]);
 
@@ -196,7 +197,7 @@ export default function FoodTimelinePage() {
   };
 
   const handleAddFoodItem = async (
-    foodItemData: Omit<LoggedFoodItem, 'id' | 'timestamp' | 'entryType' | 'calories' | 'protein' | 'carbs' | 'fat' | 'sourceDescription' | 'originalName'>
+    foodItemData: Omit<LoggedFoodItem, 'id' | 'timestamp' | 'entryType' | 'calories' | 'protein' | 'carbs' | 'fat' | 'sourceDescription' | 'originalName' | 'userFeedback'>
   ) => {
     const newItemId = `food-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     setIsLoadingAi(prev => ({ ...prev, [newItemId]: true }));
@@ -250,6 +251,7 @@ export default function FoodTimelinePage() {
         carbs: fodmapAnalysis?.carbs,
         fat: fodmapAnalysis?.fat,
         entryType: 'food',
+        userFeedback: null,
       };
 
       if (authUser && authUser.uid !== 'guest-user') {
@@ -302,6 +304,7 @@ export default function FoodTimelinePage() {
         protein: fodmapAnalysis?.protein,
         carbs: fodmapAnalysis?.carbs,
         fat: fodmapAnalysis?.fat,
+        userFeedback: null,
       };
        if (authUser && authUser.uid !== 'guest-user') {
         const { id, ...itemToSave } = newFoodItem;
@@ -388,6 +391,7 @@ export default function FoodTimelinePage() {
         carbs: fodmapAnalysis?.carbs,
         fat: fodmapAnalysis?.fat,
         entryType: 'food',
+        userFeedback: null,
       };
 
       if (authUser && authUser.uid !== 'guest-user') {
@@ -445,6 +449,7 @@ export default function FoodTimelinePage() {
             carbs: fodmapAnalysis?.carbs,
             fat: fodmapAnalysis?.fat,
             entryType: 'food',
+            userFeedback: null,
         };
 
         if (authUser && authUser.uid !== 'guest-user') {
@@ -467,6 +472,44 @@ export default function FoodTimelinePage() {
       setIsLoadingAi(prev => ({ ...prev, [newItemId]: false }));
       setIsSimplifiedAddFoodDialogOpen(false);
     }
+  };
+  
+  const handleAddManualMacroEntry = async (
+    entryData: Omit<LoggedFoodItem, 'id' | 'timestamp' | 'ingredients' | 'portionSize' | 'portionUnit' | 'fodmapData' | 'isSimilarToSafe' | 'userFodmapProfile' | 'sourceDescription' | 'userFeedback'> & { entryType: 'manual_macro' | 'food' }
+  ) => {
+    const newItemId = `macro-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const newEntry: LoggedFoodItem = {
+      ...entryData,
+      id: newItemId,
+      timestamp: new Date(),
+      entryType: 'manual_macro',
+      // Fill in other required LoggedFoodItem fields with defaults or placeholders
+      ingredients: "Manual entry",
+      portionSize: "1",
+      portionUnit: "serving",
+      userFeedback: null,
+      // Optional fields like fodmapData, isSimilarToSafe, etc., can be omitted or explicitly set to undefined
+    };
+
+    if (authUser && authUser.uid !== 'guest-user') {
+      const { id, ...itemToSave } = newEntry;
+      try {
+        const docRef = await addDoc(collection(db, 'users', authUser.uid, 'timelineEntries'), {
+          ...itemToSave,
+          timestamp: Timestamp.fromDate(newEntry.timestamp),
+        });
+        newEntry.id = docRef.id;
+        toast({ title: "Manual Macros Logged", description: `${newEntry.name} added to timeline.` });
+      } catch (error: any) {
+        console.error("Error saving manual macro entry to Firestore:", error);
+        toast({ title: "Save Error", description: "Could not save manual macro entry.", variant: "destructive" });
+        return; // Don't add locally if cloud save fails
+      }
+    } else {
+      toast({ title: "Manual Macros Logged (Locally)", description: `${newEntry.name} added. Login to save.` });
+    }
+    addTimelineEntry(newEntry);
+    setIsAddManualMacroDialogOpen(false);
   };
 
 
@@ -508,48 +551,37 @@ export default function FoodTimelinePage() {
     setIsSymptomLogDialogOpen(false);
   };
 
-  const handleMarkAsSafe = async (foodItem: LoggedFoodItem) => {
-     if (!foodItem.fodmapData || !foodItem.userFodmapProfile) {
-      toast({ title: 'Cannot Mark as Safe', description: 'Detailed FODMAP profile is missing for this item.', variant: 'destructive'});
-      return;
-    }
-    if (userProfile.safeFoods.some(sf => sf.name === foodItem.name && sf.ingredients === foodItem.ingredients && sf.portionSize === foodItem.portionSize && sf.portionUnit === foodItem.portionUnit)) {
-      toast({ title: 'Already Safe', description: `${foodItem.name} (${foodItem.portionSize} ${foodItem.portionUnit}) is already in your safe foods list.` });
-      return;
-    }
-
-    const newSafeFood: SafeFood = {
-      id: `safe-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: foodItem.name,
-      ingredients: foodItem.ingredients,
-      portionSize: foodItem.portionSize,
-      portionUnit: foodItem.portionUnit,
-      fodmapProfile: foodItem.userFodmapProfile,
-      originalAnalysis: foodItem.fodmapData,
-    };
-
+  const handleSetFoodFeedback = async (itemId: string, feedback: 'safe' | 'unsafe' | null) => {
+    setTimelineEntries(prevEntries =>
+      prevEntries.map(entry =>
+        entry.id === itemId && entry.entryType === 'food'
+          ? { ...entry, userFeedback: feedback }
+          : entry
+      )
+    );
 
     if (authUser && authUser.uid !== 'guest-user') {
-        const userDocRef = doc(db, 'users', authUser.uid);
-        try {
-            const updatedSafeFoodsForState = [...userProfile.safeFoods, newSafeFood];
-            setUserProfile(prev => ({ ...prev, safeFoods: updatedSafeFoodsForState }));
-
-            await updateDoc(userDocRef, {
-                safeFoods: arrayUnion(newSafeFood)
-            });
-            toast({ title: 'Marked as Safe!', description: `${foodItem.name} added to your safe foods.`, variant: 'default' });
-        } catch (error) {
-            console.error("Error saving safe food to Firestore:", error);
-            setUserProfile(prev => ({ ...prev, safeFoods: prev.safeFoods.filter(sf => sf.id !== newSafeFood.id) }));
-            toast({ title: 'Error Saving Safe Food', description: 'Could not save to cloud. Please try again.', variant: 'destructive' });
-        }
+      const entryDocRef = doc(db, 'users', authUser.uid, 'timelineEntries', itemId);
+      try {
+        await updateDoc(entryDocRef, { userFeedback: feedback });
+        toast({ title: "Feedback Saved", description: `Food item marked as ${feedback || 'neutral'}.` });
+      } catch (error) {
+        console.error("Error saving food feedback to Firestore:", error);
+        // Revert local state if Firestore update fails
+        setTimelineEntries(prevEntries =>
+          prevEntries.map(entry =>
+            entry.id === itemId && entry.entryType === 'food'
+              ? { ...entry, userFeedback: timelineEntries.find(e => e.id === itemId)?.userFeedback === feedback ? timelineEntries.find(e => e.id === itemId)?.userFeedback : item.userFeedback  } // Revert to original
+              : entry
+          )
+        );
+        toast({ title: 'Feedback Error', description: 'Could not save feedback to cloud.', variant: 'destructive' });
+      }
     } else {
-        const updatedSafeFoods = [...userProfile.safeFoods, newSafeFood];
-        setUserProfile(prev => ({ ...prev, safeFoods: updatedSafeFoods }));
-        toast({ title: 'Marked as Safe (Locally)', description: `${foodItem.name} added. Login to save permanently.`, variant: 'default' });
+      toast({ title: 'Feedback Saved (Locally)', description: `Login to save feedback permanently.` });
     }
   };
+
 
   const handleRemoveTimelineEntry = async (entryId: string) => {
     const entryToRemove = timelineEntries.find(entry => entry.id === entryId);
@@ -584,7 +616,7 @@ export default function FoodTimelinePage() {
     setIsLoadingInsights(true);
     try {
       const foodLogForAI: SymptomCorrelationInput['foodLog'] = timelineEntries
-        .filter((e): e is LoggedFoodItem => e.entryType === 'food')
+        .filter((e): e is LoggedFoodItem => e.entryType === 'food' || e.entryType === 'manual_macro')
         .map(e => ({
           id: e.id,
           name: e.originalName || e.name, 
@@ -602,10 +634,8 @@ export default function FoodTimelinePage() {
             if (Array.isArray(e.linkedFoodItemIds)) {
                 sanitizedLinkedFoodItemIds = e.linkedFoodItemIds;
             } else if (typeof e.linkedFoodItemIds === 'string' && e.linkedFoodItemIds.length > 0) {
-                // If it's a non-empty string, wrap it in an array
                 sanitizedLinkedFoodItemIds = [e.linkedFoodItemIds];
             } else {
-                // Otherwise (undefined, null, empty string, etc.), default to empty array
                 sanitizedLinkedFoodItemIds = [];
             }
             return {
@@ -647,7 +677,7 @@ export default function FoodTimelinePage() {
         } else if (errorMessageLower.includes('503') || errorMessageLower.includes('model is overloaded')) {
             toastTitle = 'AI Insights Model Overloaded';
             toastDescription = 'The AI model for insights is temporarily busy. Please try again later.';
-        } else if (errorMessageLower.includes('invalid_argument') && errorMessageLower.includes('schema validation')) { // Check for schema validation error
+        } else if (errorMessageLower.includes('invalid_argument') && errorMessageLower.includes('schema validation')) { 
             toastTitle = 'AI Insights Data Error';
             toastDescription = `There was an issue with the data format sent for AI analysis: ${error.message.substring(0, 150)}. Please check your logs.`;
         }
@@ -661,7 +691,7 @@ export default function FoodTimelinePage() {
 
   const handleGetInsightsClick = () => {
     setIsCentralPopoverOpen(false); 
-    if (timelineEntries.filter(e => e.entryType === 'food').length < 1 && timelineEntries.filter(e => e.entryType === 'symptom').length < 1) {
+    if (timelineEntries.filter(e => e.entryType === 'food' || e.entryType === 'manual_macro').length < 1 && timelineEntries.filter(e => e.entryType === 'symptom').length < 1) {
       setAiInsights([]);
       toast({title: "No Data for Insights", description: "Please log some food items or symptoms first.", variant: "default"});
       return;
@@ -755,7 +785,7 @@ export default function FoodTimelinePage() {
     let totals: DailyNutritionSummary = { calories: 0, protein: 0, carbs: 0, fat: 0 };
 
     timelineEntries.forEach(entry => {
-      if (entry.entryType === 'food') {
+      if (entry.entryType === 'food' || entry.entryType === 'manual_macro') {
         const entryDate = new Date(entry.timestamp);
         if (entryDate >= today && entryDate < tomorrow) {
           totals.calories += entry.calories || 0;
@@ -776,7 +806,7 @@ export default function FoodTimelinePage() {
 
     const counts: DailyFodmapCount = { green: 0, yellow: 0, red: 0 };
     timelineEntries.forEach(entry => {
-      if (entry.entryType === 'food') {
+      if (entry.entryType === 'food') { // Manual macro entries don't have FODMAP data
         const entryDate = new Date(entry.timestamp);
         if (entryDate >= today && entryDate < tomorrow) {
           const risk = entry.fodmapData?.overallRisk;
@@ -790,7 +820,7 @@ export default function FoodTimelinePage() {
   }, [timelineEntries]);
 
 
-  if (authLoading || (isDataLoading && authUser)) { // Show loading if auth is loading OR if data is loading AND there is an authUser
+  if (authLoading || (isDataLoading && authUser)) { 
      return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -802,7 +832,6 @@ export default function FoodTimelinePage() {
   }
   
 
-  // Premium User UI
   if (userProfile.premium) {
     return (
       <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden">
@@ -835,6 +864,9 @@ export default function FoodTimelinePage() {
                         {isLoadingInsights ? <Loader2 className="mr-3 h-5 w-5 animate-spin" /> : <Brain className="mr-3 h-5 w-5" />}
                         Get Insights
                     </Button>
+                     <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 hover:bg-accent/80 text-accent-foreground hover:text-accent-foreground" onClick={() => setIsAddManualMacroDialogOpen(true)}>
+                        <Pencil className="mr-3 h-5 w-5" /> Add Macros Manually
+                    </Button>
                 </div>
             </PopoverContent>
           </Popover>
@@ -848,21 +880,18 @@ export default function FoodTimelinePage() {
             dailyNutritionSummary={dailyNutritionSummary}
             dailyFodmapCount={dailyFodmapCount}
             isLoadingAi={isLoadingAi}
-            onMarkAsSafe={handleMarkAsSafe}
+            onSetFeedback={handleSetFoodFeedback}
             onRemoveTimelineEntry={handleRemoveTimelineEntry}
             onLogSymptomsForFood={openSymptomDialog}
             onUpgradeClick={handleUpgradeToPremium} 
-            onEditIngredients={(itemToEdit: LoggedFoodItem) => { // Ensure itemToEdit is typed
-              // Find the full item from timelineEntries to pass to AddFoodItemDialog or a new EditDialog
+            onEditIngredients={(itemToEdit: LoggedFoodItem) => {
               const fullItem = timelineEntries.find(entry => entry.id === itemToEdit.id && entry.entryType === 'food') as LoggedFoodItem | undefined;
               if (fullItem) {
-                // Here you would typically open a dialog pre-filled with fullItem's data
-                // For now, just a toast
                 toast({title: "Edit Meal", description: `Editing "${fullItem.name}" (functionality to be implemented).`});
               }
             }}
         >
-         <div></div> {/* Placeholder child */}
+         <div></div> 
         </PremiumDashboardSheet>
         
         {!isPremiumDashboardOpen && (
@@ -889,6 +918,11 @@ export default function FoodTimelinePage() {
             onLogSymptoms={handleLogSymptoms}
             context={symptomDialogContext}
             allSymptoms={COMMON_SYMPTOMS}
+        />
+        <AddManualMacroEntryDialog
+            isOpen={isAddManualMacroDialogOpen}
+            onOpenChange={setIsAddManualMacroDialogOpen}
+            onAddEntry={handleAddManualMacroEntry}
         />
         {isAnyItemLoadingAi && (
             <div className="fixed bottom-20 right-4 bg-card text-card-foreground p-3 rounded-lg shadow-lg flex items-center space-x-2 z-50">
@@ -949,6 +983,11 @@ export default function FoodTimelinePage() {
         onOpenChange={setIsSimplifiedAddFoodDialogOpen}
         onProcessDescription={handleProcessMealDescription}
       />
+       <AddManualMacroEntryDialog
+        isOpen={isAddManualMacroDialogOpen}
+        onOpenChange={setIsAddManualMacroDialogOpen}
+        onAddEntry={handleAddManualMacroEntry}
+      />
       <SymptomLoggingDialog
         isOpen={isSymptomLogDialogOpen}
         onOpenChange={setIsSymptomLogDialogOpen}
@@ -975,7 +1014,7 @@ export default function FoodTimelinePage() {
 
       <main className="flex-grow container mx-auto px-2 sm:px-4 py-2">
         <div className="mb-6">
-           <DailyTotalsCard summary={dailyNutritionSummary} />
+           <DailyTotalsCard summary={dailyNutritionSummary} onEditMacrosClick={() => setIsAddManualMacroDialogOpen(true)} />
         </div>
        
         {aiInsights.length > 0 && (
@@ -1006,17 +1045,16 @@ export default function FoodTimelinePage() {
           )}
 
           {timelineEntries.map(entry => {
-            if (entry.entryType === 'food') {
+            if (entry.entryType === 'food' || entry.entryType === 'manual_macro') {
               return (
                 <TimelineFoodCard
                   key={entry.id}
                   item={entry}
-                  onMarkAsSafe={handleMarkAsSafe}
+                  onSetFeedback={handleSetFoodFeedback}
                   onRemoveItem={() => handleRemoveTimelineEntry(entry.id)}
                   onLogSymptoms={() => openSymptomDialog([entry.id])}
-                  isSafeFood={userProfile.safeFoods.some(sf => sf.name === entry.name && sf.ingredients === entry.ingredients && sf.portionSize === entry.portionSize && sf.portionUnit === entry.portionUnit)}
                   isLoadingAi={!!isLoadingAi[entry.id]}
-                  onEditIngredients={(itemToEdit: LoggedFoodItem) => { // Ensure itemToEdit is typed
+                  onEditIngredients={(itemToEdit: LoggedFoodItem) => {
                       const fullItem = timelineEntries.find(e => e.id === itemToEdit.id && e.entryType === 'food') as LoggedFoodItem | undefined;
                       if (fullItem) {
                           toast({title: "Edit Meal", description: `Editing "${fullItem.name}" (functionality to be implemented for standard UI).`});
@@ -1048,12 +1086,12 @@ export default function FoodTimelinePage() {
           <CardHeader>
             <CardTitle className="font-headline text-xl sm:text-2xl flex items-center text-foreground">
               <Activity className="mr-3 h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground" />
-              Your Safe Foods
+              Your Safe Foods List (Legacy)
             </CardTitle>
           </CardHeader>
           <CardContent>
             {userProfile.safeFoods.length === 0 ? (
-              <p className="text-muted-foreground">You haven&apos;t marked any foods as safe yet. Log foods and use the "Mark as Safe" button!</p>
+              <p className="text-muted-foreground">You haven&apos;t marked any foods as safe using the old system. Use the Thumbs Up icon on food items to mark them as safe.</p>
             ) : (
               <ScrollArea className="h-60">
                 <ul className="space-y-3 pr-4">

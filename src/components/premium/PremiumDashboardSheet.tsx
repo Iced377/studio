@@ -5,7 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose, SheetFooter }
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import Navbar from "@/components/shared/Navbar"
-import type { TimelineEntry, UserProfile, DailyNutritionSummary, DailyFodmapCount } from '@/types';
+import type { TimelineEntry, UserProfile, DailyNutritionSummary, DailyFodmapCount, LoggedFoodItem } from '@/types'; // Added LoggedFoodItem
 import TimelineFoodCard from '@/components/food-logging/TimelineFoodCard';
 import TimelineSymptomCard from '@/components/food-logging/TimelineSymptomCard';
 import { Flame, Beef, Wheat, Droplet, Utensils, CircleAlert, CircleCheck, CircleHelp } from 'lucide-react';
@@ -19,11 +19,11 @@ interface PremiumDashboardSheetProps {
   dailyNutritionSummary: DailyNutritionSummary;
   dailyFodmapCount: DailyFodmapCount;
   isLoadingAi: Record<string, boolean>;
-  onMarkAsSafe: (foodItem: any) => void;
+  onSetFeedback: (itemId: string, feedback: 'safe' | 'unsafe' | null) => void; // Updated
   onRemoveTimelineEntry: (entryId: string) => void;
   onLogSymptomsForFood: (foodItemId?: string) => void;
   onUpgradeClick: () => void;
-  onEditIngredients?: (item: any) => void;
+  onEditIngredients?: (item: LoggedFoodItem) => void; // Changed 'any' to 'LoggedFoodItem'
 }
 
 export default function PremiumDashboardSheet({
@@ -35,7 +35,7 @@ export default function PremiumDashboardSheet({
   dailyNutritionSummary,
   dailyFodmapCount,
   isLoadingAi,
-  onMarkAsSafe,
+  onSetFeedback, // Updated
   onRemoveTimelineEntry,
   onLogSymptomsForFood,
   onUpgradeClick,
@@ -44,11 +44,9 @@ export default function PremiumDashboardSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      {/* <SheetTrigger asChild>{children}</SheetTrigger>  Trigger is handled by page.tsx */}
       <SheetContent side="bottom" className="h-[90vh] flex flex-col p-0 bg-background text-foreground border-t-2 border-border">
         <SheetHeader className="p-0">
           <Navbar onUpgradeClick={onUpgradeClick} isPremium={userProfile.premium} />
-           {/* Visually hidden title for accessibility, actual title in Navbar */}
           <SheetTitle className="sr-only">Main Dashboard and Timeline</SheetTitle>
         </SheetHeader>
 
@@ -96,15 +94,14 @@ export default function PremiumDashboardSheet({
           )}
           <div className="space-y-4">
             {timelineEntries.map(entry => {
-              if (entry.entryType === 'food') {
+              if (entry.entryType === 'food' || entry.entryType === 'manual_macro') { // Include manual_macro
                 return (
                   <TimelineFoodCard
                     key={entry.id}
                     item={entry}
-                    onMarkAsSafe={onMarkAsSafe}
+                    onSetFeedback={onSetFeedback} // Updated prop
                     onRemoveItem={() => onRemoveTimelineEntry(entry.id)}
                     onLogSymptoms={() => onLogSymptomsForFood(entry.id)}
-                    isSafeFood={userProfile.safeFoods.some(sf => sf.name === entry.name && sf.ingredients === entry.ingredients && sf.portionSize === entry.portionSize && sf.portionUnit === entry.portionUnit)}
                     isLoadingAi={!!isLoadingAi[entry.id]}
                     onEditIngredients={onEditIngredients} 
                   />

@@ -3,29 +3,33 @@
 
 import type { DailyNutritionSummary } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Flame, Beef, Wheat, Droplet, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Flame, Beef, Wheat, Droplet, TrendingUp, Edit3 } from 'lucide-react';
 
 interface DailyTotalsCardProps {
   summary: DailyNutritionSummary;
+  onEditMacrosClick: () => void;
 }
 
-export default function DailyTotalsCard({ summary }: DailyTotalsCardProps) {
+export default function DailyTotalsCard({ summary, onEditMacrosClick }: DailyTotalsCardProps) {
   const { calories, protein, carbs, fat } = summary;
 
-  // Helper to round numbers for display
   const round = (num: number) => Math.round(num);
 
   return (
     <Card className="bg-card border-border shadow-md">
-      <CardHeader className="pb-3 pt-4">
+      <CardHeader className="pb-3 pt-4 flex flex-row justify-between items-center">
         <CardTitle className="font-headline text-xl sm:text-2xl flex items-center text-foreground">
           <TrendingUp className="mr-3 h-6 w-6 sm:h-7 sm:w-7 text-gray-400" />
           Today&apos;s Nutrition
         </CardTitle>
+        <Button variant="ghost" size="icon" onClick={onEditMacrosClick} aria-label="Edit Macros">
+            <Edit3 className="h-5 w-5 text-muted-foreground" />
+        </Button>
       </CardHeader>
       <CardContent>
         {calories === 0 && protein === 0 && carbs === 0 && fat === 0 ? (
-          <p className="text-muted-foreground text-center py-4">Log food items to see your daily totals here.</p>
+          <p className="text-muted-foreground text-center py-4">Log food items or manually add macros to see your daily totals here.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
             <div className="flex flex-col items-center p-3 bg-card rounded-lg shadow-inner">
