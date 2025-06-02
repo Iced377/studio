@@ -9,17 +9,25 @@ type Theme = 'black' | 'orange' | 'green' | 'red';
 interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('black'); // Default theme
+  const [theme, setThemeState] = useState<Theme>('black');
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true); // Default to dark mode
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('app-theme') as Theme | null;
     if (storedTheme && ['black', 'orange', 'green', 'red'].includes(storedTheme)) {
       setThemeState(storedTheme);
+    }
+
+    const storedDarkMode = localStorage.getItem('app-dark-mode');
+    if (storedDarkMode !== null) {
+      setIsDarkMode(storedDarkMode === 'true');
     }
   }, []);
 
@@ -28,23 +36,27 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setThemeState(newTheme);
   };
 
+  const toggleDarkMode = () => {
+    setIsDarkMode(prevMode => {
+      const newMode = !prevMode;
+      localStorage.setItem('app-dark-mode', String(newMode));
+      return newMode;
+    });
+  };
+
   useEffect(() => {
     const root = document.documentElement;
-    // Remove all potentially existing theme classes
     root.classList.remove('theme-black', 'theme-orange', 'theme-green', 'theme-red');
-    
-    // Add the currently selected theme class (e.g., theme-black, theme-orange)
-    // This ensures that if 'black' is selected, 'theme-black' is applied,
-    // leveraging the .theme-black CSS rules.
     root.classList.add(`theme-${theme}`);
-    
-    // Ensure .dark class is always present as it's the base for all themes defined in globals.css
-    if (!root.classList.contains('dark')) {
-        root.classList.add('dark');
+
+    if (isDarkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
     }
-  }, [theme]);
+  }, [theme, isDarkMode]);
   
-  const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme]);
+  const value = useMemo(() => ({ theme, setTheme, isDarkMode, toggleDarkMode }), [theme, isDarkMode]);
 
   return (
     <ThemeContext.Provider value={value}>

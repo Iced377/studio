@@ -2,8 +2,8 @@
 'use client';
 
 import Link from 'next/link';
-import { LifeBuoy, LogOut, LogIn, UserCircle, Settings, Zap, Palette, Check } from 'lucide-react'; 
-import { useAuth } from '@/components/auth/AuthProvider'; // Updated import
+import { LifeBuoy, LogOut, LogIn, UserCircle, Settings, Zap, Palette, Check, Sun, Moon } from 'lucide-react'; 
+import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -30,10 +30,10 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
-  const { user, loading } = useAuth(); // Updated hook usage
+  const { user, loading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, isDarkMode, toggleDarkMode } = useTheme();
 
   const handleSignOut = async () => {
     const error = await signOutUser();
@@ -74,6 +74,11 @@ export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
                 <Zap className="mr-1 h-3 w-3" /> Premium
             </span>
           )}
+
+          <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="h-8 w-8">
+            {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            <span className="sr-only">Toggle dark mode</span>
+          </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

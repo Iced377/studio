@@ -4,90 +4,171 @@
 @tailwind utilities;
 
 @layer base {
-  /* Default variables for the "black" theme (dark mode) */
-  .dark.theme-black {
+  /* Default Light Mode Variables */
+  :root, html:not(.dark) {
+    --background: 0 0% 98%; /* Almost white: #FAFAFA */
+    --foreground: 0 0% 20%; /* Dark Gray: #333333 */
+
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 0 0% 20%; /* Dark Gray */
+
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 0 0% 20%; /* Dark Gray */
+
+    --primary: 0 0% 30%; /* #4D4D4D - Darker Gray for general buttons */
+    --primary-foreground: 0 0% 100%; /* White text */
+    
+    --secondary: 0 0% 90%; /* #E6E6E6 - Light Gray */
+    --secondary-foreground: 0 0% 20%; /* Dark Gray text */
+
+    --muted: 0 0% 95%; /* #F2F2F2 - Very Light Gray */
+    --muted-foreground: 0 0% 50%; /* #808080 - Mid Gray text */
+
+    --accent: 0 0% 50%; /* #808080 - Mid Gray for accent lines */
+    --accent-foreground: 0 0% 100%; /* White text on mid-gray accent */
+
+    --destructive: 0 82% 63%; /* #EB5757 - Red */
+    --destructive-foreground: 0 0% 100%; /* White text */
+
+    --border: 0 0% 85%; /* #D9D9D9 - Light Gray border */
+    --input: 0 0% 93%; /* #EDEDED - Very Light Gray input background */
+    --ring: 0 0% 30%; /* #4D4D4D - Darker Gray for focus rings */
+  }
+
+  /* Black Theme (Light Mode) - essentially the :root defaults */
+  html:not(.dark).theme-black {
+    /* Uses the :root defaults defined above */
+  }
+
+  /* Black Theme (Dark Mode) */
+  html.dark.theme-black {
     --background: 0 0% 0%; /* #000000 */
     --foreground: 0 0% 100%; /* #FFFFFF */
 
-    --card: 0 0% 8%; /* Dark Gray for cards */
+    --card: 0 0% 8%; 
     --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 5%; /* Darker Gray for popovers */
+    --popover: 0 0% 5%; 
     --popover-foreground: 0 0% 100%;
 
-    --primary: 0 0% 80%; /* #CCCCCC - Light Muted Gray for general buttons */
-    --primary-foreground: 0 0% 0%; /* Black text on light gray buttons */
+    --primary: 0 0% 80%; 
+    --primary-foreground: 0 0% 0%; 
     
-    --secondary: 0 0% 20%; /* #333333 - Darker Muted Gray */
+    --secondary: 0 0% 20%; 
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 0 0% 15%; /* #262626 - Very Dark Gray for muted elements */
-    --muted-foreground: 0 0% 60%; /* #999999 - Lighter Gray for muted text */
+    --muted: 0 0% 15%; 
+    --muted-foreground: 0 0% 60%; 
 
-    --accent: 0 0% 53%; /* #888888 - Mid Muted Gray for accent lines/secondary buttons */
-    --accent-foreground: 0 0% 100%; /* White text on mid-gray accent */
+    --accent: 0 0% 53%; 
+    --accent-foreground: 0 0% 100%; 
 
-    --destructive: 0 72% 51%; /* Standard Red, #F44336 equivalent */
+    --destructive: 0 72% 51%; 
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 20%; /* #333333 - Visible border for dark theme */
-    --input: 0 0% 10%; /* #1A1A1A - Dark input background */
-    --ring: 0 0% 80%; /* #CCCCCC - Light gray for focus rings */
+    --border: 0 0% 20%; 
+    --input: 0 0% 10%; 
+    --ring: 0 0% 80%; 
   }
 
-  /* Calo-inspired Green Theme (dark mode) */
-  .dark.theme-green {
+  /* Orange Theme (Light Mode) */
+  html:not(.dark).theme-orange {
+    --background: 25 100% 97%; /* Very light, slightly orange: #FFF2E6 */
+    --foreground: 25 90% 25%;  /* Dark orange-brown for text: #6E3A0B */
+    /* Other variables inherit from :root (light default) */
+  }
+
+  /* Orange Theme (Dark Mode) */
+  html.dark.theme-orange {
+    --background: 25 10% 4%; 
+    --foreground: 25 80% 95%; 
+    /* Other variables inherit from .dark.theme-black */
+  }
+
+  /* Green Theme (Light Mode - Calo Inspired) */
+  html:not(.dark).theme-green {
+    --background: 0 0% 99%;            /* #FDFDFD / #FAFAFA */
+    --foreground: 0 0% 20%;          /* #333333 */
+
+    --card: 0 0% 100%;                 /* White */
+    --card-foreground: 0 0% 20%;      /* #333333 */
+
+    --popover: 0 0% 100%;              /* White */
+    --popover-foreground: 0 0% 20%;
+
+    --primary: 145 63% 42%;              /* Calo Brand Green: #27AE60 */
+    --primary-foreground: 0 0% 100%;     /* White text */
+    
+    --secondary: 145 63% 90%;            /* Very Light Calo Green: #D9F2E6 */
+    --secondary-foreground: 145 63% 30%;   /* Darker Calo Green text: #1A6F40 */
+
+    --muted: 0 0% 95%;                /* #F2F2F2 */
+    --muted-foreground: 0 0% 51%;     /* #828282 */
+
+    --accent: 145 63% 36%;               /* Calo Supportive Green: #219653 */
+    --accent-foreground: 0 0% 100%;      /* White text */
+
+    --destructive: 0 82% 63%;            /* Warning Red: #EB5757 */
+    --destructive-foreground: 0 0% 100%; 
+
+    --border: 0 0% 87%;               /* Light Gray border: #DEDEDE */
+    --input: 0 0% 96%;                /* Very light gray input: #F5F5F5 */
+    --ring: 145 63% 42%;                 /* Calo Brand Green for focus */
+
+    --success-indicator-bg: 136 59% 50%;   /* #34C759 */
+    --success-indicator-text: 0 0% 100%; /* White */
+  }
+
+  /* Green Theme (Dark Mode - Calo Inspired) */
+  html.dark.theme-green {
     --background: 145 20% 8%;            /* Dark, desaturated Calo green */
     --foreground: 145 50% 95%;          /* Light, slightly green-tinted white */
 
     --card: 145 20% 12%;                 /* Slightly lighter dark green for cards */
-    --card-foreground: 145 50% 95%;      /* Same as main foreground */
+    --card-foreground: 145 50% 95%;      
 
     --popover: 145 20% 10%;              /* Darker green for popovers */
     --popover-foreground: 145 50% 95%;
 
     --primary: 145 63% 42%;              /* Calo Brand Green: #27AE60 */
-    --primary-foreground: 0 0% 100%;     /* White text on primary buttons */
+    --primary-foreground: 0 0% 100%;     
     
     --secondary: 145 63% 36%;            /* Calo Supportive Green: #219653 */
-    --secondary-foreground: 0 0% 100%;   /* White text on secondary buttons */
+    --secondary-foreground: 0 0% 100%;   
 
-    --muted: 145 20% 25%;                /* Muted green for less prominent elements */
-    --muted-foreground: 145 30% 70%;     /* Lighter green text for muted content */
+    --muted: 145 20% 25%;                
+    --muted-foreground: 145 30% 70%;     
 
-    --accent: 145 63% 40%;               /* Slightly variant green for accents */
-    --accent-foreground: 0 0% 100%;      /* White text on accent */
+    --accent: 145 63% 40%;               
+    --accent-foreground: 0 0% 100%;      
 
     --destructive: 0 82% 63%;            /* Warning Red: #EB5757 */
-    --destructive-foreground: 0 0% 100%; /* White text on destructive */
+    --destructive-foreground: 0 0% 100%; 
 
-    --border: 145 50% 30%;               /* Greenish border */
-    --input: 145 20% 15%;                /* Dark green input background (for fields) */
-                                         /* Note: outline button borders use 'border-input', so they'd use this too. 
-                                            If outline buttons need #27AE60 border, then --input-border (new var) or adjust */
-    --ring: 145 63% 55%;                 /* Brighter Calo green for focus rings */
+    --border: 145 50% 30%;               
+    --input: 145 20% 15%;                
+    --ring: 145 63% 55%;                 
 
-    /* Specific for Calo green theme success indicators */
     --success-indicator-bg: 136 59% 50%;   /* #34C759 */
-    --success-indicator-text: 0 0% 100%; /* White */
+    --success-indicator-text: 0 0% 100%; 
   }
 
-
-  .dark.theme-orange {
-    --background: 25 10% 4%; /* Even darker orange-black for background */
-    --foreground: 25 80% 95%; 
-    /* Other variables like --card, --primary etc. will inherit from .dark.theme-black */
+  /* Red Theme (Light Mode) */
+  html:not(.dark).theme-red {
+    --background: 2 100% 97%; /* Very light, slightly red: #FFECEB */
+    --foreground: 2 90% 25%;  /* Dark red-brown for text: #6E100B */
+    /* Other variables inherit from :root (light default) */
   }
-
-  .dark.theme-red {
+  
+  /* Red Theme (Dark Mode) */
+  html.dark.theme-red {
     --background: 2 20% 4%; 
     --foreground: 2 80% 95%; 
-    /* Other variables like --card, --primary etc. will inherit from .dark.theme-black */
+    /* Other variables inherit from .dark.theme-black */
   }
 
-  /* Non-color related variables that are consistent across all themes,
-     applied when .dark is present (which it always is on <html>) */
-  .dark {
+  /* Common variables for all themes (can be in :root or html) */
+  :root, html {
     --radius: 0.5rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
