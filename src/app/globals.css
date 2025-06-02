@@ -1,10 +1,11 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
-    /* Elegant Black & White Theme */
+  :root, .theme-black {
+    /* Default Elegant Black & White Theme */
     --background: 0 0% 0%; /* #000000 */
     --foreground: 0 0% 100%; /* #FFFFFF */
 
@@ -14,14 +15,9 @@
     --popover: 0 0% 5%; /* Darker Gray for popovers */
     --popover-foreground: 0 0% 100%;
 
-    /* Primary actions (e.g., central scan button) often white on black, or a very light gray */
-    /* For buttons that need to stand out but aren't the 'central white' one, use a muted gray */
     --primary: 0 0% 80%; /* #CCCCCC - Light Muted Gray for general buttons */
     --primary-foreground: 0 0% 0%; /* Black text on light gray buttons */
     
-    /* Central Scan Button Specific - to be handled by direct styling in component if needed for glow etc. */
-    /* For now, can use a variant or specific classes */
-
     --secondary: 0 0% 20%; /* #333333 - Darker Muted Gray */
     --secondary-foreground: 0 0% 100%;
 
@@ -31,8 +27,7 @@
     --accent: 0 0% 53%; /* #888888 - Mid Muted Gray for accent lines/secondary buttons */
     --accent-foreground: 0 0% 100%; /* White text on mid-gray accent */
 
-    /* Destructive actions retain some color, but can be toned down */
-    --destructive: 0 72% 51%; /* Standard Red, can be #F44336 equivalent */
+    --destructive: 0 72% 51%; /* Standard Red, #F44336 equivalent */
     --destructive-foreground: 0 0% 100%;
 
     --border: 0 0% 20%; /* #333333 - Visible border for dark theme */
@@ -49,8 +44,8 @@
     --chart-5: 27 87% 67%;
   }
 
-  /* Apply dark theme variables directly as it's the default and only theme */
-  .dark {
+  .dark { /* This class is always on <html> for now, themes override specific variables */
+    /* Default Dark Theme variables - these will be overridden by .theme-* classes */
     --background: 0 0% 0%;
     --foreground: 0 0% 100%;
     --card: 0 0% 8%;
@@ -71,6 +66,66 @@
     --input: 0 0% 10%;
     --ring: 0 0% 80%;
   }
+
+  .theme-orange {
+    --background: 25 10% 4%; /* Even darker orange-black for background */
+    --foreground: 25 80% 95%; 
+    --card: 25 15% 10%; 
+    --card-foreground: 25 80% 95%;
+    --popover: 25 10% 7%;
+    --popover-foreground: 25 80% 95%;
+    --primary: 25 93% 51%; /* #F76B1C */
+    --primary-foreground: 0 0% 100%; 
+    --secondary: 25 60% 30%; 
+    --secondary-foreground: 25 80% 95%;
+    --muted: 25 20% 12%;
+    --muted-foreground: 25 50% 65%;
+    --accent: 25 90% 58%; 
+    --accent-foreground: 0 0% 0%; 
+    --border: 25 20% 20%; 
+    --input: 25 15% 8%; 
+    --ring: 25 93% 61%; 
+  }
+
+  .theme-green {
+    --background: 145 15% 4%; 
+    --foreground: 145 60% 95%; 
+    --card: 145 20% 10%; 
+    --card-foreground: 145 60% 95%;
+    --popover: 145 15% 7%;
+    --popover-foreground: 145 60% 95%;
+    --primary: 145 63% 42%; /* #27AE60 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 145 40% 25%; 
+    --secondary-foreground: 145 60% 95%;
+    --muted: 145 20% 12%;
+    --muted-foreground: 145 40% 65%;
+    --accent: 145 60% 50%; 
+    --accent-foreground: 0 0% 0%;
+    --border: 145 25% 20%;
+    --input: 145 20% 8%;
+    --ring: 145 63% 52%;
+  }
+
+  .theme-red {
+    --background: 2 20% 4%; 
+    --foreground: 2 80% 95%; 
+    --card: 2 25% 10%; 
+    --card-foreground: 2 80% 95%;
+    --popover: 2 20% 7%;
+    --popover-foreground: 2 80% 95%;
+    --primary: 2 100% 60%; /* #FF3B30 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 2 70% 40%; 
+    --secondary-foreground: 2 80% 95%;
+    --muted: 2 30% 12%;
+    --muted-foreground: 2 60% 65%;
+    --accent: 2 100% 65%; 
+    --accent-foreground: 0 0% 0%;
+    --border: 2 30% 20%;
+    --input: 2 25% 8%;
+    --ring: 2 100% 70%;
+  }
 }
 
 @layer base {
@@ -79,7 +134,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-inter), sans-serif; /* Inter is a good sleek sans-serif */
+    font-family: var(--font-inter), sans-serif; 
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline;

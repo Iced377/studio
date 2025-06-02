@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { LifeBuoy, LogOut, LogIn, UserCircle, Settings, Zap } from 'lucide-react'; // Added UserCircle, Settings, Zap
+import { LifeBuoy, LogOut, LogIn, UserCircle, Settings, Zap, Palette, Check } from 'lucide-react'; // Added Palette, Check
 import { useAuthContext } from '@/hooks/use-auth-context';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -15,20 +15,25 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useTheme } from '@/contexts/ThemeContext'; // Added ThemeContext
 
-const APP_VERSION = "v2.0"; // Version stamp updated
+const APP_NAME = "GutCheck";
+const APP_VERSION = "v2.1";
 
 interface NavbarProps {
-  onUpgradeClick?: () => void; // For premium UI context
-  isPremium?: boolean; // For premium UI context
+  onUpgradeClick?: () => void; 
+  isPremium?: boolean; 
 }
 
 export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
   const { user, loading } = useAuthContext();
   const router = useRouter();
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
 
   const handleSignOut = async () => {
     const error = await signOutUser();
@@ -50,25 +55,52 @@ export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-screen-2xl items-center">
-        <Link href="/" className="mr-auto flex items-center space-x-2"> {/* Changed mr-6 to mr-auto */}
+        <Link href="/" className="mr-auto flex items-center space-x-2">
           <LifeBuoy className="h-7 w-7 text-primary" /> 
           <span className="font-bold font-headline sm:inline-block text-xl text-foreground">
-            FODMAPSafe
+            {APP_NAME}
           </span>
           <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
         </Link>
         
-        <div className="flex items-center space-x-2"> {/* Reduced space-x-4 to space-x-2 */}
+        <div className="flex items-center space-x-2">
           {!loading && user && onUpgradeClick && !isPremium && (
              <Button onClick={onUpgradeClick} size="sm" variant="outline" className="border-yellow-500 text-yellow-500 hover:bg-yellow-500/10">
                 <Zap className="mr-2 h-4 w-4" /> Upgrade
             </Button>
           )}
            {!loading && user && isPremium && (
-            <span className="text-xs font-medium text-yellow-400 border border-yellow-600 bg-yellow-500/10 px-2 py-1 rounded-md flex items-center">
+            <span className="text-xs font-medium text-primary border border-primary/50 bg-primary/10 px-2 py-1 rounded-md flex items-center">
                 <Zap className="mr-1 h-3 w-3" /> Premium
             </span>
           )}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Palette className="h-5 w-5" />
+                <span className="sr-only">Change theme</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Select Theme</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioGroup value={theme} onValueChange={(value) => setTheme(value as 'black' | 'orange' | 'green' | 'red')}>
+                <DropdownMenuRadioItem value="black">
+                  Black (Default)
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="orange">
+                  Orange
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="green">
+                  Green
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="red">
+                  Red
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {!loading && user ? (
             <DropdownMenu>
@@ -92,7 +124,6 @@ export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {/* Placeholder items for Profile & Settings, can be linked later */}
                 <DropdownMenuItem className="cursor-pointer" disabled>
                   <UserCircle className="mr-2 h-4 w-4" />
                   <span>Profile</span>

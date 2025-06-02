@@ -1,18 +1,17 @@
 
 'use client';
 
-import { Sheet, SheetContent, SheetHeader, SheetTrigger, SheetTitle, SheetDescription, SheetClose, SheetFooter } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose, SheetFooter } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import Navbar from "@/components/shared/Navbar"
 import type { TimelineEntry, UserProfile, DailyNutritionSummary, DailyFodmapCount } from '@/types';
 import TimelineFoodCard from '@/components/food-logging/TimelineFoodCard';
 import TimelineSymptomCard from '@/components/food-logging/TimelineSymptomCard';
-import DailyTotalsCard from '@/components/insights/DailyTotalsCard'; // Re-used for nutrition
-import { Flame, Beef, Wheat, Droplet, Utensils, CircleAlert, CircleCheck, CircleHelp, BarChart3 } from 'lucide-react';
+import { Flame, Beef, Wheat, Droplet, Utensils, CircleAlert, CircleCheck, CircleHelp } from 'lucide-react';
 
 interface PremiumDashboardSheetProps {
-  children: React.ReactNode; // For the trigger button
+  children: React.ReactNode; 
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   userProfile: UserProfile;
@@ -45,16 +44,16 @@ export default function PremiumDashboardSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetTrigger asChild>{children}</SheetTrigger>
+      {/* <SheetTrigger asChild>{children}</SheetTrigger>  Trigger is handled by page.tsx */}
       <SheetContent side="bottom" className="h-[90vh] flex flex-col p-0 bg-background text-foreground border-t-2 border-border">
         <SheetHeader className="p-0">
-          {/* Navbar integration for Profile, Settings, Upgrade status */}
-          <SheetTitle className="sr-only">Main Dashboard and Timeline</SheetTitle> {/* Visually hidden title for accessibility */}
           <Navbar onUpgradeClick={onUpgradeClick} isPremium={userProfile.premium} />
+           {/* Visually hidden title for accessibility, actual title in Navbar */}
+          <SheetTitle className="sr-only">Main Dashboard and Timeline</SheetTitle>
         </SheetHeader>
 
         <div className="border-b border-border/50 py-3 px-4">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <div className="flex flex-row flex-wrap justify-around items-center gap-x-3 gap-y-2 text-center">
                 <div className="flex flex-col items-center">
                   <Flame className="h-5 w-5 text-orange-400 mb-0.5" />
                   <p className="text-lg font-bold text-foreground">{Math.round(dailyNutritionSummary.calories)}</p>
@@ -75,8 +74,6 @@ export default function PremiumDashboardSheet({
                   <p className="text-lg font-bold text-foreground">{Math.round(dailyNutritionSummary.fat)}g</p>
                   <p className="text-xs text-muted-foreground">FAT</p>
                 </div>
-            </div>
-            <div className="mt-2 flex justify-center items-center gap-4">
                 <div className="flex items-center text-xs text-muted-foreground">
                     <CircleCheck className="h-4 w-4 text-green-500 mr-1" /> Low: {dailyFodmapCount.green}
                 </div>
@@ -109,7 +106,7 @@ export default function PremiumDashboardSheet({
                     onLogSymptoms={() => onLogSymptomsForFood(entry.id)}
                     isSafeFood={userProfile.safeFoods.some(sf => sf.name === entry.name && sf.ingredients === entry.ingredients && sf.portionSize === entry.portionSize && sf.portionUnit === entry.portionUnit)}
                     isLoadingAi={!!isLoadingAi[entry.id]}
-                    onEditIngredients={onEditIngredients} // Pass down the edit handler
+                    onEditIngredients={onEditIngredients} 
                   />
                 );
               }

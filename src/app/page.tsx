@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary, DailyFodmapCount } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp, CircleDotDashed } from 'lucide-react'; // Added CircleDotDashed
+import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp, CircleDotDashed, Zap } from 'lucide-react'; 
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
 import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow';
@@ -27,9 +27,7 @@ import {
   Timestamp,
   query,
   orderBy,
-  writeBatch,
   arrayUnion,
-  arrayRemove
 } from 'firebase/firestore';
 
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -45,8 +43,8 @@ import InsightCard from '@/components/insights/InsightCard';
 import DailyTotalsCard from '@/components/insights/DailyTotalsCard';
 import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder';
 import InterstitialAdPlaceholder from '@/components/ads/InterstitialAdPlaceholder';
-import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet'; // New Premium Sheet
-import Navbar from '@/components/shared/Navbar'; // Import Navbar for non-premium
+import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet'; 
+import Navbar from '@/components/shared/Navbar'; 
 
 
 const generateFallbackFodmapProfile = (foodName: string): FoodFODMAPProfile => {
@@ -112,7 +110,6 @@ export default function FoodTimelinePage() {
       }
 
       if (authUser) {
-        // toast({ title: "Loading User Data", description: "Fetching your profile and timeline..." });
         const userDocRef = doc(db, 'users', authUser.uid);
         const timelineEntriesColRef = collection(db, 'users', authUser.uid, 'timelineEntries');
 
@@ -127,9 +124,7 @@ export default function FoodTimelinePage() {
               safeFoods: data.safeFoods || [],
               premium: data.premium || false,
             });
-            // toast({ title: "Profile Loaded", description: `Welcome back, ${authUser.displayName || 'User'}! Your settings are up to date.` });
           } else {
-            // toast({ title: "New User Setup", description: "Creating your profile..." });
             const newUserProfile: UserProfile = {
               uid: authUser.uid,
               email: authUser.email,
@@ -139,7 +134,6 @@ export default function FoodTimelinePage() {
             };
             await setDoc(userDocRef, newUserProfile);
             setUserProfile(newUserProfile);
-            // toast({ title: "Profile Created!", description: `Welcome, ${authUser.displayName || 'User'}! Your new profile is ready.` });
           }
 
           const q = query(timelineEntriesColRef, orderBy('timestamp', 'desc'));
@@ -182,12 +176,13 @@ export default function FoodTimelinePage() {
         setUserProfile(initialGuestProfile);
         setTimelineEntries([]);
         setAiInsights([]);
-        // toast({ title: "Guest Mode", description: "Log in to save your data and access personalized insights."});
         setIsDataLoading(false);
       }
     };
 
-    setupUser();
+    if (!authLoading) {
+      setupUser();
+    }
   }, [authUser, authLoading, toast]);
 
 
@@ -214,7 +209,7 @@ export default function FoodTimelinePage() {
       });
 
       const itemFodmapProfileForSimilarity: FoodFODMAPProfile = fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(foodItemData.name);
-
+      let isSimilar = false; // Default to false
       if (userProfile.safeFoods && userProfile.safeFoods.length > 0) {
         const safeFoodItemsForSimilarity = userProfile.safeFoods.map(sf => ({
             name: sf.name,
@@ -232,14 +227,16 @@ export default function FoodTimelinePage() {
           },
           userSafeFoodItems: safeFoodItemsForSimilarity,
         });
+        isSimilar = similarityOutput?.isSimilar ?? false;
       }
+
 
       newFoodItem = {
         ...foodItemData,
         id: newItemId,
         timestamp: new Date(),
         fodmapData: fodmapAnalysis,
-        isSimilarToSafe: similarityOutput?.isSimilar ?? false,
+        isSimilarToSafe: isSimilar,
         userFodmapProfile: itemFodmapProfileForSimilarity,
         calories: fodmapAnalysis?.calories,
         protein: fodmapAnalysis?.protein,
@@ -264,19 +261,19 @@ export default function FoodTimelinePage() {
     } catch (error: any) {
       console.error('AI analysis or food logging failed:', error);
       let toastTitle = 'Error Logging Food';
-      let toastDescription = 'Could not fully process food item. It has been added with available data.';
-
-       if (error?.message && typeof error.message === 'string') {
+      let toastDescription = 'Food added without full AI analysis.';
+      
+      if (error?.message && typeof error.message === 'string') {
         const errorMessageLower = error.message.toLowerCase();
         if (errorMessageLower.includes('503') || errorMessageLower.includes('model is overloaded') || errorMessageLower.includes('resource has been exhausted')) {
           toastTitle = 'AI Model Overloaded';
-          toastDescription = 'The AI model is temporarily busy or unavailable. Food added without full AI analysis. Please try again later.';
+          toastDescription = 'The AI model is temporarily busy. Food added without full AI analysis. Please try again later.';
         } else if (errorMessageLower.includes('400') || errorMessageLower.includes('schema validation') || errorMessageLower.includes('invalid argument')) {
           toastTitle = 'AI Analysis Input/Output Error';
-          toastDescription = 'There was an issue with the data sent for AI analysis or the AI\'s response format was unexpected. Food added without AI insights.';
+          toastDescription = 'There was an issue with the data for AI analysis. Food added without AI insights.';
         } else if (errorMessageLower.includes('api key') || errorMessageLower.includes('permission denied') || errorMessageLower.includes('authentication failed') || errorMessageLower.includes('credential') || errorMessageLower.includes('forbidden') || errorMessageLower.includes('access denied')) {
             toastTitle = 'AI Service Access Issue';
-            toastDescription = 'Could not access the AI service due to an authentication or permission problem. Ensure Google Cloud project setup (APIs, billing, credentials & IAM permissions for service accounts if deployed) is correct and gcloud auth application-default login has been run locally. Food added without AI insights.';
+            toastDescription = 'Could not access AI services (permissions/auth). Food added without AI insights. Check Google Cloud project setup & local auth (gcloud auth application-default login).';
         } else if (errorMessageLower.includes('deadline exceeded') || errorMessageLower.includes('timeout')) {
             toastTitle = 'AI Request Timeout';
             toastDescription = 'The request to the AI service timed out. Food added without AI insights. Please try again.';
@@ -335,10 +332,8 @@ export default function FoodTimelinePage() {
     let newFoodItem: LoggedFoodItem;
 
     try {
-      // Step 1: Process description for witty name and structured data
       mealDescriptionOutput = await processMealDescription({ mealDescription: description });
 
-      // Step 2: Analyze extracted data for FODMAPs and nutrition
       fodmapAnalysis = await analyzeFoodItem({
         foodItem: mealDescriptionOutput.primaryFoodItemForAnalysis,
         ingredients: mealDescriptionOutput.consolidatedIngredients,
@@ -347,8 +342,7 @@ export default function FoodTimelinePage() {
       });
       
       const itemFodmapProfileForSimilarity: FoodFODMAPProfile = fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(mealDescriptionOutput.primaryFoodItemForAnalysis);
-
-      // Step 3: Check similarity with safe foods (if any)
+      let isSimilar = false; 
       if (userProfile.safeFoods && userProfile.safeFoods.length > 0) {
          const safeFoodItemsForSimilarity = userProfile.safeFoods.map(sf => ({
             name: sf.name,
@@ -365,19 +359,20 @@ export default function FoodTimelinePage() {
           },
           userSafeFoodItems: safeFoodItemsForSimilarity,
         });
+        isSimilar = similarityOutput?.isSimilar ?? false;
       }
 
       newFoodItem = {
         id: newItemId,
-        name: mealDescriptionOutput.wittyName, // Use witty name for display
-        originalName: mealDescriptionOutput.primaryFoodItemForAnalysis, // Store original name for reference
+        name: mealDescriptionOutput.wittyName, 
+        originalName: mealDescriptionOutput.primaryFoodItemForAnalysis, 
         ingredients: mealDescriptionOutput.consolidatedIngredients,
         portionSize: mealDescriptionOutput.estimatedPortionSize,
         portionUnit: mealDescriptionOutput.estimatedPortionUnit,
-        sourceDescription: description, // Store the original user input
+        sourceDescription: description, 
         timestamp: new Date(),
         fodmapData: fodmapAnalysis,
-        isSimilarToSafe: similarityOutput?.isSimilar ?? false,
+        isSimilarToSafe: isSimilar,
         userFodmapProfile: itemFodmapProfileForSimilarity,
         calories: fodmapAnalysis?.calories,
         protein: fodmapAnalysis?.protein,
@@ -392,7 +387,7 @@ export default function FoodTimelinePage() {
             ...itemToSave,
             timestamp: Timestamp.fromDate(newFoodItem.timestamp)
         });
-        newFoodItem.id = docRef.id; // Update with Firestore ID
+        newFoodItem.id = docRef.id; 
         toast({ title: "Meal Logged!", description: `"${newFoodItem.name}" added with AI insights.` });
       } else {
          toast({ title: "Meal Logged (Locally)", description: `"${newFoodItem.name}" added. Login to save.` });
@@ -402,26 +397,28 @@ export default function FoodTimelinePage() {
     } catch (error: any) {
         console.error('Full AI meal processing failed:', error);
         let toastTitle = 'Error Logging Meal';
-        let toastDescription = 'Could not fully process meal. Saved with available data.';
-        // Enhanced error feedback logic similar to handleAddFoodItem
+        let toastDescription = 'Food added without full AI analysis.';
+        
         if (error?.message && typeof error.message === 'string') {
           const errorMessageLower = error.message.toLowerCase();
           if (errorMessageLower.includes('503') || errorMessageLower.includes('model is overloaded') || errorMessageLower.includes('resource has been exhausted')) {
             toastTitle = 'AI Model Overloaded';
-            toastDescription = 'AI is busy. Meal added with basic info. Try AI analysis again later.';
+            toastDescription = 'The AI model is temporarily busy. Food added without full AI analysis. Please try again later.';
           } else if (errorMessageLower.includes('400') || errorMessageLower.includes('schema validation') || errorMessageLower.includes('invalid argument')) {
             toastTitle = 'AI Analysis Input/Output Error';
-            toastDescription = 'AI had trouble understanding the meal. Meal added with basic info.';
-          } else if (errorMessageLower.includes('api key') || errorMessageLower.includes('permission denied')) {
+            toastDescription = 'There was an issue with the data for AI analysis. Food added without AI insights.';
+          } else if (errorMessageLower.includes('api key') || errorMessageLower.includes('permission denied') || errorMessageLower.includes('authentication failed') || errorMessageLower.includes('credential') || errorMessageLower.includes('forbidden') || errorMessageLower.includes('access denied')) {
               toastTitle = 'AI Service Access Issue';
-              toastDescription = 'Could not access AI services. Meal added with basic info.';
+              toastDescription = 'Could not access AI services (permissions/auth). Food added without AI insights. Check Google Cloud project setup & local auth (gcloud auth application-default login).';
+          } else if (errorMessageLower.includes('deadline exceeded') || errorMessageLower.includes('timeout')) {
+              toastTitle = 'AI Request Timeout';
+              toastDescription = 'The request to the AI service timed out. Food added without AI insights. Please try again.';
           } else {
-              toastDescription = `Error: ${error.message.substring(0,100)}. Meal added with basic info.`;
+              toastDescription = `Error: ${error.message.substring(0,100)}. Food added without AI analysis.`;
           }
         }
         toast({ title: toastTitle, description: toastDescription, variant: 'destructive', duration: 9000 });
 
-        // Fallback: Log with whatever data was processed, or just the description
         newFoodItem = {
             id: newItemId,
             name: mealDescriptionOutput?.wittyName || "Meal (Analysis Pending)",
@@ -431,8 +428,8 @@ export default function FoodTimelinePage() {
             portionUnit: mealDescriptionOutput?.estimatedPortionUnit || "",
             sourceDescription: description,
             timestamp: new Date(),
-            fodmapData: fodmapAnalysis, // Might be undefined
-            isSimilarToSafe: similarityOutput?.isSimilar ?? false, // Default to false
+            fodmapData: fodmapAnalysis, 
+            isSimilarToSafe: similarityOutput?.isSimilar ?? false, 
             userFodmapProfile: fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(mealDescriptionOutput?.primaryFoodItemForAnalysis || "fallback"),
             calories: fodmapAnalysis?.calories,
             protein: fodmapAnalysis?.protein,
@@ -565,7 +562,7 @@ export default function FoodTimelinePage() {
   const openSymptomDialog = (foodItemIds?: string[]) => {
     setSymptomDialogContext({ foodItemIds });
     setIsSymptomLogDialogOpen(true);
-    setIsCentralPopoverOpen(false); // Close popover if open
+    setIsCentralPopoverOpen(false); 
   };
 
   const fetchAiInsightsInternal = useCallback(async () => {
@@ -575,7 +572,7 @@ export default function FoodTimelinePage() {
         .filter((e): e is LoggedFoodItem => e.entryType === 'food')
         .map(e => ({
           id: e.id,
-          name: e.originalName || e.name, // Use original name for analysis if witty name exists
+          name: e.originalName || e.name, 
           ingredients: e.ingredients,
           portionSize: e.portionSize,
           portionUnit: e.portionUnit,
@@ -633,7 +630,7 @@ export default function FoodTimelinePage() {
   }, [timelineEntries, userProfile.safeFoods, toast]);
 
   const handleGetInsightsClick = () => {
-    setIsCentralPopoverOpen(false); // Close popover
+    setIsCentralPopoverOpen(false); 
     if (timelineEntries.filter(e => e.entryType === 'food').length < 1 && timelineEntries.filter(e => e.entryType === 'symptom').length < 1) {
       setAiInsights([]);
       toast({title: "No Data for Insights", description: "Please log some food items or symptoms first.", variant: "default"});
@@ -648,7 +645,7 @@ export default function FoodTimelinePage() {
   };
 
   const handleLogFoodClick = () => {
-    setIsCentralPopoverOpen(false); // Close popover
+    setIsCentralPopoverOpen(false); 
     if (authUser && authUser.uid !== 'guest-user' && !userProfile.premium) {
       setPendingActionAfterInterstitial('logFood');
       setShowInterstitialAd(true);
@@ -658,9 +655,8 @@ export default function FoodTimelinePage() {
   };
   
   const handleSimplifiedLogFoodClick = () => {
-    setIsCentralPopoverOpen(false); // Close popover
+    setIsCentralPopoverOpen(false); 
     if (authUser && authUser.uid !== 'guest-user' && !userProfile.premium) {
-      // For simplicity, simplified logging might be a premium feature itself or follow same ad logic
       setPendingActionAfterInterstitial('simplifiedLogFood');
       setShowInterstitialAd(true);
     } else {
@@ -700,7 +696,6 @@ export default function FoodTimelinePage() {
           description: "Ads removed & premium features unlocked for this session. Login to save this status. (This is a simulation - no real payment was processed)." 
         });
     }
-    // Close dashboard if it was open to reflect changes, or if upgrade button is inside it.
     setIsPremiumDashboardOpen(false);
   };
 
@@ -786,18 +781,17 @@ export default function FoodTimelinePage() {
   // Premium User UI
   if (userProfile.premium) {
     return (
-      <div className="min-h-screen flex flex-col bg-black text-white relative overflow-hidden">
+      <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden">
         {/* Central Action Button */}
         <div className="flex-grow flex items-center justify-center">
           <Popover open={isCentralPopoverOpen} onOpenChange={setIsCentralPopoverOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="rounded-full h-32 w-32 sm:h-40 sm:w-40 border-2 border-white bg-transparent animate-pulse-soft hover:bg-white/10 focus:bg-white/10 focus:ring-white focus:ring-offset-black focus:ring-offset-2"
+                className="rounded-full h-32 w-32 sm:h-40 sm:w-40 border-2 border-primary bg-transparent animate-pulse-soft hover:bg-primary/10 focus:bg-primary/10 focus:ring-primary focus:ring-offset-background focus:ring-offset-2"
                 aria-label="Open Actions Menu"
-                // onClick={() => console.log("Haptic feedback placeholder")} // Placeholder for haptic feedback
               >
-                <CircleDotDashed className="h-16 w-16 sm:h-20 sm:w-20 text-white" />
+                <CircleDotDashed className="h-16 w-16 sm:h-20 sm:w-20 text-primary" />
               </Button>
             </PopoverTrigger>
             <PopoverContent 
@@ -807,13 +801,13 @@ export default function FoodTimelinePage() {
                 onInteractOutside={() => setIsCentralPopoverOpen(false)}
             >
                 <div className="flex flex-col gap-1 p-2">
-                     <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 hover:bg-accent" onClick={handleSimplifiedLogFoodClick}>
+                     <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 hover:bg-accent/80 text-accent-foreground hover:text-accent-foreground" onClick={handleSimplifiedLogFoodClick}>
                         <PlusCircle className="mr-3 h-5 w-5" /> Log Food (AI)
                     </Button>
-                    <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 hover:bg-accent" onClick={() => openSymptomDialog()}>
+                    <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 hover:bg-accent/80 text-accent-foreground hover:text-accent-foreground" onClick={() => openSymptomDialog()}>
                         <ListChecks className="mr-3 h-5 w-5" /> Log Symptoms
                     </Button>
-                    <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 hover:bg-accent" onClick={handleGetInsightsClick} disabled={isLoadingInsights}>
+                    <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 hover:bg-accent/80 text-accent-foreground hover:text-accent-foreground" onClick={handleGetInsightsClick} disabled={isLoadingInsights}>
                         {isLoadingInsights ? <Loader2 className="mr-3 h-5 w-5 animate-spin" /> : <Brain className="mr-3 h-5 w-5" />}
                         Get Insights
                     </Button>
@@ -821,9 +815,7 @@ export default function FoodTimelinePage() {
             </PopoverContent>
           </Popover>
         </div>
-
-        {/* Slide-Up Dashboard Panel Trigger (Subtle) */}
-        {/* The actual trigger is the children of PremiumDashboardSheet */}
+        
         <PremiumDashboardSheet
             isOpen={isPremiumDashboardOpen}
             onOpenChange={setIsPremiumDashboardOpen}
@@ -835,16 +827,15 @@ export default function FoodTimelinePage() {
             onMarkAsSafe={handleMarkAsSafe}
             onRemoveTimelineEntry={handleRemoveTimelineEntry}
             onLogSymptomsForFood={openSymptomDialog}
-            onUpgradeClick={handleUpgradeToPremium} // Pass it down
+            onUpgradeClick={handleUpgradeToPremium} 
             onEditIngredients={(itemToEdit) => {
-              // Placeholder for edit functionality if needed
               toast({title: "Edit Meal", description: `Editing "${itemToEdit.name}" (functionality to be implemented).`});
             }}
         >
             <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4">
                 <Button 
                     variant="ghost" 
-                    className="text-xs text-muted-foreground/70 hover:text-muted-foreground hover:bg-white/5 py-1 px-3 rounded-full"
+                    className="text-xs text-muted-foreground/70 hover:text-muted-foreground hover:bg-muted/30 py-1 px-3 rounded-full"
                     onClick={() => setIsPremiumDashboardOpen(true)}
                     aria-label="Open Dashboard"
                 >
@@ -866,7 +857,7 @@ export default function FoodTimelinePage() {
             allSymptoms={COMMON_SYMPTOMS}
         />
         {isAnyItemLoadingAi && (
-            <div className="fixed bottom-20 right-4 bg-gray-800 text-white p-3 rounded-lg shadow-lg flex items-center space-x-2 z-50">
+            <div className="fixed bottom-20 right-4 bg-card text-card-foreground p-3 rounded-lg shadow-lg flex items-center space-x-2 z-50">
             <Loader2 className="h-5 w-5 animate-spin" />
             <span>AI is analyzing...</span>
             </div>
@@ -876,8 +867,8 @@ export default function FoodTimelinePage() {
                 animation: pulse-soft 2.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
             }
             @keyframes pulse-soft {
-                0%, 100% { box-shadow: 0 0 0 0px rgba(255, 255, 255, 0.3); }
-                50% { box-shadow: 0 0 0 15px rgba(255, 255, 255, 0); }
+                0%, 100% { box-shadow: 0 0 0 0px hsl(var(--primary) / 0.3); }
+                50% { box-shadow: 0 0 0 15px hsl(var(--primary) / 0); }
             }
         `}</style>
       </div>
@@ -888,18 +879,21 @@ export default function FoodTimelinePage() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <Navbar onUpgradeClick={handleUpgradeToPremium} isPremium={userProfile.premium || false} />
-      <header className="sticky top-16 bg-background/80 backdrop-blur-md z-40 py-6 mb-6 shadow-xl rounded-b-2xl">
+      <header className="sticky top-16 bg-background/80 backdrop-blur-md z-40 py-6 mb-6 shadow-xl rounded-b-2xl border-b border-border">
         <div className="container mx-auto flex flex-col items-center gap-4">
           <Button
             size="lg"
-            className="w-72 h-20 text-2xl rounded-full shadow-2xl bg-white text-black hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 flex items-center justify-center"
+            className="w-72 h-20 text-2xl rounded-full shadow-2xl bg-primary text-primary-foreground hover:bg-primary/80 focus:ring-4 ring-ring flex items-center justify-center"
             onClick={handleLogFoodClick}
             aria-label="Log Food"
-            disabled={showInterstitialAd && authUser && authUser.uid !== 'guest-user' && !userProfile.premium}
+            disabled={(showInterstitialAd && authUser && authUser.uid !== 'guest-user' && !userProfile.premium) || isAnyItemLoadingAi}
           >
             <PlusCircle className="mr-3 h-8 w-8" /> Tap to Log Food
           </Button>
           <div className="flex flex-wrap justify-center gap-3 mt-3">
+             <Button variant="outline" className="border-accent text-accent-foreground hover:bg-accent/20" onClick={handleSimplifiedLogFoodClick} disabled={(showInterstitialAd && authUser && authUser.uid !== 'guest-user' && !userProfile.premium) || isAnyItemLoadingAi}>
+                <Brain className="mr-2 h-5 w-5" /> Log Food (AI)
+            </Button>
             <Button variant="outline" className="border-accent text-accent-foreground hover:bg-accent/20" onClick={() => openSymptomDialog()}>
               <ListChecks className="mr-2 h-5 w-5" /> Log Symptoms
             </Button>
@@ -915,6 +909,11 @@ export default function FoodTimelinePage() {
         isOpen={isAddFoodDialogOpen}
         onOpenChange={setIsAddFoodDialogOpen}
         onAddFoodItem={handleAddFoodItem}
+      />
+      <SimplifiedAddFoodDialog
+        isOpen={isSimplifiedAddFoodDialogOpen}
+        onOpenChange={setIsSimplifiedAddFoodDialogOpen}
+        onProcessDescription={handleProcessMealDescription}
       />
       <SymptomLoggingDialog
         isOpen={isSymptomLogDialogOpen}
@@ -934,7 +933,7 @@ export default function FoodTimelinePage() {
       )}
 
       {isAnyItemLoadingAi && (
-        <div className="fixed bottom-4 right-4 bg-accent text-accent-foreground p-3 rounded-lg shadow-lg flex items-center space-x-2 z-50">
+        <div className="fixed bottom-4 right-4 bg-card text-card-foreground p-3 rounded-lg shadow-lg flex items-center space-x-2 z-50 border border-border">
           <Loader2 className="h-5 w-5 animate-spin" />
           <span>AI is analyzing...</span>
         </div>
@@ -949,7 +948,7 @@ export default function FoodTimelinePage() {
           <Card className="mb-6 bg-card border-border shadow-md">
             <CardHeader>
               <CardTitle className="font-headline text-xl sm:text-2xl flex items-center text-foreground">
-                <Brain className="mr-3 h-6 w-6 sm:h-7 sm:w-7 text-gray-400" /> AI Insights
+                <Brain className="mr-3 h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground" /> AI Insights
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -966,7 +965,7 @@ export default function FoodTimelinePage() {
               <CardContent>
                 <Utensils className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
                 <h2 className="text-2xl font-semibold font-headline mb-2 text-foreground">Your Timeline is Empty</h2>
-                <p className="text-muted-foreground mb-6">Tap the central button to log your first food item or symptom.</p>
+                <p className="text-muted-foreground mb-6">Tap a log button above to record your first food item or symptom.</p>
                  {!authUser && authUser !== undefined && <p className="text-muted-foreground">Consider <Link href="/login" className="underline text-primary">logging in</Link> to save your data.</p>}
               </CardContent>
             </Card>
@@ -1011,7 +1010,7 @@ export default function FoodTimelinePage() {
         <Card className="mt-12 bg-card border-border shadow-md">
           <CardHeader>
             <CardTitle className="font-headline text-xl sm:text-2xl flex items-center text-foreground">
-              <Activity className="mr-3 h-6 w-6 sm:h-7 sm:w-7 text-gray-400" />
+              <Activity className="mr-3 h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground" />
               Your Safe Foods
             </CardTitle>
           </CardHeader>
@@ -1037,7 +1036,7 @@ export default function FoodTimelinePage() {
             )}
              {authUser && authUser.uid !== 'guest-user' && !userProfile.premium && (
                 <div className="mt-6 text-center">
-                    <Button onClick={handleUpgradeToPremium} className="bg-gray-200 text-black hover:bg-gray-300">
+                    <Button onClick={handleUpgradeToPremium} className="bg-primary text-primary-foreground hover:bg-primary/80">
                         <Zap className="mr-2 h-4 w-4" /> Upgrade to Premium (Simulated)
                     </Button>
                     <p className="text-xs text-muted-foreground mt-2">Current Status: Free User</p>
@@ -1056,7 +1055,7 @@ export default function FoodTimelinePage() {
          <div className="py-8 text-center">
             <Info className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
             <p className="text-sm text-muted-foreground">
-                FODMAPSafe helps you track food and symptoms.
+                GutCheck helps you track food and symptoms.
             </p>
             <p className="text-xs text-muted-foreground mt-1">
                 This app is not a substitute for professional medical advice.
