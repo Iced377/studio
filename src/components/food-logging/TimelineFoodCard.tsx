@@ -88,9 +88,9 @@ export default function TimelineFoodCard({
           <Badge
             variant="default"
             className="mb-2 text-sm"
-            style={{ // Retaining explicit style for guest view consistency if needed, otherwise rely on theme
-              backgroundColor: isGuestView ? '#A7F3D0' : 'var(--success-indicator-bg, #34C759)', // Lighter green for guest
-              color: isGuestView ? '#065F46' : 'var(--success-indicator-text, white)', // Darker green text for guest
+            style={{ 
+              backgroundColor: isGuestView ? '#A7F3D0' : 'var(--success-indicator-bg, #34C759)', 
+              color: isGuestView ? '#065F46' : 'var(--success-indicator-text, white)', 
               borderColor: isGuestView ? '#065F46' : 'var(--primary, #27AE60)',
               borderWidth: '1px',
               borderStyle: 'solid',
@@ -115,7 +115,7 @@ export default function TimelineFoodCard({
             <ul className="list-disc list-inside pl-1 space-y-0.5">
               {item.fodmapData.ingredientFodmapScores.map((entry) => (
                 <li key={entry.ingredient} className={`text-xs ${
-                  entry.score === 'Green' ? 'text-green-500' : entry.score === 'Yellow' ? 'text-yellow-500' : 'text-red-500' // Standard FODMAP colors
+                  entry.score === 'Green' ? 'text-green-500' : entry.score === 'Yellow' ? 'text-yellow-500' : 'text-red-500' 
                 }`}>
                   {entry.ingredient}: <span className="font-medium">{entry.score}</span>
                   {entry.reason && <span className={cn("italic text-[10px]", mutedTextClass)}> ({entry.reason})</span>}
@@ -134,7 +134,7 @@ export default function TimelineFoodCard({
                     size="sm"
                     onClick={() => onLogSymptoms(item.id)}
                     disabled={isLoadingAi}
-                    className="border-accent text-accent-foreground hover:bg-accent/20"
+                    className="border-accent text-foreground hover:bg-accent hover:text-accent-foreground"
                     aria-label="Log Symptoms for this item"
                 >
                     <ListChecks className="mr-2 h-4 w-4" /> Log Symptoms
@@ -146,7 +146,7 @@ export default function TimelineFoodCard({
                       size="sm"
                       onClick={() => onEditIngredients(item)}
                       disabled={isLoadingAi}
-                      className="border-accent text-accent-foreground hover:bg-accent/20"
+                      className="border-accent text-foreground hover:bg-accent hover:text-accent-foreground"
                       aria-label="Edit ingredients for this item"
                   >
                       <Edit3 className="mr-2 h-4 w-4" /> Edit

@@ -78,7 +78,7 @@ const initialGuestProfile: UserProfile = {
   premium: false,
 };
 
-type PendingAction = 'logFood' | 'getInsights' | 'simplifiedLogFood' | null;
+type PendingAction = 'logFood' | 'simplifiedLogFood' | null;
 
 export default function FoodTimelinePage() {
   const { toast } = useToast();
@@ -93,7 +93,7 @@ export default function FoodTimelinePage() {
   const [isAddManualMacroDialogOpen, setIsAddManualMacroDialogOpen] = useState(false);
   const [symptomDialogContext, setSymptomDialogContext] = useState<{ foodItemIds?: string[] }>({});
   const [aiInsights, setAiInsights] = useState<SymptomCorrelationOutput['insights']>([]);
-  const [isLoadingInsights, setIsLoadingInsights] = useState(false);
+  const [isLoadingInsightsState, setIsLoadingInsightsState] = useState(false); // Renamed to avoid conflict with premium popover prop
   const [showInterstitialAd, setShowInterstitialAd] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [pendingActionAfterInterstitial, setPendingActionAfterInterstitial] = useState<PendingAction>(null);
@@ -620,7 +620,7 @@ export default function FoodTimelinePage() {
   };
 
   const fetchAiInsightsInternal = useCallback(async () => {
-    setIsLoadingInsights(true);
+    setIsLoadingInsightsState(true);
     try {
       const foodLogForAI: SymptomCorrelationInput['foodLog'] = timelineEntries
         .filter((e): e is LoggedFoodItem => e.entryType === 'food' || e.entryType === 'manual_macro')
@@ -695,24 +695,10 @@ export default function FoodTimelinePage() {
       toast({title: toastTitle, description: toastDescription, variant: "destructive", duration: 9000});
       setAiInsights([]);
     } finally {
-      setIsLoadingInsights(false);
+      setIsLoadingInsightsState(false);
     }
   }, [timelineEntries, userProfile.safeFoods, toast]);
 
-  const handleGetInsightsClick = () => {
-    setIsCentralPopoverOpen(false); 
-    if (timelineEntries.filter(e => e.entryType === 'food' || e.entryType === 'manual_macro').length < 1 && timelineEntries.filter(e => e.entryType === 'symptom').length < 1) {
-      setAiInsights([]);
-      toast({title: "No Data for Insights", description: "Please log some food items or symptoms first.", variant: "default"});
-      return;
-    }
-    if (authUser && authUser.uid !== 'guest-user' && !userProfile.premium) {
-      setPendingActionAfterInterstitial('getInsights');
-      setShowInterstitialAd(true);
-    } else {
-      fetchAiInsightsInternal();
-    }
-  };
 
   const handleLogFoodClick = () => {
     setIsCentralPopoverOpen(false); 
@@ -776,8 +762,6 @@ export default function FoodTimelinePage() {
         setIsAddFoodDialogOpen(true);
       } else if (pendingActionAfterInterstitial === 'simplifiedLogFood') {
         setIsSimplifiedAddFoodDialogOpen(true);
-      } else if (pendingActionAfterInterstitial === 'getInsights') {
-        fetchAiInsightsInternal();
       }
     }
     setPendingActionAfterInterstitial(null);
@@ -974,17 +958,13 @@ export default function FoodTimelinePage() {
                 onInteractOutside={() => setIsCentralPopoverOpen(false)}
             >
                 <div className="flex flex-col gap-1 p-2">
-                     <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 hover:bg-accent/80 text-accent-foreground hover:text-accent-foreground" onClick={handleSimplifiedLogFoodClick}>
+                     <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleSimplifiedLogFoodClick}>
                         <PlusCircle className="mr-3 h-5 w-5" /> Log Food
                     </Button>
-                    <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 hover:bg-accent/80 text-accent-foreground hover:text-accent-foreground" onClick={() => openSymptomDialog()}>
+                    <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => openSymptomDialog()}>
                         <ListChecks className="mr-3 h-5 w-5" /> Log Symptoms
                     </Button>
-                    <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 hover:bg-accent/80 text-accent-foreground hover:text-accent-foreground" onClick={handleGetInsightsClick} disabled={isLoadingInsights}>
-                        {isLoadingInsights ? <Loader2 className="mr-3 h-5 w-5 animate-spin" /> : <Brain className="mr-3 h-5 w-5" />}
-                        Get Insights
-                    </Button>
-                     <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 hover:bg-accent/80 text-accent-foreground hover:text-accent-foreground" onClick={() => setIsAddManualMacroDialogOpen(true)}>
+                     <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => setIsAddManualMacroDialogOpen(true)}>
                         <Pencil className="mr-3 h-5 w-5" /> Add Macros Manually
                     </Button>
                 </div>
@@ -1080,16 +1060,13 @@ export default function FoodTimelinePage() {
             <PlusCircle className="mr-3 h-8 w-8" /> Tap to Log Food
           </Button>
           <div className="flex flex-wrap justify-center gap-3 mt-3">
-             <Button variant="outline" className="border-accent text-accent-foreground hover:bg-accent/20" onClick={handleSimplifiedLogFoodClick} disabled={(showInterstitialAd && authUser && authUser.uid !== 'guest-user' && !userProfile.premium) || isAnyItemLoadingAi}>
+             <Button variant="outline" className="border-accent text-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleSimplifiedLogFoodClick} disabled={(showInterstitialAd && authUser && authUser.uid !== 'guest-user' && !userProfile.premium) || isAnyItemLoadingAi}>
                 <Brain className="mr-2 h-5 w-5" /> Log Food (AI)
             </Button>
-            <Button variant="outline" className="border-accent text-accent-foreground hover:bg-accent/20" onClick={() => openSymptomDialog()}>
+            <Button variant="outline" className="border-accent text-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => openSymptomDialog()}>
               <ListChecks className="mr-2 h-5 w-5" /> Log Symptoms
             </Button>
-            <Button variant="outline" className="border-accent text-accent-foreground hover:bg-accent/20" onClick={handleGetInsightsClick} disabled={isLoadingInsights || (showInterstitialAd && authUser && authUser.uid !== 'guest-user' && !userProfile.premium) }>
-              {isLoadingInsights ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Brain className="mr-2 h-5 w-5" />}
-              Get Insights
-            </Button>
+            {/* "Get Insights" button removed */}
           </div>
         </div>
       </header>
@@ -1123,7 +1100,7 @@ export default function FoodTimelinePage() {
           onClose={() => handleInterstitialClosed(false)}
           onContinue={() => handleInterstitialClosed(true)}
           adUnitId={interstitialAdUnitId}
-          actionName={pendingActionAfterInterstitial === 'logFood' ? 'Log Food' : pendingActionAfterInterstitial === 'simplifiedLogFood' ? 'Log Food (AI)' : 'Get Insights'}
+          actionName={pendingActionAfterInterstitial === 'logFood' ? 'Log Food' : pendingActionAfterInterstitial === 'simplifiedLogFood' ? 'Log Food (AI)' : 'Action'}
         />
       )}
 
