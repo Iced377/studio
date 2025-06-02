@@ -477,7 +477,7 @@ export default function FoodTimelinePage() {
       symptoms,
       notes,
       severity,
-      linkedFoodItemIds: linkedFoodItemIds || [], // Ensure linkedFoodItemIds is an array
+      linkedFoodItemIds: linkedFoodItemIds || [], 
       timestamp: new Date(),
       entryType: 'symptom',
     };
@@ -598,14 +598,24 @@ export default function FoodTimelinePage() {
 
       const symptomLogForAI: SymptomCorrelationInput['symptomLog'] = timelineEntries
         .filter((e): e is SymptomLog => e.entryType === 'symptom')
-        .map(e => ({
-          id: e.id,
-          linkedFoodItemIds: e.linkedFoodItemIds,
-          symptoms: e.symptoms.map(s => ({id: s.id, name: s.name})),
-          severity: e.severity,
-          notes: e.notes,
-          timestamp: e.timestamp instanceof Date ? e.timestamp.toISOString() : String(e.timestamp),
-        }));
+        .map(e => {
+            let sanitizedLinkedFoodItemIds: string[];
+            if (Array.isArray(e.linkedFoodItemIds)) {
+                sanitizedLinkedFoodItemIds = e.linkedFoodItemIds;
+            } else if (typeof e.linkedFoodItemIds === 'string' && e.linkedFoodItemIds.length > 0) {
+                sanitizedLinkedFoodItemIds = [e.linkedFoodItemIds];
+            } else {
+                sanitizedLinkedFoodItemIds = [];
+            }
+            return {
+                id: e.id,
+                linkedFoodItemIds: sanitizedLinkedFoodItemIds,
+                symptoms: e.symptoms.map(s => ({id: s.id, name: s.name})),
+                severity: e.severity,
+                notes: e.notes,
+                timestamp: e.timestamp instanceof Date ? e.timestamp.toISOString() : String(e.timestamp),
+            };
+        });
 
       const safeFoodsForAI = userProfile.safeFoods.map(sf => ({
         name: sf.name,
@@ -636,9 +646,12 @@ export default function FoodTimelinePage() {
         } else if (errorMessageLower.includes('503') || errorMessageLower.includes('model is overloaded')) {
             toastTitle = 'AI Insights Model Overloaded';
             toastDescription = 'The AI model for insights is temporarily busy. Please try again later.';
+        } else if (errorMessageLower.includes('invalid_argument') && errorMessageLower.includes('schema validation')) {
+            toastTitle = 'AI Insights Data Error';
+            toastDescription = `There was an issue with the data format sent for AI analysis: ${error.message.substring(0, 150)}. Please check your logs.`;
         }
       }
-      toast({title: toastTitle, description: toastDescription, variant: "destructive", duration: 7000});
+      toast({title: toastTitle, description: toastDescription, variant: "destructive", duration: 9000});
       setAiInsights([]);
     } finally {
       setIsLoadingInsights(false);
@@ -848,7 +861,6 @@ export default function FoodTimelinePage() {
               toast({title: "Edit Meal", description: `Editing "${itemToEdit.name}" (functionality to be implemented).`});
             }}
         >
-         {/* This children prop for PremiumDashboardSheet was missing in the original code, adding a placeholder */}
          <div></div>
         </PremiumDashboardSheet>
         
