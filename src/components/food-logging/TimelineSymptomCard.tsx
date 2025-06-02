@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { SymptomLog } from '@/types';
@@ -39,7 +40,7 @@ export default function TimelineSymptomCard({ item, onRemoveItem }: TimelineSymp
             <p className="text-sm font-medium text-foreground">Reported Symptoms:</p>
             <div className="flex flex-wrap gap-1 mt-1">
             {item.symptoms.map(symptom => (
-                <Badge key={symptom.id} variant="outline" className="border-accent text-accent-foreground">
+                <Badge key={symptom.id} variant="outline" className="border-accent text-foreground">
                 {symptom.name}
                 </Badge>
             ))}
