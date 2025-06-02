@@ -28,7 +28,7 @@
     --accent-foreground: 0 0% 100%; /* White text on mid-gray accent */
 
     --destructive: 0 82% 63%; /* #EB5757 - Red */
-    --destructive-foreground: 0 0% 100%; /* White text */
+    --destructive-foreground: 0 0% 10%; /* Very Dark Gray/Black text for high contrast */
 
     --border: 0 0% 85%; /* #D9D9D9 - Light Gray border */
     --input: 0 0% 93%; /* #EDEDED - Very Light Gray input background */
@@ -63,8 +63,8 @@
     --accent: 0 0% 53%; 
     --accent-foreground: 0 0% 100%; 
 
-    --destructive: 0 72% 51%; 
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 75% 40%; /* Dark Red #B32424 for high contrast */
+    --destructive-foreground: 0 0% 100%; /* White text */
 
     --border: 0 0% 20%; 
     --input: 0 0% 10%; 
@@ -75,14 +75,14 @@
   html:not(.dark).theme-orange {
     --background: 25 100% 97%; /* Very light, slightly orange: #FFF2E6 */
     --foreground: 25 90% 25%;  /* Dark orange-brown for text: #6E3A0B */
-    /* Other variables inherit from :root (light default) */
+    /* Other variables inherit from :root (light default), including improved destructive */
   }
 
   /* Orange Theme (Dark Mode) */
   html.dark.theme-orange {
     --background: 25 10% 4%; 
     --foreground: 25 80% 95%; 
-    /* Other variables inherit from .dark.theme-black */
+    /* Other variables inherit from .dark.theme-black, including improved destructive */
   }
 
   /* Green Theme (Light Mode - Calo Inspired) */
@@ -108,14 +108,14 @@
     --accent: 145 63% 36%;               /* Calo Supportive Green: #219653 */
     --accent-foreground: 0 0% 100%;      /* White text */
 
-    --destructive: 0 82% 63%;            /* Warning Red: #EB5757 */
-    --destructive-foreground: 0 0% 100%; 
+    /* Inherits improved destructive from :root */
+    --destructive: 0 82% 63%;
+    --destructive-foreground: 0 0% 10%;
 
     --border: 0 0% 87%;               /* Light Gray border: #DEDEDE */
     --input: 0 0% 96%;                /* Very light gray input: #F5F5F5 */
     --ring: 145 63% 42%;                 /* Calo Brand Green for focus */
 
-    /* Specific for Calo Green theme success indication if needed beyond component specific styling */
     --success-indicator-bg: 136 59% 50%;   /* #34C759 */
     --success-indicator-text: 0 0% 100%; /* White */
   }
@@ -132,19 +132,20 @@
     --popover-foreground: 145 50% 95%;
 
     --primary: 145 63% 42%;              /* Calo Brand Green: #27AE60 */
-    --primary-foreground: 0 0% 100%;     
+    --primary-foreground: 0 0% 10%;     /* Very Dark Gray/Black text for high contrast */
     
     --secondary: 145 63% 36%;            /* Calo Supportive Green: #219653 */
-    --secondary-foreground: 0 0% 100%;   
+    --secondary-foreground: 0 0% 100%;   /* White text (contrast is acceptable here) */
 
     --muted: 145 20% 25%;                
     --muted-foreground: 145 30% 70%;     
 
-    --accent: 145 63% 40%;               
-    --accent-foreground: 0 0% 100%;      
+    --accent: 145 63% 40%;               /* Calo Accent Green */
+    --accent-foreground: 0 0% 10%;      /* Very Dark Gray/Black text for high contrast */
 
-    --destructive: 0 82% 63%;            /* Warning Red: #EB5757 */
-    --destructive-foreground: 0 0% 100%; 
+    /* Inherits improved destructive from .dark.theme-black */
+    --destructive: 0 75% 40%;
+    --destructive-foreground: 0 0% 100%;
 
     --border: 145 50% 30%;               
     --input: 145 20% 15%;                
@@ -158,14 +159,14 @@
   html:not(.dark).theme-red {
     --background: 2 100% 97%; /* Very light, slightly red: #FFECEB */
     --foreground: 2 90% 25%;  /* Dark red-brown for text: #6E100B */
-    /* Other variables inherit from :root (light default) */
+    /* Other variables inherit from :root (light default), including improved destructive */
   }
   
   /* Red Theme (Dark Mode) */
   html.dark.theme-red {
     --background: 2 20% 4%; 
     --foreground: 2 80% 95%; 
-    /* Other variables inherit from .dark.theme-black */
+    /* Other variables inherit from .dark.theme-black, including improved destructive */
   }
 
   /* Common variables for all themes (can be in :root or html) */
