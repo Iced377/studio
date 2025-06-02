@@ -92,10 +92,10 @@ export default {
         },
         "pulse-glow": {
           "0%, 100%": {
-            boxShadow: "0 0 10px 5px rgba(57, 255, 20, 0.5), 0 0 20px 10px rgba(57, 255, 20, 0.3)",
+            boxShadow: "0 0 10px 5px rgba(57, 255, 20, 0.7), 0 0 20px 10px rgba(57, 255, 20, 0.5)",
           },
           "50%": {
-            boxShadow: "0 0 20px 10px rgba(57, 255, 20, 0.7), 0 0 35px 15px rgba(57, 255, 20, 0.5)",
+            boxShadow: "0 0 20px 10px rgba(57, 255, 20, 0.9), 0 0 35px 15px rgba(57, 255, 20, 0.7)",
           },
         },
       },
