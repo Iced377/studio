@@ -92,12 +92,20 @@ export default {
         },
         "pulse-glow": {
           "0%, 100%": {
-            /* Base glow - less intense, slightly smaller spread */
-            boxShadow: "0 0 15px 8px rgba(57, 255, 20, 0.6), 0 0 30px 15px rgba(57, 255, 20, 0.4)",
+            boxShadow: "0 0 30px 20px rgba(57, 255, 20, 0.7), 0 0 60px 35px rgba(57, 255, 20, 0.5)",
           },
           "50%": {
-            /* Peak glow - very bright, large spread */
-            boxShadow: "0 0 30px 20px rgba(57, 255, 20, 1), 0 0 60px 35px rgba(57, 255, 20, 0.7)",
+            boxShadow: "0 0 60px 35px rgba(57, 255, 20, 1), 0 0 90px 50px rgba(57, 255, 20, 0.8)",
+          },
+        },
+        "neon-chevron-glow": {
+          "0%, 100%": {
+            filter: "drop-shadow(0 0 2px rgba(57, 255, 20, 0.7))",
+            opacity: "0.7",
+          },
+          "50%": {
+            filter: "drop-shadow(0 0 6px rgba(57, 255, 20, 1))",
+            opacity: "1",
           },
         },
       },
@@ -105,6 +113,7 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-glow": "pulse-glow 3s infinite ease-in-out",
+        "neon-chevron-pulse": "neon-chevron-glow 1.5s infinite ease-in-out",
       },
     },
   },

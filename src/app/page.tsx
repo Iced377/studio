@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary, DailyFodmapCount } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp, CircleDotDashed, Zap, Pencil, CalendarDays, Edit3 } from 'lucide-react';
+import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp, CircleDotDashed, Zap, Pencil, CalendarDays, Edit3, ChevronUp } from 'lucide-react';
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
 import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow';
@@ -47,6 +47,8 @@ import InterstitialAdPlaceholder from '@/components/ads/InterstitialAdPlaceholde
 import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet';
 import Navbar from '@/components/shared/Navbar';
 import GuestHomePage from '@/components/guest/GuestHomePage';
+import { useRouter } from 'next/navigation'; // Added router import
+
 
 const generateFallbackFodmapProfile = (foodName: string): FoodFODMAPProfile => {
   let hash = 0;
@@ -82,6 +84,7 @@ type PendingAction = 'logFood' | 'simplifiedLogFood' | 'logPreviousMeal_AI' | 'l
 export default function FoodTimelinePage() {
   const { toast } = useToast();
   const { user: authUser, loading: authLoading } = useAuth();
+  const router = useRouter(); // Initialized router
 
   const [userProfile, setUserProfile] = useState<UserProfile>(initialGuestProfile);
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
@@ -270,7 +273,7 @@ export default function FoodTimelinePage() {
         fat: fodmapAnalysis?.fat,
         entryType: 'food',
         userFeedback: editingItem ? editingItem.userFeedback : null,
-        macrosOverridden: false,
+        macrosOverridden: false, // Not applicable for manual ingredient entry initially
       };
 
       if (authUser && authUser.uid !== 'guest-user') {
@@ -372,7 +375,9 @@ export default function FoodTimelinePage() {
       let finalCarbs = fodmapAnalysis?.carbs;
       let finalFat = fodmapAnalysis?.fat;
 
-      if (editingItem || !customTimestamp) { // Only allow macro override if editing or not logging for past
+      // Only allow macro override if editing or when customTimestamp is not used (i.e., logging for "now" where dialog fields are visible)
+      // Or, if editing, always allow override from dialog
+      if (editingItem || (!customTimestamp && !isSimplifiedAddFoodDialogOpen)) {
         if (typeof formData.calories === 'number' && !Number.isNaN(formData.calories)) { finalCalories = formData.calories; macrosOverridden = true; }
         if (typeof formData.protein === 'number' && !Number.isNaN(formData.protein)) { finalProtein = formData.protein; macrosOverridden = true; }
         if (typeof formData.carbs === 'number' && !Number.isNaN(formData.carbs)) { finalCarbs = formData.carbs; macrosOverridden = true; }
@@ -512,6 +517,8 @@ export default function FoodTimelinePage() {
     if (itemToEdit.entryType === 'manual_macro') {
       setIsAddManualMacroDialogOpen(true);
     } else if (itemToEdit.entryType === 'food') {
+      // Always open SimplifiedAddFoodDialog for editing 'food' type,
+      // which now handles both AI-described and manual-ingredient items for editing.
       setIsSimplifiedAddFoodDialogOpen(true);
     }
   };
@@ -903,10 +910,24 @@ export default function FoodTimelinePage() {
             <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4">
                 <Button
                     variant="ghost"
-                    className="text-xs text-muted-foreground/70 hover:text-muted-foreground hover:bg-muted/30 py-1 px-3 rounded-full"
+                    className="text-xs text-muted-foreground/70 hover:text-muted-foreground hover:bg-muted/30 py-1 px-3 rounded-full flex items-center"
                     onClick={() => setIsPremiumDashboardOpen(true)}
                     aria-label="Open Dashboard"
                 >
+                   <div className="flex flex-col items-center mr-2">
+                      <ChevronUp
+                        className="h-3 w-3 text-white animate-neon-chevron-pulse"
+                        style={{ animationDelay: '0s' }}
+                      />
+                      <ChevronUp
+                        className="h-3 w-3 text-white animate-neon-chevron-pulse -mt-1"
+                        style={{ animationDelay: '0.2s' }}
+                      />
+                      <ChevronUp
+                        className="h-3 w-3 text-white animate-neon-chevron-pulse -mt-1"
+                        style={{ animationDelay: '0.4s' }}
+                      />
+                    </div>
                     Swipe Up or Tap to View Dashboard
                 </Button>
             </div>
@@ -949,7 +970,7 @@ export default function FoodTimelinePage() {
             isOpen={isAddFoodDialogOpen}
             onOpenChange={setIsAddFoodDialogOpen}
             onSubmitFoodItem={(data) => handleSubmitFoodItem(data, selectedLogDateForPreviousMeal)}
-            isEditing={!!editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription}
+            isEditing={!!editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription} // Only for truly manual ingredient items during edit
             initialValues={editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription ?
               { name: editingItem.name, ingredients: editingItem.ingredients, portionSize: editingItem.portionSize, portionUnit: editingItem.portionUnit }
               : undefined
