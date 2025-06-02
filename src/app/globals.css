@@ -4,13 +4,6 @@
 @tailwind utilities;
 
 @layer base {
-  /*
-    The <html> tag will always have the "dark" class (from RootLayout)
-    and one of "theme-black", "theme-orange", etc. (from ThemeContext).
-    e.g. <html class="dark theme-orange">
-    The CSS variables are defined to match these combined classes.
-  */
-
   /* Default variables for the "black" theme */
   .dark.theme-black {
     --background: 0 0% 0%; /* #000000 */
@@ -45,61 +38,19 @@
   .dark.theme-orange {
     --background: 25 10% 4%; /* Even darker orange-black for background */
     --foreground: 25 80% 95%; 
-    --card: 25 15% 10%; 
-    --card-foreground: 25 80% 95%;
-    --popover: 25 10% 7%;
-    --popover-foreground: 25 80% 95%;
-    --primary: 25 93% 51%; /* #F76B1C */
-    --primary-foreground: 0 0% 100%; 
-    --secondary: 25 60% 30%; 
-    --secondary-foreground: 25 80% 95%;
-    --muted: 25 20% 12%;
-    --muted-foreground: 25 50% 65%;
-    --accent: 25 90% 58%; 
-    --accent-foreground: 0 0% 0%; 
-    --border: 25 20% 20%; 
-    --input: 25 15% 8%; 
-    --ring: 25 93% 61%; 
+    /* Other variables like --card, --primary etc. will inherit from .dark.theme-black */
   }
 
   .dark.theme-green {
     --background: 145 15% 4%; 
     --foreground: 145 60% 95%; 
-    --card: 145 20% 10%; 
-    --card-foreground: 145 60% 95%;
-    --popover: 145 15% 7%;
-    --popover-foreground: 145 60% 95%;
-    --primary: 145 63% 42%; /* #27AE60 */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 145 40% 25%; 
-    --secondary-foreground: 145 60% 95%;
-    --muted: 145 20% 12%;
-    --muted-foreground: 145 40% 65%;
-    --accent: 145 60% 50%; 
-    --accent-foreground: 0 0% 0%;
-    --border: 145 25% 20%;
-    --input: 145 20% 8%;
-    --ring: 145 63% 52%;
+    /* Other variables like --card, --primary etc. will inherit from .dark.theme-black */
   }
 
   .dark.theme-red {
     --background: 2 20% 4%; 
     --foreground: 2 80% 95%; 
-    --card: 2 25% 10%; 
-    --card-foreground: 2 80% 95%;
-    --popover: 2 20% 7%;
-    --popover-foreground: 2 80% 95%;
-    --primary: 2 100% 60%; /* #FF3B30 */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 2 70% 40%; 
-    --secondary-foreground: 2 80% 95%;
-    --muted: 2 30% 12%;
-    --muted-foreground: 2 60% 65%;
-    --accent: 2 100% 65%; 
-    --accent-foreground: 0 0% 0%;
-    --border: 2 30% 20%;
-    --input: 2 25% 8%;
-    --ring: 2 100% 70%;
+    /* Other variables like --card, --primary etc. will inherit from .dark.theme-black */
   }
 
   /* Non-color related variables that are consistent across all themes,
