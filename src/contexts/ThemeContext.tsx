@@ -30,17 +30,21 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
+    // Remove all potentially existing theme classes
     root.classList.remove('theme-black', 'theme-orange', 'theme-green', 'theme-red');
-    if (theme !== 'black') { // 'black' theme uses the default :root/:dark styles
-      root.classList.add(`theme-${theme}`);
-    }
-    // Ensure .dark class is always present as per globals.css structure
+    
+    // Add the currently selected theme class (e.g., theme-black, theme-orange)
+    // This ensures that if 'black' is selected, 'theme-black' is applied,
+    // leveraging the .theme-black CSS rules.
+    root.classList.add(`theme-${theme}`);
+    
+    // Ensure .dark class is always present as it's the base for all themes defined in globals.css
     if (!root.classList.contains('dark')) {
         root.classList.add('dark');
     }
   }, [theme]);
   
-  const value = useMemo(() => ({ theme, setTheme }), [theme]);
+  const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme]);
 
   return (
     <ThemeContext.Provider value={value}>

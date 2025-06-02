@@ -37,7 +37,7 @@ export default function InterstitialAdPlaceholder({
       <DialogContent className="sm:max-w-md bg-card text-card-foreground border-border">
         <DialogHeader>
           <DialogTitle className="font-headline text-xl flex items-center text-foreground">
-            <Tv2 className="mr-2 h-6 w-6 text-gray-400" /> Supporting FODMAPSafe
+            <Tv2 className="mr-2 h-6 w-6 text-gray-400" /> Supporting GutCheck
           </DialogTitle>
           <DialogDescription className="text-center py-4 text-muted-foreground">
             This is where an interstitial ad (Unit ID: {displayAdUnitId}) would be displayed for free users.

@@ -1,3 +1,4 @@
+
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 
 export default function LoginPage() {
@@ -5,7 +6,7 @@ export default function LoginPage() {
     <div className="flex min-h-full flex-col justify-center items-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <h1 className="font-headline text-3xl font-bold tracking-tight text-foreground">
-          Welcome to FODMAPSafe
+          Welcome to GutCheck
         </h1>
         <p className="mt-2 text-muted-foreground">
           Sign in with Google to continue.

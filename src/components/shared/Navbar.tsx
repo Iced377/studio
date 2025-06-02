@@ -22,7 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from '@/contexts/ThemeContext'; // Added ThemeContext
 
 const APP_NAME = "GutCheck";
-const APP_VERSION = "v2.1";
+const APP_VERSION = "v2.2";
 
 interface NavbarProps {
   onUpgradeClick?: () => void; 
