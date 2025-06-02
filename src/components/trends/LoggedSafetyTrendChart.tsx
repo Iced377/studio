@@ -12,12 +12,12 @@ interface LoggedSafetyTrendChartProps {
   isDarkMode: boolean;
 }
 
+// Using chart-X variables consistent with SymptomOccurrenceChart
 const getColors = (theme: string, isDarkMode: boolean) => {
-  // Use app's theme colors for safety chart
   return {
-    safe: 'hsl(var(--success-indicator-bg))', // Green
-    unsafe: 'hsl(var(--destructive))',       // Red
-    notMarked: isDarkMode ? 'hsl(var(--muted))' : 'hsl(var(--muted))', // Grey
+    safe: 'hsl(var(--chart-1))', 
+    unsafe: 'hsl(var(--chart-2))',   
+    notMarked: 'hsl(var(--chart-3))', 
     grid: isDarkMode ? "hsl(var(--border))" : "hsl(var(--border))",
     text: isDarkMode ? "hsl(var(--muted-foreground))" : "hsl(var(--muted-foreground))",
   };
@@ -74,3 +74,4 @@ export default function LoggedSafetyTrendChart({ data, theme, isDarkMode }: Logg
     </ChartContainer>
   );
 }
+

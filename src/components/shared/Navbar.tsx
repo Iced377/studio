@@ -2,10 +2,10 @@
 'use client';
 
 import Link from 'next/link';
-import { LifeBuoy, LogOut, LogIn, UserCircle, Settings, Zap, Palette, Check, Sun, Moon, BarChart3 } from 'lucide-react'; 
+import { LifeBuoy, LogOut, LogIn, UserCircle, Settings, Zap, Palette, Sun, Moon, BarChart3 } from 'lucide-react'; 
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation'; // Added usePathname
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,7 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from '@/contexts/ThemeContext'; 
 
 const APP_NAME = "GutCheck";
-const APP_VERSION = "v2.4";
+const APP_VERSION = "v2.5"; // Incremented version
 
 interface NavbarProps {
   onUpgradeClick?: () => void; 
@@ -32,6 +32,7 @@ interface NavbarProps {
 export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname(); // Get current pathname
   const { toast } = useToast();
   const { theme, setTheme, isDarkMode, toggleDarkMode } = useTheme();
 
@@ -52,6 +53,8 @@ export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
     return (names[0][0]?.toUpperCase() || '') + (names[names.length - 1][0]?.toUpperCase() || '');
   };
 
+  const trendsLink = pathname === '/trends' ? '/' : '/trends';
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-screen-2xl items-center">
@@ -63,7 +66,7 @@ export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
           <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
         </Link>
         
-        <div className="flex items-center space-x-1 sm:space-x-2"> {/* Adjusted spacing for icons */}
+        <div className="flex items-center space-x-1 sm:space-x-1.5"> {/* Adjusted spacing for icons */}
           {!loading && user && onUpgradeClick && !isPremium && (
              <Button onClick={onUpgradeClick} size="sm" variant="outline" className="border-yellow-500 text-yellow-500 hover:bg-yellow-500/10 h-8">
                 <Zap className="mr-2 h-4 w-4" /> Upgrade
@@ -74,10 +77,10 @@ export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
                 <Zap className="mr-1 h-3 w-3" /> Premium
             </span>
           )}
-
+          
           {!loading && user && (
             <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Trends">
-              <Link href="/trends">
+              <Link href={trendsLink}>
                 <BarChart3 className="h-5 w-5" /> 
               </Link>
             </Button>
@@ -162,3 +165,4 @@ export default function Navbar({ onUpgradeClick, isPremium }: NavbarProps) {
     </header>
   );
 }
+
