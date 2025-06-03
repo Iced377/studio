@@ -35,7 +35,7 @@ export default function TimelineFoodCard({
 }: TimelineFoodCardProps) {
 
   const handleFeedback = (newFeedback: 'safe' | 'unsafe') => {
-    if (isGuestView || !onSetFeedback) return; // Guests don't use feedback buttons on their temp log
+    if (isGuestView || !onSetFeedback) return; 
     if (item.userFeedback === newFeedback) {
       onSetFeedback(item.id, null);
     } else {
@@ -53,7 +53,6 @@ export default function TimelineFoodCard({
 
   const isManualMacroEntry = item.entryType === 'manual_macro';
 
-  // Standard card classes, guest-specific styling removed
   const cardClasses = cn(
     "mb-4 shadow-lg hover:shadow-xl transition-shadow duration-200 relative overflow-hidden",
     "bg-card text-card-foreground border-border"
@@ -61,7 +60,7 @@ export default function TimelineFoodCard({
 
   const mutedTextClass = "text-muted-foreground";
   const primaryTextClass = "text-foreground";
-  const buttonTextClass = "text-foreground"; // Ensure buttons use themed text
+  const buttonTextClass = "text-foreground"; 
 
   return (
     <Card className={cardClasses}>
@@ -76,15 +75,15 @@ export default function TimelineFoodCard({
           <div>
             <CardTitle className={cn("text-lg font-semibold font-headline", primaryTextClass)}>{item.name}</CardTitle>
             {item.originalName && item.originalName !== item.name && !isManualMacroEntry && (
-              <p className={cn("text-xs italic", mutedTextClass)}>(Analyzed as: {item.originalName})</p>
+              <p className={cn("text-sm italic", mutedTextClass)}>(Analyzed as: {item.originalName})</p>
             )}
             {!isManualMacroEntry && <p className={cn("text-sm", mutedTextClass)}>Portion: {item.portionSize} {item.portionUnit}</p>}
           </div>
         </div>
          {item.sourceDescription && !isManualMacroEntry ? (
-           <p className={cn("text-xs italic pt-1 truncate", mutedTextClass, "text-muted-foreground/70")}>Original: "{item.sourceDescription}"</p>
+           <p className={cn("text-sm italic pt-1 truncate", mutedTextClass, "text-muted-foreground/70")}>Original: "{item.sourceDescription}"</p>
          ) : !isManualMacroEntry && (
-           <p className={cn("text-xs break-words pt-1", mutedTextClass)}>Ingredients: {item.ingredients || 'Not specified'}</p>
+           <p className={cn("text-sm break-words pt-1", mutedTextClass)}>Ingredients: {item.ingredients || 'Not specified'}</p>
          )}
         <p className={cn("text-xs pt-1", mutedTextClass)}>Logged: {timeAgo}</p>
       </CardHeader>
@@ -93,7 +92,7 @@ export default function TimelineFoodCard({
           <Badge
             variant="default"
             className="text-sm"
-            style={{ // Standard success indicator styling
+            style={{ 
               backgroundColor: 'var(--success-indicator-bg, #34C759)',
               color: 'var(--success-indicator-text, white)',
               borderColor: 'var(--primary, #27AE60)',
@@ -101,17 +100,17 @@ export default function TimelineFoodCard({
               borderStyle: 'solid',
             }}
           >
-            <CheckCheck className="mr-1 h-4 w-4" /> Similar to your Safe Foods
+            <CheckCheck className="mr-1.5 h-4 w-4" /> Similar to your Safe Foods
           </Badge>
         )}
         {macroParts.length > 0 && (
-            <div className={cn("text-xs border-t pt-2", mutedTextClass, "border-border/50")}>
+            <div className={cn("text-sm border-t pt-2", mutedTextClass, "border-border/50")}>
                 <p className="flex items-center gap-x-2 sm:gap-x-3 flex-wrap">
-                    {item.calories !== undefined && <span className="flex items-center"><Flame className="w-3 h-3 mr-0.5 text-orange-400"/>{Math.round(item.calories)} kcal</span>}
-                    {item.protein !== undefined && <span className="flex items-center"><Beef className="w-3 h-3 mr-0.5 text-red-400"/>{Math.round(item.protein)}g P</span>}
-                    {item.carbs !== undefined && <span className="flex items-center"><Wheat className="w-3 h-3 mr-0.5 text-yellow-400"/>{Math.round(item.carbs)}g C</span>}
-                    {item.fat !== undefined && <span className="flex items-center"><Droplet className="w-3 h-3 mr-0.5 text-blue-400"/>{Math.round(item.fat)}g F</span>}
-                    {item.macrosOverridden && <span className="flex items-center text-orange-500"><PencilLine className="w-3 h-3 mr-0.5"/>Edited</span>}
+                    {item.calories !== undefined && <span className="flex items-center"><Flame className="w-3.5 h-3.5 mr-1 text-orange-400"/>{Math.round(item.calories)} kcal</span>}
+                    {item.protein !== undefined && <span className="flex items-center"><Beef className="w-3.5 h-3.5 mr-1 text-red-400"/>{Math.round(item.protein)}g P</span>}
+                    {item.carbs !== undefined && <span className="flex items-center"><Wheat className="w-3.5 h-3.5 mr-1 text-yellow-400"/>{Math.round(item.carbs)}g C</span>}
+                    {item.fat !== undefined && <span className="flex items-center"><Droplet className="w-3.5 h-3.5 mr-1 text-blue-400"/>{Math.round(item.fat)}g F</span>}
+                    {item.macrosOverridden && <span className="flex items-center text-orange-500"><PencilLine className="w-3.5 h-3.5 mr-1"/>Edited</span>}
                 </p>
             </div>
         )}
@@ -126,21 +125,21 @@ export default function TimelineFoodCard({
         )}
          {item.fodmapData?.ingredientFodmapScores && item.fodmapData.ingredientFodmapScores.length > 0 && !isManualMacroEntry && (
           <div className="mt-2 max-h-24 overflow-y-auto pr-2 border-t pt-2 border-border/50">
-            <p className={cn("text-xs font-medium mb-1", mutedTextClass)}>Ingredient FODMAPs:</p>
+            <p className={cn("text-sm font-medium mb-1", mutedTextClass)}>Ingredient FODMAPs:</p>
             <ul className="list-disc list-inside pl-1 space-y-0.5">
               {item.fodmapData.ingredientFodmapScores.map((entry) => (
-                <li key={entry.ingredient} className={`text-xs ${
+                <li key={entry.ingredient} className={`text-sm ${
                   entry.score === 'Green' ? 'text-green-500' : entry.score === 'Yellow' ? 'text-yellow-500' : 'text-red-500'
                 }`}>
                   {entry.ingredient}: <span className="font-medium">{entry.score}</span>
-                  {entry.reason && <span className={cn("italic text-[10px]", mutedTextClass)}> ({entry.reason})</span>}
+                  {entry.reason && <span className={cn("italic text-xs", mutedTextClass)}> ({entry.reason})</span>}
                 </li>
               ))}
             </ul>
           </div>
         )}
       </CardContent>
-      {!isGuestView && ( // Action buttons are only for registered users
+      {!isGuestView && ( 
         <CardFooter className="flex flex-wrap justify-between items-center px-4 pb-4 pt-2 gap-2 border-t border-border/50">
           <div className="flex gap-2 flex-wrap">
               {!isManualMacroEntry && onLogSymptoms && (
@@ -149,10 +148,10 @@ export default function TimelineFoodCard({
                     size="sm"
                     onClick={() => onLogSymptoms(item.id)}
                     disabled={isLoadingAi}
-                    className={cn("border-accent hover:bg-accent hover:text-accent-foreground text-xs px-2 py-1 h-auto", buttonTextClass)}
+                    className={cn("border-accent hover:bg-accent hover:text-accent-foreground text-sm px-2.5 py-1.5 h-auto", buttonTextClass)}
                     aria-label="Log Symptoms for this item"
                 >
-                    <ListChecks className="mr-1.5 h-3.5 w-3.5" /> Log Symptoms
+                    <ListChecks className="mr-1.5 h-4 w-4" /> Log Symptoms
                 </Button>
               )}
               {onEditIngredients && (
@@ -161,10 +160,10 @@ export default function TimelineFoodCard({
                       size="sm"
                       onClick={() => onEditIngredients(item)}
                       disabled={isLoadingAi}
-                      className={cn("border-accent hover:bg-accent hover:text-accent-foreground text-xs px-2 py-1 h-auto", buttonTextClass)}
+                      className={cn("border-accent hover:bg-accent hover:text-accent-foreground text-sm px-2.5 py-1.5 h-auto", buttonTextClass)}
                       aria-label="Edit this item"
                   >
-                      <Edit3 className="mr-1.5 h-3.5 w-3.5" /> Edit
+                      <Edit3 className="mr-1.5 h-4 w-4" /> Edit
                   </Button>
               )}
           </div>
@@ -177,12 +176,12 @@ export default function TimelineFoodCard({
                   onClick={() => handleFeedback('safe')}
                   disabled={isLoadingAi}
                   className={cn(
-                    "h-7 w-7",
+                    "h-8 w-8",
                     item.userFeedback === 'safe' ? 'bg-green-500/20 text-green-500 hover:bg-green-500/30' : 'text-muted-foreground hover:text-green-500 hover:bg-green-500/10'
                   )}
                   aria-label="Mark as Safe"
                 >
-                  <ThumbsUp className={`h-4 w-4 ${item.userFeedback === 'safe' ? 'fill-green-500/70' : ''}`} />
+                  <ThumbsUp className={`h-4.5 w-4.5 ${item.userFeedback === 'safe' ? 'fill-green-500/70' : ''}`} />
                 </Button>
                 <Button
                   variant="ghost"
@@ -190,18 +189,18 @@ export default function TimelineFoodCard({
                   onClick={() => handleFeedback('unsafe')}
                   disabled={isLoadingAi}
                    className={cn(
-                    "h-7 w-7",
+                    "h-8 w-8",
                     item.userFeedback === 'unsafe' ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'text-muted-foreground hover:text-red-500 hover:bg-red-500/10'
                   )}
                   aria-label="Mark as Unsafe"
                 >
-                  <ThumbsDown className={`h-4 w-4 ${item.userFeedback === 'unsafe' ? 'fill-red-500/70' : ''}`} />
+                  <ThumbsDown className={`h-4.5 w-4.5 ${item.userFeedback === 'unsafe' ? 'fill-red-500/70' : ''}`} />
                 </Button>
                 </>
               )}
               {onRemoveItem && (
-                <Button variant="ghost" size="sm" onClick={() => onRemoveItem(item.id)} className="text-destructive hover:bg-destructive/20 text-xs px-2 py-1 h-auto"  disabled={isLoadingAi} aria-label="Remove this item">
-                <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Remove
+                <Button variant="ghost" size="sm" onClick={() => onRemoveItem(item.id)} className="text-destructive hover:bg-destructive/20 text-sm px-2.5 py-1.5 h-auto"  disabled={isLoadingAi} aria-label="Remove this item">
+                <Trash2 className="mr-1.5 h-4 w-4" /> Remove
                 </Button>
               )}
           </div>

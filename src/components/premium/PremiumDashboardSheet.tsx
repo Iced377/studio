@@ -14,7 +14,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { cn } from '@/lib/utils';
 import { startOfDay, endOfDay } from 'date-fns';
 
-// Consistent with MicronutrientsIndicator
 const LucideIconsForSummary: { [key: string]: React.ElementType } = {
   Atom, Sparkles, 
   Bone: require('lucide-react').Bone,
@@ -31,7 +30,7 @@ const LucideIconsForSummary: { [key: string]: React.ElementType } = {
 
 
 interface PremiumDashboardSheetProps {
-  children: React.ReactNode; // Still useful if sheet content is sometimes passed
+  children: React.ReactNode; 
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   userProfile: UserProfile;
@@ -42,7 +41,6 @@ interface PremiumDashboardSheetProps {
   onRemoveTimelineEntry: (entryId: string) => void;
   onLogSymptomsForFood: (foodItemId?: string) => void;
   onEditIngredients?: (item: LoggedFoodItem) => void;
-  // onUpgradeClick prop is removed
 }
 
 interface AchievedMicronutrient {
@@ -73,8 +71,6 @@ export default function PremiumDashboardSheet({
     timelineEntries.forEach(entry => {
       if (entry.entryType === 'food' || entry.entryType === 'manual_macro') {
         const entryDate = new Date(entry.timestamp);
-        // Ensure entries are within the current day for *this specific summary*
-        // The overall timelineEntries are already filtered by 2 days for free users in page.tsx
         if (entryDate >= todayStart && entryDate <= todayEnd) {
           const foodItem = entry as LoggedFoodItem;
           const microsInfo = foodItem.fodmapData?.micronutrientsInfo;
@@ -102,7 +98,7 @@ export default function PremiumDashboardSheet({
     return Object.entries(dailyTotals)
       .filter(([, data]) => data.totalDV >= 100)
       .map(([name, data]) => ({ name, iconName: data.iconName, totalDV: data.totalDV }))
-      .sort((a,b) => b.totalDV - a.totalDV) // Sort by highest DV achieved
+      .sort((a,b) => b.totalDV - a.totalDV) 
       .slice(0, 5); 
   }, [timelineEntries]);
 
@@ -110,7 +106,7 @@ export default function PremiumDashboardSheet({
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[90vh] flex flex-col p-0 bg-background text-foreground border-t-2 border-border">
         <SheetHeader className="p-0">
-          <Navbar /> {/* Navbar is now simpler, not needing isPremium or onUpgradeClick */}
+          <Navbar /> 
           <SheetTitle className="sr-only">Main Dashboard and Timeline</SheetTitle>
         </SheetHeader>
 
@@ -145,7 +141,7 @@ export default function PremiumDashboardSheet({
                         return (
                           <Tooltip key={micro.name}>
                             <TooltipTrigger asChild>
-                              <div className="relative p-0.5">
+                              <div className="relative p-0.5 cursor-pointer">
                                 <IconComponent className="h-4 w-4 text-green-500" />
                                 <Check className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 text-green-600 bg-background rounded-full p-0.5" />
                               </div>
@@ -162,7 +158,7 @@ export default function PremiumDashboardSheet({
             </div>
         </div>
 
-        <ScrollArea className="flex-grow p-4">
+        <ScrollArea className="flex-grow px-2 py-4">
           {timelineEntries.length === 0 && !Object.values(isLoadingAi).some(Boolean) && (
             <div className="text-center py-12">
               <Utensils className="mx-auto h-16 w-16 text-muted-foreground mb-4" />

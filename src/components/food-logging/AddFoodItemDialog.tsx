@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react'; // Added useEffect
+import { useState, useEffect } from 'react'; 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -18,9 +18,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { LoggedFoodItem } from '@/types';
-import { Sprout, Loader2 } from 'lucide-react'; // Added Loader2
+import { Sprout, Loader2 } from 'lucide-react'; 
 import { useToast } from '@/hooks/use-toast';
 import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder';
+import { useTheme } from '@/contexts/ThemeContext'; 
+import { cn } from '@/lib/utils';
 
 const manualEntrySchema = z.object({
   name: z.string().min(1, { message: 'Food name is required' }),
@@ -34,9 +36,9 @@ export type ManualEntryFormValues = z.infer<typeof manualEntrySchema>;
 interface AddFoodItemDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onSubmitFoodItem: (foodItemData: Omit<LoggedFoodItem, 'id' | 'timestamp' | 'entryType'>) => Promise<void>; // Renamed prop
-  isEditing?: boolean; // New prop
-  initialValues?: Partial<ManualEntryFormValues>; // New prop
+  onSubmitFoodItem: (foodItemData: Omit<LoggedFoodItem, 'id' | 'timestamp' | 'entryType'>) => Promise<void>; 
+  isEditing?: boolean; 
+  initialValues?: Partial<ManualEntryFormValues>; 
 }
 
 export default function AddFoodItemDialog({ 
@@ -48,6 +50,7 @@ export default function AddFoodItemDialog({
 }: AddFoodItemDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { isDarkMode } = useTheme();
 
   const form = useForm<ManualEntryFormValues>({
     resolver: zodResolver(manualEntrySchema),
@@ -90,6 +93,10 @@ export default function AddFoodItemDialog({
   const submitButtonText = isLoading 
     ? (isEditing ? 'Updating...' : 'Adding...') 
     : (isEditing ? 'Update Food Item' : 'Add to Timeline');
+
+  const cancelClasses = !isDarkMode 
+    ? "bg-red-200 border-red-300 text-red-700 hover:bg-red-300 hover:border-red-400" 
+    : "border-accent text-accent-foreground hover:bg-accent/20";
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -147,7 +154,7 @@ export default function AddFoodItemDialog({
             )}
           </div>
           <DialogFooter className="pt-2">
-            <Button type="button" variant="outline" className="border-accent text-accent-foreground hover:bg-accent/20" onClick={() => onOpenChange(false)} disabled={isLoading}>
+            <Button type="button" variant="outline" className={cancelClasses} onClick={() => onOpenChange(false)} disabled={isLoading}>
               Cancel
             </Button>
             <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/80" disabled={isLoading}>

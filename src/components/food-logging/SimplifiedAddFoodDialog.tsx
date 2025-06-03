@@ -22,6 +22,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Sprout, Loader2, Edit, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const simplifiedFoodLogSchema = z.object({
   mealDescription: z.string().min(10, { message: 'Please describe your meal in more detail (at least 10 characters).' }),
@@ -49,7 +50,7 @@ interface SimplifiedAddFoodDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onSubmitLog: (data: SimplifiedFoodLogFormValues, userDidOverrideMacros: boolean) => Promise<void>; 
-  isGuestView?: boolean; // Still used for button text and placeholder logic
+  isGuestView?: boolean; 
   isEditing?: boolean;
   initialValues?: Partial<SimplifiedFoodLogFormValues>;
   initialMacrosOverridden?: boolean; 
@@ -67,6 +68,8 @@ export default function SimplifiedAddFoodDialog({
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const [userWantsToOverrideMacros, setUserWantsToOverrideMacros] = useState(initialMacrosOverridden);
+  const { isDarkMode } = useTheme();
+
 
   const form = useForm<SimplifiedFoodLogFormValues>({
     resolver: zodResolver(simplifiedFoodLogSchema),
@@ -120,7 +123,6 @@ export default function SimplifiedAddFoodDialog({
     }
   };
 
-  // Dialog now uses standard theme classes, not guest-specific ones
   const dialogContentClasses = cn("sm:max-w-lg", "bg-card text-card-foreground border-border");
   const titleClasses = cn("font-headline text-xl flex items-center", "text-foreground");
   const descriptionClasses = cn("text-muted-foreground");
@@ -128,10 +130,14 @@ export default function SimplifiedAddFoodDialog({
   const sproutSubmitIconClasses = cn("mr-2 h-5 w-5");
   const textAreaClasses = cn("mt-1 text-base min-h-[100px]", "bg-input text-foreground placeholder:text-muted-foreground border-input focus:ring-ring focus:border-ring");
   const inputClasses = cn("mt-1", "bg-input text-foreground placeholder:text-muted-foreground");
-  const cancelButtonClasses = cn("border-accent text-accent-foreground hover:bg-accent/20");
+  
+  const currentCancelButtonClasses = (isGuestView || !isDarkMode)
+  ? "bg-red-200 border-red-300 text-red-700 hover:bg-red-300 hover:border-red-400"
+  : "border-accent text-accent-foreground hover:bg-accent/20";
+
   const submitButtonClasses = cn("bg-primary text-primary-foreground hover:bg-primary/80");
   const labelClasses = cn("text-sm font-medium", "text-foreground");
-  const checkboxErrorClasses = cn("text-xs mt-1", "text-destructive"); // For potential future checkbox errors
+  const checkboxErrorClasses = cn("text-xs mt-1", "text-destructive");
 
   const dialogTitleText = isGuestView
     ? "What did you eat?"
@@ -220,7 +226,7 @@ export default function SimplifiedAddFoodDialog({
 
           <DialogFooter className="pt-4 sticky bottom-0 bg-inherit">
             <DialogClose asChild>
-              <Button type="button" variant="outline" className={cancelButtonClasses} disabled={isLoading}>
+              <Button type="button" variant="outline" className={currentCancelButtonClasses} disabled={isLoading}>
                 Cancel
               </Button>
             </DialogClose>

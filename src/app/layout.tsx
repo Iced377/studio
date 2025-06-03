@@ -42,7 +42,7 @@ export default function RootLayout({
         <AuthProvider>
           <ThemeProvider>
             {/* Navbar is now rendered within page.tsx or PremiumDashboardSheet */}
-            <main className="flex-grow container mx-auto px-0 sm:px-4 py-0 sm:py-8"> {/* Adjusted padding for full-width premium */}
+            <main className="flex-grow container mx-auto px-0 sm:px-4 py-0"> {/* Adjusted padding for full-width premium and screen fit */}
               {children}
             </main>
             <Toaster />

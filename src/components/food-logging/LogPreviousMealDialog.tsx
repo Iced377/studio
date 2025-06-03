@@ -15,6 +15,8 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { Brain, Pencil, CalendarDays } from 'lucide-react';
 import { format } from 'date-fns';
+import { useTheme } from '@/contexts/ThemeContext';
+import { cn } from '@/lib/utils';
 
 interface LogPreviousMealDialogProps {
   isOpen: boolean;
@@ -32,10 +34,11 @@ export default function LogPreviousMealDialog({
   currentSelectedDate,
 }: LogPreviousMealDialogProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(currentSelectedDate || new Date());
+  const { isDarkMode } = useTheme();
 
   const handleDateSelect = (date?: Date) => {
     setSelectedDate(date);
-    onDateSelect(date); // Update parent state immediately
+    onDateSelect(date); 
   };
 
   const handleLogWithAI = () => {
@@ -44,7 +47,7 @@ export default function LogPreviousMealDialog({
         return;
     }
     onLogMethodSelect('AI');
-    onOpenChange(false); // Close this dialog
+    onOpenChange(false); 
   };
 
   const handleLogManually = () => {
@@ -53,14 +56,19 @@ export default function LogPreviousMealDialog({
         return;
     }
     onLogMethodSelect('Manual');
-    onOpenChange(false); // Close this dialog
+    onOpenChange(false); 
   };
   
   const today = new Date();
 
+  const cancelClasses = !isDarkMode 
+    ? "bg-red-200 border-red-300 text-red-700 hover:bg-red-300 hover:border-red-400 w-full sm:w-auto" 
+    : "border-accent text-accent-foreground hover:bg-accent/20 w-full sm:w-auto";
+
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
-        if(!open) onDateSelect(undefined); // Clear selected date in parent if dialog is closed
+        if(!open) onDateSelect(undefined); 
         onOpenChange(open);
     }}>
       <DialogContent className="sm:max-w-md bg-card text-card-foreground border-border">
@@ -91,7 +99,7 @@ export default function LogPreviousMealDialog({
 
         <DialogFooter className="pt-2 sm:justify-between">
           <DialogClose asChild>
-            <Button type="button" variant="outline" className="w-full sm:w-auto border-accent text-accent-foreground hover:bg-accent/20">
+            <Button type="button" variant="outline" className={cancelClasses}>
               Cancel
             </Button>
           </DialogClose>

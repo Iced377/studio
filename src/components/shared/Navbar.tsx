@@ -22,13 +22,13 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "v3.2"; // App Version remains, but display is conditional
+export const APP_VERSION = "v3.2.1"; 
 
 interface GuestButtonScheme {
   base: string;
   border: string;
   hover: string;
-  focusRing?: string; 
+  focusRing?: string;
 }
 
 interface NavbarProps {
@@ -69,18 +69,19 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
     }
   };
 
-  const headerBaseClasses = "sticky top-0 z-50 w-full"; 
+  const headerBaseClasses = "sticky top-0 z-50 w-full";
   const guestHeaderClasses = "bg-background text-foreground"; 
-  const defaultHeaderClasses = "bg-background text-foreground";
+  // For registered users in light mode, use bg-muted. For dark mode, use bg-background.
+  const registeredUserHeaderClasses = !isDarkMode ? "bg-muted text-foreground" : "bg-background text-foreground";
 
   const logoIconBaseClasses = "h-7 w-7";
   const appNameBaseClasses = "font-bold font-headline sm:inline-block text-xl";
 
   return (
     <header className={cn(
-        headerBaseClasses, 
-        isGuest ? guestHeaderClasses : defaultHeaderClasses,
-        !isGuest && "border-b border-border/50" // Conditional border for non-guests
+        headerBaseClasses,
+        isGuest ? guestHeaderClasses : registeredUserHeaderClasses,
+        !isGuest && "border-b border-border/50" // Border only for non-guests
     )}>
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <Link href="/" className="mr-auto flex items-center space-x-2">
@@ -92,7 +93,9 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
             className={cn(
               "object-contain",
               logoIconBaseClasses,
-              isGuest ? "filter brightness-0 invert" : (isDarkMode ? "" : "filter brightness-0 invert") 
+               // Invert logic for logo based on background. If navbar is light (guest or light mode registered), logo should be dark.
+               // If navbar is dark (dark mode registered), logo should be light (inverted).
+              (isGuest || !isDarkMode) ? "" : "filter brightness-0 invert"
             )}
           />
           {!isGuest && (
@@ -110,7 +113,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
             <Button
               onClick={() => router.push('/login')}
               className={cn(
-                "h-9 px-4 text-white", // Text white for contrast on vibrant buttons
+                "h-9 px-4 text-white", 
                 guestButtonScheme ? `${guestButtonScheme.base} ${guestButtonScheme.border} ${guestButtonScheme.hover}` : "bg-primary border-primary hover:bg-primary/90"
               )}
             >

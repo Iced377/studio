@@ -21,7 +21,9 @@ import type { Symptom } from '@/types';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { ListChecks } from 'lucide-react';
-import { Input } from '@/components/ui/input'; // Added import for Input
+import { Input } from '@/components/ui/input'; 
+import { useTheme } from '@/contexts/ThemeContext';
+import { cn } from '@/lib/utils';
 
 const symptomLogSchema = z.object({
   selectedSymptoms: z.array(z.string()).min(1, { message: 'Please select at least one symptom.' }),
@@ -49,6 +51,7 @@ export default function SymptomLoggingDialog({
 }: SymptomLoggingDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showCustomSymptom, setShowCustomSymptom] = useState(false);
+  const { isDarkMode } = useTheme();
 
   const form = useForm<SymptomLogFormValues>({
     resolver: zodResolver(symptomLogSchema),
@@ -96,6 +99,15 @@ export default function SymptomLoggingDialog({
     setIsLoading(false);
     onOpenChange(false);
   };
+  
+  const cancelClasses = !isDarkMode 
+    ? "bg-red-200 border-red-300 text-red-700 hover:bg-red-300 hover:border-red-400" 
+    : "border-accent text-accent-foreground hover:bg-accent/20";
+
+  const severityBadgeClasses = !isDarkMode
+    ? "bg-accent text-accent-foreground w-10 h-8 flex items-center justify-center text-base"
+    : "w-10 h-8 flex items-center justify-center text-base border-accent text-accent-foreground";
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -172,7 +184,7 @@ export default function SymptomLoggingDialog({
                             onValueChange={(vals) => onChange(vals[0])}
                             className="w-full [&>span>span]:bg-primary [&>span>span]:border-primary [&>span]:bg-input"
                         />
-                        <Badge variant="outline" className="w-10 h-8 flex items-center justify-center text-base border-accent text-accent-foreground">{value || 3}</Badge>
+                        <Badge variant={!isDarkMode ? "default" : "outline"} className={cn(severityBadgeClasses, !isDarkMode && "border-0")}>{value || 3}</Badge>
                     </div>
                 )}
             />
@@ -190,7 +202,7 @@ export default function SymptomLoggingDialog({
           </div>
 
           <DialogFooter className="pt-2">
-            <Button type="button" variant="outline" className="border-accent text-accent-foreground hover:bg-accent/20" onClick={() => onOpenChange(false)} disabled={isLoading}>
+            <Button type="button" variant="outline" className={cancelClasses} onClick={() => onOpenChange(false)} disabled={isLoading}>
               Cancel
             </Button>
             <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/80" disabled={isLoading}>
