@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image'; // Added Image import
-import { ChevronUp } from 'lucide-react'; 
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { ChevronUp } from 'lucide-react';
 import GuestLastLogSheet from './GuestLastLogSheet';
 import type { LoggedFoodItem } from '@/types';
-import { APP_VERSION } from '@/components/shared/Navbar'; 
+import { APP_VERSION } from '@/components/shared/Navbar';
 import Navbar from '@/components/shared/Navbar';
+import { cn } from '@/lib/utils';
 
 interface GuestHomePageProps {
   onLogFoodClick: () => void;
@@ -20,6 +20,15 @@ interface GuestHomePageProps {
   isLoadingAiForItem: boolean;
 }
 
+// Palette for randomized button colors in light mode for guests
+const lightModeButtonColors = [
+  { id: 'sky', base: 'bg-sky-500', border: 'border-sky-700', hover: 'hover:bg-sky-600', focusRing: 'focus:ring-sky-500', glowRgb: '56, 189, 248' },
+  { id: 'amber', base: 'bg-amber-500', border: 'border-amber-700', hover: 'hover:bg-amber-600', focusRing: 'focus:ring-amber-500', glowRgb: '245, 158, 11' },
+  { id: 'emerald', base: 'bg-emerald-500', border: 'border-emerald-700', hover: 'hover:bg-emerald-600', focusRing: 'focus:ring-emerald-500', glowRgb: '16, 185, 129' },
+  { id: 'rose', base: 'bg-rose-500', border: 'border-rose-700', hover: 'hover:bg-rose-600', focusRing: 'focus:ring-rose-500', glowRgb: '244, 63, 94' },
+  { id: 'violet', base: 'bg-violet-500', border: 'border-violet-700', hover: 'hover:bg-violet-600', focusRing: 'focus:ring-violet-500', glowRgb: '139, 92, 246' },
+];
+
 export default function GuestHomePage({
   onLogFoodClick,
   lastLoggedItem,
@@ -29,47 +38,64 @@ export default function GuestHomePage({
   onRemoveItem,
   isLoadingAiForItem,
 }: GuestHomePageProps) {
+  const [activeLightModeColorScheme, setActiveLightModeColorScheme] = useState(lightModeButtonColors[0]);
+
+  useEffect(() => {
+    // Randomize color scheme for light mode on mount
+    const randomIndex = Math.floor(Math.random() * lightModeButtonColors.length);
+    const selectedScheme = lightModeButtonColors[randomIndex];
+    setActiveLightModeColorScheme(selectedScheme);
+    // Set CSS variable for the glow effect defined in globals.css
+    document.documentElement.style.setProperty('--glow-color-rgb', selectedScheme.glowRgb);
+  }, []); // Empty dependency array ensures this runs once on mount
 
   const handleMainButtonClick = () => {
     onLogFoodClick();
   };
-  
+
   return (
-    <div className="bg-calo-green text-white min-h-screen flex flex-col font-body antialiased">
-      <Navbar isGuest={true} />
+    <div className="bg-background text-foreground min-h-screen flex flex-col font-body antialiased">
+      <Navbar isGuest={true} guestButtonScheme={activeLightModeColorScheme} />
 
       <main className="flex-grow flex flex-col items-center justify-center p-4 relative text-center">
         <div className="flex flex-col items-center space-y-4">
           <button
             onClick={handleMainButtonClick}
-            className="bg-calo-green text-white rounded-full h-36 w-36 sm:h-40 sm:w-40 flex items-center justify-center border-2 border-black dark:border-white animate-pulse-glow focus:outline-none focus:ring-4 focus:ring-green-300 dark:focus:ring-green-700 shadow-xl"
+            className={cn(
+              "text-white rounded-full h-36 w-36 sm:h-40 sm:w-40 flex items-center justify-center border-2 animate-pulse-glow focus:outline-none focus:ring-4 shadow-xl",
+              activeLightModeColorScheme.base,
+              activeLightModeColorScheme.border,
+              activeLightModeColorScheme.hover,
+              activeLightModeColorScheme.focusRing,
+              "focus:ring-offset-background focus:ring-offset-2"
+            )}
             aria-label="Check My Meal"
           >
             <Image
-              src="/Gutcheck_logo.png" 
+              src="/Gutcheck_logo.png"
               alt="GutCheck Logo"
-              width={112} 
-              height={112} 
-              className="object-contain" // Ensures the logo fits well
+              width={112}
+              height={112}
+              className="object-contain"
             />
           </button>
-          <span className="text-2xl sm:text-3xl font-semibold text-white font-headline">
+          <span className="text-2xl sm:text-3xl font-semibold text-foreground font-headline">
             GutCheck
           </span>
         </div>
       </main>
 
       {lastLoggedItem && !isSheetOpen && (
-         <div 
-            className="fixed bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center cursor-pointer animate-bounce z-10"
-            onClick={() => onSheetOpenChange(true)}
-          >
-            <ChevronUp className="h-6 w-6 text-white/70" />
-            <span className="text-xs text-white/70">View Last Entry</span>
+        <div
+          className="fixed bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center cursor-pointer animate-bounce z-10"
+          onClick={() => onSheetOpenChange(true)}
+        >
+          <ChevronUp className="h-6 w-6 text-muted-foreground/70" />
+          <span className="text-xs text-muted-foreground/70">Swipe Up or Tap to View the Meal</span>
         </div>
       )}
-      
-      <p className="text-xs text-white/70 text-center pb-2 fixed bottom-0 left-1/2 -translate-x-1/2">
+
+      <p className="text-xs text-muted-foreground/70 text-center pb-2 fixed bottom-0 left-1/2 -translate-x-1/2">
         {APP_VERSION}
       </p>
 
@@ -77,8 +103,8 @@ export default function GuestHomePage({
         isOpen={isSheetOpen}
         onOpenChange={onSheetOpenChange}
         lastLoggedItem={lastLoggedItem}
-        onSetFeedback={onSetFeedback} 
-        onRemoveItem={onRemoveItem}   
+        onSetFeedback={onSetFeedback}
+        onRemoveItem={onRemoveItem}
         isLoadingAi={isLoadingAiForItem}
       />
     </div>

@@ -22,13 +22,21 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "v3.1"; // Updated App Version
+export const APP_VERSION = "v3.2"; // Updated App Version
+
+interface GuestButtonScheme {
+  base: string;
+  border: string;
+  hover: string;
+  focusRing?: string; // Optional, as it might not be directly used for sign-in button
+}
 
 interface NavbarProps {
   isGuest?: boolean;
+  guestButtonScheme?: GuestButtonScheme;
 }
 
-export default function Navbar({ isGuest }: NavbarProps) {
+export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -41,7 +49,7 @@ export default function Navbar({ isGuest }: NavbarProps) {
       toast({ title: 'Logout Failed', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Logged Out', description: 'You have been successfully logged out.' });
-      router.push('/'); 
+      router.push('/');
     }
   };
 
@@ -55,18 +63,18 @@ export default function Navbar({ isGuest }: NavbarProps) {
   const trendsLinkHandler = (e: React.MouseEvent) => {
     if (pathname === '/trends') {
       e.preventDefault();
-      router.push('/'); 
+      router.push('/');
     } else {
       router.push('/trends');
     }
   };
 
-  const headerBaseClasses = "sticky top-0 z-50 w-full";
-  const guestHeaderClasses = "bg-calo-green text-white";
+  const headerBaseClasses = "sticky top-0 z-50 w-full border-b border-border/50"; // Added border for definition
+  const guestHeaderClasses = "bg-background text-foreground"; // Changed from calo-green
   const defaultHeaderClasses = "bg-background text-foreground";
 
   const logoIconBaseClasses = "h-7 w-7";
-  
+
   const appNameBaseClasses = "font-bold font-headline sm:inline-block text-xl";
 
   return (
@@ -82,7 +90,7 @@ export default function Navbar({ isGuest }: NavbarProps) {
               className={cn(
                 "object-contain",
                 logoIconBaseClasses,
-                isDarkMode && !isGuest ? "" : "filter brightness-0" 
+                 isDarkMode ? "" : "filter brightness-0 invert" // Invert for light mode, keep as is for dark
               )}
             />
             <span className={cn(appNameBaseClasses, 'text-foreground')}>
@@ -91,15 +99,34 @@ export default function Navbar({ isGuest }: NavbarProps) {
             <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
           </Link>
         )}
-        {isGuest && <div className="mr-auto"></div>} {/* Spacer for guest view */}
+        {isGuest && (
+          <div className="mr-auto flex items-center space-x-2">
+             <Image
+              src="/Gutcheck_logo.png"
+              alt="GutCheck Logo"
+              width={28}
+              height={28}
+              className={cn(
+                "object-contain filter brightness-0 invert", // Always inverted for light guest view
+                logoIconBaseClasses
+              )}
+            />
+            <span className={cn(appNameBaseClasses, 'text-foreground')}>
+              {APP_NAME}
+            </span>
+            <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
+          </div>
+        )}
 
 
         <div className="flex items-center space-x-1 sm:space-x-1.5">
           {isGuest ? (
             <Button
-              variant="outline"
               onClick={() => router.push('/login')}
-              className="bg-transparent text-white border-white hover:bg-white/10 h-9 px-4"
+              className={cn(
+                "h-9 px-4 text-white", // Text white for contrast on vibrant buttons
+                guestButtonScheme ? `${guestButtonScheme.base} ${guestButtonScheme.border} ${guestButtonScheme.hover}` : "bg-primary border-primary hover:bg-primary/90"
+              )}
             >
               <UserPlus className="mr-2 h-5 w-5" />
               Sign In / Sign Up

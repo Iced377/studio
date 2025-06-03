@@ -35,9 +35,9 @@ export default function TimelineFoodCard({
 }: TimelineFoodCardProps) {
 
   const handleFeedback = (newFeedback: 'safe' | 'unsafe') => {
-    if (isGuestView || !onSetFeedback) return;
+    if (isGuestView || !onSetFeedback) return; // Guests don't use feedback buttons on their temp log
     if (item.userFeedback === newFeedback) {
-      onSetFeedback(item.id, null); 
+      onSetFeedback(item.id, null);
     } else {
       onSetFeedback(item.id, newFeedback);
     }
@@ -53,14 +53,15 @@ export default function TimelineFoodCard({
 
   const isManualMacroEntry = item.entryType === 'manual_macro';
 
+  // Standard card classes, guest-specific styling removed
   const cardClasses = cn(
     "mb-4 shadow-lg hover:shadow-xl transition-shadow duration-200 relative overflow-hidden",
-    isGuestView ? "bg-green-50 text-green-900 border-green-200" : "bg-card text-card-foreground border-border"
+    "bg-card text-card-foreground border-border"
   );
 
-  const mutedTextClass = isGuestView ? "text-green-700" : "text-muted-foreground";
-  const primaryTextClass = isGuestView ? "text-green-900" : "text-foreground";
-  const buttonTextClass = "text-foreground";
+  const mutedTextClass = "text-muted-foreground";
+  const primaryTextClass = "text-foreground";
+  const buttonTextClass = "text-foreground"; // Ensure buttons use themed text
 
   return (
     <Card className={cardClasses}>
@@ -79,10 +80,9 @@ export default function TimelineFoodCard({
             )}
             {!isManualMacroEntry && <p className={cn("text-sm", mutedTextClass)}>Portion: {item.portionSize} {item.portionUnit}</p>}
           </div>
-          {/* FodmapIndicator REMOVED from here */}
         </div>
          {item.sourceDescription && !isManualMacroEntry ? (
-           <p className={cn("text-xs italic pt-1 truncate", mutedTextClass, isGuestView ? "text-green-700/80" : "text-muted-foreground/70")}>Original: "{item.sourceDescription}"</p>
+           <p className={cn("text-xs italic pt-1 truncate", mutedTextClass, "text-muted-foreground/70")}>Original: "{item.sourceDescription}"</p>
          ) : !isManualMacroEntry && (
            <p className={cn("text-xs break-words pt-1", mutedTextClass)}>Ingredients: {item.ingredients || 'Not specified'}</p>
          )}
@@ -93,10 +93,10 @@ export default function TimelineFoodCard({
           <Badge
             variant="default"
             className="text-sm"
-            style={{
-              backgroundColor: isGuestView ? '#A7F3D0' : 'var(--success-indicator-bg, #34C759)',
-              color: isGuestView ? '#065F46' : 'var(--success-indicator-text, white)',
-              borderColor: isGuestView ? '#065F46' : 'var(--primary, #27AE60)',
+            style={{ // Standard success indicator styling
+              backgroundColor: 'var(--success-indicator-bg, #34C759)',
+              color: 'var(--success-indicator-text, white)',
+              borderColor: 'var(--primary, #27AE60)',
               borderWidth: '1px',
               borderStyle: 'solid',
             }}
@@ -105,7 +105,7 @@ export default function TimelineFoodCard({
           </Badge>
         )}
         {macroParts.length > 0 && (
-            <div className={cn("text-xs border-t pt-2", mutedTextClass, isGuestView ? "border-green-200" : "border-border/50")}>
+            <div className={cn("text-xs border-t pt-2", mutedTextClass, "border-border/50")}>
                 <p className="flex items-center gap-x-2 sm:gap-x-3 flex-wrap">
                     {item.calories !== undefined && <span className="flex items-center"><Flame className="w-3 h-3 mr-0.5 text-orange-400"/>{Math.round(item.calories)} kcal</span>}
                     {item.protein !== undefined && <span className="flex items-center"><Beef className="w-3 h-3 mr-0.5 text-red-400"/>{Math.round(item.protein)}g P</span>}
@@ -116,7 +116,7 @@ export default function TimelineFoodCard({
             </div>
         )}
         {!isManualMacroEntry && item.fodmapData && (
-            <div className={cn("text-xs border-t pt-2 mt-2 flex flex-wrap items-center gap-2", isGuestView ? "border-green-200" : "border-border/50")}>
+            <div className={cn("text-xs border-t pt-2 mt-2 flex flex-wrap items-center gap-2", "border-border/50")}>
                 <GlycemicIndexIndicator giInfo={item.fodmapData.glycemicIndexInfo} />
                 <DietaryFiberIndicator fiberInfo={item.fodmapData.dietaryFiberInfo} />
                 <MicronutrientsIndicator micronutrientsInfo={item.fodmapData.micronutrientsInfo} />
@@ -140,7 +140,7 @@ export default function TimelineFoodCard({
           </div>
         )}
       </CardContent>
-      {!isGuestView && (
+      {!isGuestView && ( // Action buttons are only for registered users
         <CardFooter className="flex flex-wrap justify-between items-center px-4 pb-4 pt-2 gap-2 border-t border-border/50">
           <div className="flex gap-2 flex-wrap">
               {!isManualMacroEntry && onLogSymptoms && (
@@ -210,4 +210,3 @@ export default function TimelineFoodCard({
     </Card>
   );
 }
-
