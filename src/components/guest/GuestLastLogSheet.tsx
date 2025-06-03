@@ -1,12 +1,22 @@
+
 'use client';
 
+import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose, SheetFooter } from "@/components/ui/sheet"
-import { Button, buttonVariants } from "@/components/ui/button" // Import buttonVariants
-import { Utensils } from 'lucide-react';
+import { Button, buttonVariants } from "@/components/ui/button"
+import { Utensils, UserPlus } from 'lucide-react';
 import type { LoggedFoodItem } from '@/types';
 import TimelineFoodCard from '@/components/food-logging/TimelineFoodCard';
 import { cn } from "@/lib/utils";
-import Link from "next/link"; // Import Link
+
+interface GuestButtonScheme {
+  id: string;
+  base: string;
+  border: string;
+  hover: string;
+  focusRing: string;
+  glowRgb: string;
+}
 
 interface GuestLastLogSheetProps {
   isOpen: boolean;
@@ -15,6 +25,7 @@ interface GuestLastLogSheetProps {
   onSetFeedback: (itemId: string, feedback: 'safe' | 'unsafe' | null) => void;
   onRemoveItem: (itemId: string) => void;
   isLoadingAi: boolean;
+  activeColorScheme?: GuestButtonScheme; // Make optional for safety, though it should be passed
 }
 
 export default function GuestLastLogSheet({
@@ -24,13 +35,23 @@ export default function GuestLastLogSheet({
   onSetFeedback,
   onRemoveItem,
   isLoadingAi,
+  activeColorScheme,
 }: GuestLastLogSheetProps) {
+
+  const buttonClasses = activeColorScheme
+    ? cn(
+        "h-10 px-4 py-2 text-white text-sm", // Base size and text
+        activeColorScheme.base,
+        activeColorScheme.border,
+        activeColorScheme.hover
+      )
+    : cn(buttonVariants({ variant: "default" }), "w-full max-w-xs mx-auto"); // Fallback
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="h-[75vh] flex flex-col p-0 bg-card text-card-foreground border-t-2 border-border rounded-t-2xl shadow-2xl"
+        className="h-[85vh] sm:h-[75vh] flex flex-col p-0 bg-card text-card-foreground border-t-2 border-border rounded-t-2xl shadow-2xl"
         onInteractOutside={(e) => onOpenChange(false)}
       >
         <SheetHeader className="p-4 border-b border-border">
@@ -44,7 +65,6 @@ export default function GuestLastLogSheet({
               item={lastLoggedItem}
               isLoadingAi={isLoadingAi}
               isGuestView={true}
-              // Feedback and remove handlers are not used by guest view for direct interaction on sheet
             />
           ) : (
             <div className="text-center py-12 text-muted-foreground">
@@ -53,13 +73,17 @@ export default function GuestLastLogSheet({
               <p className="text-sm">Tap "Check My Meal" to see your entry here.</p>
             </div>
           )}
-          <div className="text-center pt-3 px-2">
-             <Link 
-              href="/login" 
-              className={cn(buttonVariants({ variant: "default" }), "w-full max-w-xs mx-auto")} // Styled as a default button
+          <div className="text-center pt-6 px-2 space-y-3">
+             <Link
+              href="/login"
+              className={buttonClasses}
             >
-              Sign In or Sign Up to save history & track trends!
+              <UserPlus className="mr-2 h-5 w-5" />
+              Sign In / Sign Up
             </Link>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              Ready to supercharge your gut journey? 🚀 Sign up to save your meals, spot patterns, and unlock personalized insights! Your future self (and tummy) will thank you! 😉
+            </p>
           </div>
         </div>
          <SheetFooter className="p-3 border-t border-border sticky bottom-0 bg-card">

@@ -74,8 +74,16 @@ const initialGuestProfile: UserProfile = {
   premium: false,
 };
 
-const lightModeButtonColors = [
-  { id: 'sky', base: 'bg-sky-500', border: 'border-sky-700', hover: 'hover:bg-sky-600', focusRing: 'focus:ring-sky-500', glowRgb: '56, 189, 248' },
+interface ButtonColorScheme {
+  id: string;
+  base: string;
+  border: string;
+  hover: string;
+  focusRing: string;
+  glowRgb: string;
+}
+const lightModeButtonColors: ButtonColorScheme[] = [
+  { id: 'sky', base: 'bg-sky-500', border: 'border-sky-700', hover: 'hover:bg-sky-600', focusRing: 'focus:ring-sky-500', glowRgb: '14, 165, 233' },
   { id: 'amber', base: 'bg-amber-500', border: 'border-amber-700', hover: 'hover:bg-amber-600', focusRing: 'focus:ring-amber-500', glowRgb: '245, 158, 11' },
   { id: 'emerald', base: 'bg-emerald-500', border: 'border-emerald-700', hover: 'hover:bg-emerald-600', focusRing: 'focus:ring-emerald-500', glowRgb: '16, 185, 129' },
   { id: 'rose', base: 'bg-rose-500', border: 'border-rose-700', hover: 'hover:bg-rose-600', focusRing: 'focus:ring-rose-500', glowRgb: '244, 63, 94' },
@@ -100,7 +108,7 @@ export default function FoodTimelinePage() {
   const [isAddManualMacroDialogOpen, setIsAddManualMacroDialogOpen] = useState(false);
   const [isLogPreviousMealDialogOpen, setIsLogPreviousMealDialogOpen] = useState(false);
   const [selectedLogDateForPreviousMeal, setSelectedLogDateForPreviousMeal] = useState<Date | undefined>(undefined);
-  const [activeLightModeColorScheme, setActiveLightModeColorScheme] = useState(lightModeButtonColors[0]);
+  const [activeLightModeColorScheme, setActiveLightModeColorScheme] = useState<ButtonColorScheme>(lightModeButtonColors[0]);
 
 
   const [symptomDialogContext, setSymptomDialogContext] = useState<{ foodItemIds?: string[] }>({});
@@ -121,7 +129,8 @@ export default function FoodTimelinePage() {
       setActiveLightModeColorScheme(selectedScheme);
       document.documentElement.style.setProperty('--glow-color-rgb', selectedScheme.glowRgb);
     } else {
-      document.documentElement.style.removeProperty('--glow-color-rgb');
+      // For dark mode, you might want a default glow or no dynamic glow setting
+      document.documentElement.style.setProperty('--glow-color-rgb', '57, 255, 20'); // Default green glow for dark mode or remove property
     }
   }, [isDarkMode]);
 
