@@ -9,11 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { signUpWithEmail, signInWithGoogle } from '@/lib/firebase/auth'; // Assuming google sign in can also be sign up
+import { signUpWithEmail } from '@/lib/firebase/auth'; // signInWithGoogle removed
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { AuthError } from 'firebase/auth';
-import { Chrome } from 'lucide-react';
+// import { Chrome } from 'lucide-react'; // Chrome icon removed
 
 const signUpSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
@@ -56,21 +56,7 @@ export default function SignUpForm() {
     setLoading(false);
   };
   
-  const handleGoogleSignUp = async () => {
-    setLoading(true);
-    const result = await signInWithGoogle(); // signInWithGoogle can also create a new user
-    if ('user' in result) {
-      toast({ title: 'Sign Up Successful', description: 'Welcome!' });
-      router.push('/');
-    } else {
-      toast({
-        title: 'Google Sign Up Failed',
-        description: (result as AuthError).message || 'Could not sign up with Google.',
-        variant: 'destructive',
-      });
-    }
-    setLoading(false);
-  };
+  // handleGoogleSignUp function removed
 
   return (
     <div className="w-full max-w-md space-y-6">
@@ -118,18 +104,7 @@ export default function SignUpForm() {
           {loading ? 'Signing up...' : 'Sign Up'}
         </Button>
       </form>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-        </div>
-      </div>
-      <Button variant="outline" className="w-full" onClick={handleGoogleSignUp} disabled={loading}>
-        <Chrome className="mr-2 h-4 w-4" />
-        {loading ? 'Signing up...' : 'Sign Up with Google'}
-      </Button>
+      {/* "Or continue with" divider and Google signup button removed */}
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{' '}
         <Link href="/login" className="font-medium text-primary hover:underline">

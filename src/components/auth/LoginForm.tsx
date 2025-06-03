@@ -8,11 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { signInWithEmail, signInWithGoogle } from '@/lib/firebase/auth';
+import { signInWithEmail } from '@/lib/firebase/auth'; // signInWithGoogle removed
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { AuthError } from 'firebase/auth';
-import { Chrome } from 'lucide-react'; // Using Chrome icon as a generic "Google" icon
+// import { Chrome } from 'lucide-react'; // Chrome icon removed as Google login is removed
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
@@ -50,21 +50,7 @@ export default function LoginForm() {
     setLoading(false);
   };
 
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    const result = await signInWithGoogle();
-    if ('user' in result) {
-      toast({ title: 'Login Successful', description: 'Welcome!' });
-      router.push('/');
-    } else {
-      toast({
-        title: 'Google Login Failed',
-        description: (result as AuthError).message || 'Could not sign in with Google.',
-        variant: 'destructive',
-      });
-    }
-    setLoading(false);
-  };
+  // handleGoogleLogin function removed
 
   return (
     <div className="w-full max-w-md space-y-6">
@@ -99,18 +85,7 @@ export default function LoginForm() {
           {loading ? 'Logging in...' : 'Login'}
         </Button>
       </form>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-        </div>
-      </div>
-      <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={loading}>
-        <Chrome className="mr-2 h-4 w-4" />
-        {loading ? 'Signing in...' : 'Login with Google'}
-      </Button>
+      {/* "Or continue with" divider and Google login button removed */}
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{' '}
         <Link href="/signup" className="font-medium text-primary hover:underline">

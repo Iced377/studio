@@ -22,11 +22,10 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "v3.0"; // Updated App Version
+export const APP_VERSION = "v3.1"; // Updated App Version
 
 interface NavbarProps {
   isGuest?: boolean;
-  // onUpgradeClick and isPremium props are removed as the model changes
 }
 
 export default function Navbar({ isGuest }: NavbarProps) {
@@ -99,7 +98,7 @@ export default function Navbar({ isGuest }: NavbarProps) {
           {isGuest ? (
             <Button
               variant="outline"
-              onClick={() => router.push('/login')} // Navigate to login page
+              onClick={() => router.push('/login')}
               className="bg-transparent text-white border-white hover:bg-white/10 h-9 px-4"
             >
               <UserPlus className="mr-2 h-5 w-5" />
