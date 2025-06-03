@@ -1,6 +1,8 @@
+
 import type { FodmapScore } from '@/types';
 import { CheckCircle2, AlertTriangle, XCircle, HelpCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge'; // Added Badge import
 
 interface FodmapIndicatorProps {
   score?: FodmapScore;
@@ -13,7 +15,9 @@ export default function FodmapIndicator({ score, reason }: FodmapIndicatorProps)
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <HelpCircle className="h-6 w-6 text-muted-foreground" />
+            <Badge variant="outline" className="text-xs border-muted-foreground/30 text-muted-foreground flex items-center gap-1">
+              <HelpCircle className="h-3 w-3" /> FODMAP: N/A
+            </Badge>
           </TooltipTrigger>
           <TooltipContent className="bg-popover text-popover-foreground border-border">
             <p>FODMAP analysis pending or not available.</p>
@@ -23,11 +27,10 @@ export default function FodmapIndicator({ score, reason }: FodmapIndicatorProps)
     );
   }
 
-  // Updated hex codes as per user specification
   const indicatorMap = {
-    Green: { icon: <CheckCircle2 className="h-5 w-5 text-[#34C759]" />, text: 'Low FODMAP', colorClass: 'text-[#34C759] bg-[#34C759]/10 border-[#34C759]/30' },
-    Yellow: { icon: <AlertTriangle className="h-5 w-5 text-[#FFD600]" />, text: 'Moderate FODMAP', colorClass: 'text-[#FFD600] bg-[#FFD600]/10 border-[#FFD600]/30' },
-    Red: { icon: <XCircle className="h-5 w-5 text-[#EB5757]" />, text: 'High FODMAP', colorClass: 'text-[#EB5757] bg-[#EB5757]/10 border-[#EB5757]/30' },
+    Green: { icon: <CheckCircle2 className="h-4 w-4 text-green-500" />, text: 'Low FODMAP', colorClass: 'border-green-500/50 text-green-700 dark:text-green-400 bg-green-500/10' },
+    Yellow: { icon: <AlertTriangle className="h-4 w-4 text-orange-500" />, text: 'Mod. FODMAP', colorClass: 'border-orange-500/50 text-orange-700 dark:text-orange-400 bg-orange-500/10' }, // Shortened "Moderate"
+    Red: { icon: <XCircle className="h-4 w-4 text-red-500" />, text: 'High FODMAP', colorClass: 'border-red-500/50 text-red-700 dark:text-red-400 bg-red-500/10' },
   };
 
   const currentIndicator = indicatorMap[score];
@@ -36,15 +39,15 @@ export default function FodmapIndicator({ score, reason }: FodmapIndicatorProps)
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className={`inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-medium border ${currentIndicator.colorClass}`}>
+          <Badge variant="outline" className={`text-xs flex items-center gap-1 ${currentIndicator.colorClass}`}>
             {currentIndicator.icon}
             {currentIndicator.text}
-          </span>
+          </Badge>
         </TooltipTrigger>
         <TooltipContent className="max-w-xs bg-popover text-popover-foreground border-border p-3">
           <p className={`font-semibold ${
-            score === 'Green' ? 'text-[#34C759]' : score === 'Yellow' ? 'text-[#FFD600]' : 'text-[#EB5757]'
-          }`}>{currentIndicator.text}</p>
+            score === 'Green' ? 'text-green-600 dark:text-green-400' : score === 'Yellow' ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'
+          }`}>{indicatorMap[score].text}</p> {/* Use full text from map for tooltip title */}
           {reason && <p className="text-sm text-muted-foreground mt-1">{reason}</p>}
           {!reason && score && <p className="text-sm text-muted-foreground mt-1">This item is rated as {score.toLowerCase()} FODMAP.</p>}
         </TooltipContent>

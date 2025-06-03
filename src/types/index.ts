@@ -1,34 +1,70 @@
 
-import type { AnalyzeFoodItemOutput, FoodFODMAPProfile as DetailedFodmapProfileFromAI } from "@/ai/flows/fodmap-detection"; // Renamed for clarity
-import type { FoodFODMAPProfile } from "@/ai/flows/food-similarity"; // This is the one used for generating mock, might be similar or identical to DetailedFodmapProfileFromAI
+import type { AnalyzeFoodItemOutput as OriginalAnalyzeFoodItemOutput, FoodFODMAPProfile as DetailedFodmapProfileFromAI } from "@/ai/flows/fodmap-detection";
+import type { FoodFODMAPProfile } from "@/ai/flows/food-similarity";
 
 export type FodmapScore = 'Green' | 'Yellow' | 'Red';
 
+// Extended AI Output to include new health indicators
+export interface GlycemicIndexInfo {
+  value?: number;
+  level?: 'Low' | 'Medium' | 'High';
+}
+
+export interface DietaryFiberInfo {
+  amountGrams?: number;
+  quality?: 'Low' | 'Adequate' | 'High'; // Based on general guidelines
+}
+
+export interface MicronutrientDetail {
+  name: string; // e.g., "Iron", "Vitamin C"
+  amount?: string; // e.g., "10 mg", "90 mcg"
+  dailyValuePercent?: number; // e.g., 50 for 50% DV
+  iconName?: string; // Suggestion for a lucide-react icon name, e.g., "Bean" for iron
+}
+
+export interface MicronutrientsInfo {
+  notable?: MicronutrientDetail[]; // Top 2-3 most significant or relevant micronutrients
+  fullList?: MicronutrientDetail[]; // Optional more comprehensive list for a tooltip/popover
+}
+
+export interface GutBacteriaImpactInfo {
+  sentiment?: 'Positive' | 'Negative' | 'Neutral' | 'Unknown'; // Impact on gut microbiota
+  reasoning?: string; // Brief AI-generated explanation
+}
+
+export type ExtendedAnalyzeFoodItemOutput = OriginalAnalyzeFoodItemOutput & {
+  glycemicIndexInfo?: GlycemicIndexInfo;
+  dietaryFiberInfo?: DietaryFiberInfo;
+  micronutrientsInfo?: MicronutrientsInfo;
+  gutBacteriaImpact?: GutBacteriaImpactInfo;
+};
+
+
 export interface LoggedFoodItem {
-  id: string; // Unique ID for the logged item
-  name: string; // Can be user-defined or AI-generated witty name
-  originalName?: string; // If name is witty, this can store the AI-derived primary food item name
-  ingredients: string; // Comma-separated
-  portionSize: string; // e.g., "100", "0.5", "1"
-  portionUnit: string; // e.g., "g", "cup", "medium apple"
+  id: string;
+  name: string;
+  originalName?: string;
+  ingredients: string;
+  portionSize: string;
+  portionUnit: string;
   timestamp: Date;
-  fodmapData?: AnalyzeFoodItemOutput; // Result from fodmap-detection AI
-  isSimilarToSafe?: boolean; // Result from food-similarity AI
-  userFodmapProfile?: FoodFODMAPProfile; // Detailed profile, ideally from AI or user input
-  calories?: number; // Estimated calories
-  protein?: number; // Estimated protein in grams
-  carbs?: number; // Estimated carbs in grams
-  fat?: number; // Estimated fat in grams
-  entryType: 'food' | 'manual_macro'; // Added 'manual_macro'
-  sourceDescription?: string; // For new logging flow: the raw user description
-  userFeedback?: 'safe' | 'unsafe' | null; // New field for user feedback
-  macrosOverridden?: boolean; // True if macros were manually edited for an AI-analyzed item
+  fodmapData?: ExtendedAnalyzeFoodItemOutput; // Use the extended output type here
+  isSimilarToSafe?: boolean;
+  userFodmapProfile?: FoodFODMAPProfile;
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  entryType: 'food' | 'manual_macro';
+  sourceDescription?: string;
+  userFeedback?: 'safe' | 'unsafe' | null;
+  macrosOverridden?: boolean;
 }
 
 export interface Symptom {
-  id: string; // e.g., 'bloating', 'gas', 'cramps'
-  name: string; // User-friendly name
-  icon?: string; // Optional: for UI representation
+  id: string;
+  name: string;
+  icon?: string;
 }
 
 export const COMMON_SYMPTOMS: Symptom[] = [
@@ -43,11 +79,11 @@ export const COMMON_SYMPTOMS: Symptom[] = [
 ];
 
 export interface SymptomLog {
-  id: string; // Unique ID for the symptom log entry
-  linkedFoodItemIds?: string[]; // Optional: IDs of food items this symptom log might be related to
-  symptoms: Symptom[]; // Array of symptoms experienced
-  severity?: number; // Optional: e.g., 1-5 scale
-  notes?: string; // User notes about the symptoms
+  id: string;
+  linkedFoodItemIds?: string[];
+  symptoms: Symptom[];
+  severity?: number;
+  notes?: string;
   timestamp: Date;
   entryType: 'symptom';
 }
@@ -56,13 +92,13 @@ export type TimelineEntry = LoggedFoodItem | SymptomLog;
 
 
 export interface SafeFood {
-  id: string; // Unique identifier for the safe food entry
+  id: string;
   name: string;
   ingredients: string;
   portionSize: string;
   portionUnit: string;
   fodmapProfile: FoodFODMAPProfile;
-  originalAnalysis?: AnalyzeFoodItemOutput;
+  originalAnalysis?: ExtendedAnalyzeFoodItemOutput; // Use extended type
 }
 
 export interface UserProfile {
@@ -73,7 +109,7 @@ export interface UserProfile {
   premium?: boolean;
 }
 
-export type { DetailedFodmapProfileFromAI };
+export type { DetailedFodmapProfileFromAI }; // This might need to be aligned with ExtendedAnalyzeFoodItemOutput if used directly
 
 export interface DailyNutritionSummary {
   calories: number;
@@ -88,30 +124,28 @@ export interface DailyFodmapCount {
   red: number;
 }
 
-// Types for Trends Page
 export type TimeRange = '1D' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
 
 export interface MacroPoint {
-  date: string; // YYYY-MM-DD
+  date: string;
   protein: number;
   carbs: number;
   fat: number;
 }
 
 export interface CaloriePoint {
-  date: string; // YYYY-MM-DD
+  date: string;
   calories: number;
 }
 
 export interface SafetyPoint {
-  date: string; // YYYY-MM-DD
+  date: string;
   safe: number;
   unsafe: number;
   notMarked: number;
 }
 
 export interface SymptomFrequency {
-  name: string; // Symptom name
-  value: number; // Count or percentage
+  name: string;
+  value: number;
 }
-
