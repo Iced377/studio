@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary } from '@/types'; // Removed DailyFodmapCount
+import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
 import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp, SmilePlus, Zap, Pencil, CalendarDays, Edit3, ChevronUp } from 'lucide-react';
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
@@ -273,7 +273,7 @@ export default function FoodTimelinePage() {
         fat: fodmapAnalysis?.fat,
         entryType: 'food',
         userFeedback: editingItem ? editingItem.userFeedback : null,
-        macrosOverridden: false, // Not applicable for manual ingredient entry initially
+        macrosOverridden: false, 
       };
 
       if (authUser && authUser.uid !== 'guest-user') {
@@ -329,7 +329,11 @@ export default function FoodTimelinePage() {
   };
 
 
-  const handleSubmitMealDescription = async (formData: SimplifiedFoodLogFormValues, customTimestamp?: Date) => {
+  const handleSubmitMealDescription = async (
+    formData: SimplifiedFoodLogFormValues,
+    userDidOverrideMacros: boolean, // Added parameter
+    customTimestamp?: Date
+  ) => {
     const currentItemId = editingItem ? editingItem.id : `food-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     setIsLoadingAi(prev => ({ ...prev, [currentItemId]: true }));
 
@@ -337,7 +341,6 @@ export default function FoodTimelinePage() {
     let fodmapAnalysis: AnalyzeFoodItemOutput | undefined;
     let similarityOutput: FoodSimilarityOutput | undefined;
     let processedFoodItem: LoggedFoodItem;
-    let macrosOverridden = editingItem ? (editingItem.macrosOverridden || false) : false;
     const logTimestamp = customTimestamp || (editingItem ? editingItem.timestamp : new Date());
 
     try {
@@ -370,15 +373,19 @@ export default function FoodTimelinePage() {
         isSimilar = similarityOutput?.isSimilar ?? false;
       }
 
-      let finalCalories = fodmapAnalysis?.calories;
-      let finalProtein = fodmapAnalysis?.protein;
-      let finalCarbs = fodmapAnalysis?.carbs;
-      let finalFat = fodmapAnalysis?.fat;
+      let finalCalories, finalProtein, finalCarbs, finalFat;
 
-      if (typeof formData.calories === 'number' && !Number.isNaN(formData.calories)) { finalCalories = formData.calories; macrosOverridden = true; }
-      if (typeof formData.protein === 'number' && !Number.isNaN(formData.protein)) { finalProtein = formData.protein; macrosOverridden = true; }
-      if (typeof formData.carbs === 'number' && !Number.isNaN(formData.carbs)) { finalCarbs = formData.carbs; macrosOverridden = true; }
-      if (typeof formData.fat === 'number' && !Number.isNaN(formData.fat)) { finalFat = formData.fat; macrosOverridden = true; }
+      if (userDidOverrideMacros) {
+        finalCalories = formData.calories;
+        finalProtein = formData.protein;
+        finalCarbs = formData.carbs;
+        finalFat = formData.fat;
+      } else {
+        finalCalories = fodmapAnalysis?.calories;
+        finalProtein = fodmapAnalysis?.protein;
+        finalCarbs = fodmapAnalysis?.carbs;
+        finalFat = fodmapAnalysis?.fat;
+      }
 
 
       processedFoodItem = {
@@ -399,7 +406,7 @@ export default function FoodTimelinePage() {
         fat: finalFat,
         entryType: 'food',
         userFeedback: editingItem ? editingItem.userFeedback : null,
-        macrosOverridden: macrosOverridden,
+        macrosOverridden: userDidOverrideMacros, // Set based on checkbox
       };
 
       if (authUser && authUser.uid !== 'guest-user') {
@@ -439,13 +446,13 @@ export default function FoodTimelinePage() {
             fodmapData: fodmapAnalysis,
             isSimilarToSafe: similarityOutput?.isSimilar ?? false,
             userFodmapProfile: fodmapAnalysis?.detailedFodmapProfile || editingItem?.userFodmapProfile || generateFallbackFodmapProfile(mealDescriptionOutput?.primaryFoodItemForAnalysis || "fallback"),
-            calories: editingItem?.calories, // Preserve original macros if AI fails during edit
-            protein: editingItem?.protein,
-            carbs: editingItem?.carbs,
-            fat: editingItem?.fat,
+            calories: userDidOverrideMacros ? formData.calories : (editingItem ? editingItem.calories : fodmapAnalysis?.calories),
+            protein: userDidOverrideMacros ? formData.protein : (editingItem ? editingItem.protein : fodmapAnalysis?.protein),
+            carbs: userDidOverrideMacros ? formData.carbs : (editingItem ? editingItem.carbs : fodmapAnalysis?.carbs),
+            fat: userDidOverrideMacros ? formData.fat : (editingItem ? editingItem.fat : fodmapAnalysis?.fat),
             entryType: 'food',
             userFeedback: editingItem ? editingItem.userFeedback : null,
-            macrosOverridden: editingItem ? editingItem.macrosOverridden : false, // Preserve override status
+            macrosOverridden: userDidOverrideMacros,
         };
         if (editingItem) {
             updateTimelineEntry(processedFoodItem);
@@ -525,7 +532,7 @@ export default function FoodTimelinePage() {
       notes,
       severity,
       linkedFoodItemIds: linkedFoodItemIds || [],
-      timestamp: new Date(), // Symptoms are always logged "now"
+      timestamp: new Date(),
       entryType: 'symptom',
     };
 
@@ -719,10 +726,6 @@ export default function FoodTimelinePage() {
     return totals;
   }, [timelineEntries]);
 
-  // dailyFodmapCount is removed as per request to modify summary bar
-  // const dailyFodmapCount = useMemo<DailyFodmapCount>(() => {
-  // ...
-  // }, [timelineEntries]);
 
   const handleGuestLogFoodOpen = () => {
     setEditingItem(null);
@@ -818,8 +821,9 @@ export default function FoodTimelinePage() {
         <SimplifiedAddFoodDialog
             isOpen={isGuestLogFoodDialogOpen}
             onOpenChange={setIsGuestLogFoodDialogOpen}
-            onSubmitLog={handleGuestProcessMealDescription}
+            onSubmitLog={(data, userDidOverrideMacros) => handleGuestProcessMealDescription(data)}
             isGuestView={true}
+            key={editingItem ? `edit-${editingItem.id}` : 'guest-new'}
         />
       </>
     );
@@ -875,7 +879,6 @@ export default function FoodTimelinePage() {
             userProfile={userProfile}
             timelineEntries={timelineEntries}
             dailyNutritionSummary={dailyNutritionSummary}
-            // dailyFodmapCount={dailyFodmapCount} // Removed
             isLoadingAi={isLoadingAi}
             onSetFeedback={handleSetFoodFeedback}
             onRemoveTimelineEntry={handleRemoveTimelineEntry}
@@ -919,7 +922,7 @@ export default function FoodTimelinePage() {
             if (!open) setEditingItem(null);
             setIsSimplifiedAddFoodDialogOpen(open);
           }}
-          onSubmitLog={(data) => handleSubmitMealDescription(data, selectedLogDateForPreviousMeal)}
+          onSubmitLog={(data, userDidOverrideMacros) => handleSubmitMealDescription(data, userDidOverrideMacros, selectedLogDateForPreviousMeal)}
           isEditing={!!editingItem && editingItem.entryType === 'food'}
           initialValues={editingItem && editingItem.entryType === 'food' ?
               {
@@ -930,7 +933,9 @@ export default function FoodTimelinePage() {
                 fat: editingItem.fat
               }
               : { mealDescription: '' }}
+          initialMacrosOverridden={editingItem?.macrosOverridden || false}
           isGuestView={false}
+          key={editingItem ? `edit-${editingItem.id}` : 'new'}
         />
         <SymptomLoggingDialog
             isOpen={isSymptomLogDialogOpen}
@@ -951,6 +956,7 @@ export default function FoodTimelinePage() {
               { calories: editingItem.calories, protein: editingItem.protein, carbs: editingItem.carbs, fat: editingItem.fat, entryName: editingItem.name }
               : undefined
             }
+            key={editingItem ? `edit-macro-${editingItem.id}` : 'new-macro'}
         />
          <AddFoodItemDialog
             isOpen={isAddFoodDialogOpen}
@@ -964,6 +970,7 @@ export default function FoodTimelinePage() {
               { name: editingItem.name, ingredients: editingItem.ingredients, portionSize: editingItem.portionSize, portionUnit: editingItem.portionUnit }
               : undefined
             }
+            key={editingItem ? `edit-manual-${editingItem.id}` : 'new-manual'}
         />
         <LogPreviousMealDialog
             isOpen={isLogPreviousMealDialogOpen}
@@ -1026,6 +1033,7 @@ export default function FoodTimelinePage() {
             { name: editingItem.name, ingredients: editingItem.ingredients, portionSize: editingItem.portionSize, portionUnit: editingItem.portionUnit }
             : undefined
         }
+        key={editingItem ? `edit-manual-${editingItem.id}` : 'new-manual'}
       />
       <SimplifiedAddFoodDialog
         isOpen={isSimplifiedAddFoodDialogOpen}
@@ -1033,7 +1041,7 @@ export default function FoodTimelinePage() {
             if (!open) setEditingItem(null);
             setIsSimplifiedAddFoodDialogOpen(open);
         }}
-        onSubmitLog={(data) => handleSubmitMealDescription(data, selectedLogDateForPreviousMeal)}
+        onSubmitLog={(data, userDidOverrideMacros) => handleSubmitMealDescription(data, userDidOverrideMacros, selectedLogDateForPreviousMeal)}
         isEditing={!!editingItem && editingItem.entryType === 'food'}
         initialValues={editingItem && editingItem.entryType === 'food' ?
             {
@@ -1043,7 +1051,9 @@ export default function FoodTimelinePage() {
                 carbs: editingItem.carbs,
                 fat: editingItem.fat
             } : { mealDescription: '' }}
+        initialMacrosOverridden={editingItem?.macrosOverridden || false}
         isGuestView={false}
+        key={editingItem ? `edit-${editingItem.id}` : 'new'}
       />
        <AddManualMacroEntryDialog
         isOpen={isAddManualMacroDialogOpen}
@@ -1057,6 +1067,7 @@ export default function FoodTimelinePage() {
           { calories: editingItem.calories, protein: editingItem.protein, carbs: editingItem.carbs, fat: editingItem.fat, entryName: editingItem.name }
           : undefined
         }
+        key={editingItem ? `edit-macro-${editingItem.id}` : 'new-macro'}
       />
       <SymptomLoggingDialog
         isOpen={isSymptomLogDialogOpen}

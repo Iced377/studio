@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,8 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Sprout, Loader2, Edit } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox'; // Added Checkbox
+import { Sprout, Loader2, Edit, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -47,10 +48,12 @@ export type SimplifiedFoodLogFormValues = z.infer<typeof simplifiedFoodLogSchema
 interface SimplifiedAddFoodDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onSubmitLog: (data: SimplifiedFoodLogFormValues) => Promise<void>;
+  onSubmitLog: (data: SimplifiedFoodLogFormValues, userDidOverrideMacros: boolean) => Promise<void>; // Updated signature
   isGuestView?: boolean;
   isEditing?: boolean;
   initialValues?: Partial<SimplifiedFoodLogFormValues>;
+  initialMacrosOverridden?: boolean; // New prop
+  key?: string; // Added key prop for re-initialization
 }
 
 export default function SimplifiedAddFoodDialog({
@@ -59,14 +62,17 @@ export default function SimplifiedAddFoodDialog({
   onSubmitLog,
   isGuestView = false,
   isEditing = false,
-  initialValues
+  initialValues,
+  initialMacrosOverridden = false, // Default to false
+  key,
 }: SimplifiedAddFoodDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const [userWantsToOverrideMacros, setUserWantsToOverrideMacros] = useState(initialMacrosOverridden);
 
   const form = useForm<SimplifiedFoodLogFormValues>({
     resolver: zodResolver(simplifiedFoodLogSchema),
-    defaultValues: {
+    defaultValues: { // defaultValues are set when the form is first created or re-keyed
       mealDescription: '',
       calories: undefined,
       protein: undefined,
@@ -79,25 +85,31 @@ export default function SimplifiedAddFoodDialog({
   useEffect(() => {
     if (isOpen) {
       if (isEditing && initialValues) {
-        form.reset({
+        form.reset({ // Reset form with potentially new initialValues when dialog opens for editing
           mealDescription: initialValues.mealDescription || '',
           calories: initialValues.calories,
           protein: initialValues.protein,
           carbs: initialValues.carbs,
           fat: initialValues.fat,
         });
+        setUserWantsToOverrideMacros(initialMacrosOverridden);
       } else if (!isEditing) {
         form.reset({ mealDescription: '', calories: undefined, protein: undefined, carbs: undefined, fat: undefined });
+        setUserWantsToOverrideMacros(false);
       }
     }
-  }, [isOpen, isEditing, initialValues, form]);
+  }, [isOpen, isEditing, initialValues, initialMacrosOverridden, form, key]); // Added key to dependencies
 
 
   const handleSubmit = async (data: SimplifiedFoodLogFormValues) => {
     setIsLoading(true);
     try {
-      await onSubmitLog(data);
-      if (!isEditing) form.reset();
+      // Pass the state of userWantsToOverrideMacros to the onSubmitLog callback
+      await onSubmitLog(data, userWantsToOverrideMacros);
+      if (!isEditing) {
+        form.reset();
+        setUserWantsToOverrideMacros(false);
+      }
       onOpenChange(false);
     } catch (error: any) {
       console.error("Error processing/updating meal description:", error);
@@ -136,7 +148,7 @@ export default function SimplifiedAddFoodDialog({
   );
 
   const textAreaClasses = cn(
-    "mt-1 text-base min-h-[100px]", // Reduced min-height
+    "mt-1 text-base min-h-[100px]",
     isGuestView
       ? "bg-white/10 text-white placeholder:text-white/60 border-white/30 focus:ring-white/50 focus:border-white/50"
       : "bg-input text-foreground placeholder:text-muted-foreground border-input focus:ring-ring focus:border-ring"
@@ -177,7 +189,7 @@ export default function SimplifiedAddFoodDialog({
 
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange} key={key}>
       <DialogContent className={dialogContentClasses}>
         <DialogHeader>
           <DialogTitle className={titleClasses}>
@@ -187,8 +199,8 @@ export default function SimplifiedAddFoodDialog({
             {isGuestView
               ? "Tell us what you ate, including ingredients and their approximate portion sizes."
               : (isEditing
-                  ? "Update the description and/or nutritional info for your meal."
-                  : "Describe your meal in natural language. Our AI will estimate nutritional info, which you can then refine.")
+                  ? "Update the description. You can also manually adjust nutritional info below."
+                  : "Describe your meal in natural language. Our AI will estimate nutritional info.")
             }
           </DialogDescription>
         </DialogHeader>
@@ -201,7 +213,7 @@ export default function SimplifiedAddFoodDialog({
               {...form.register('mealDescription')}
               placeholder={isGuestView ? 'e.g., "A small glass of low-fat milk with 50g of Weetabix, and a handful of blueberries"' : 'e.g., "Large bowl of spaghetti bolognese with garlic bread and a side salad."'}
               className={textAreaClasses}
-              rows={isEditing ? 3 : 4} // Slightly smaller if editing to make space for macros
+              rows={isEditing ? 3 : 4}
             />
             {form.formState.errors.mealDescription && (
               <p className={cn("text-xs mt-1", isGuestView ? "text-red-300" : "text-destructive")}>{form.formState.errors.mealDescription.message}</p>
@@ -210,33 +222,45 @@ export default function SimplifiedAddFoodDialog({
 
           {isEditing && !isGuestView && (
             <div className="space-y-3 pt-3 border-t border-border/50 mt-3">
-              <Label className={cn(labelClasses, "flex items-center")}>
-                <Edit className="w-4 h-4 mr-2 text-muted-foreground" />
-                Manually Adjust Nutritional Info (Optional)
-              </Label>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="manualOverrideMacros"
+                  checked={userWantsToOverrideMacros}
+                  onCheckedChange={(checked) => setUserWantsToOverrideMacros(Boolean(checked))}
+                  className={cn(isGuestView ? "border-white/50 data-[state=checked]:bg-white data-[state=checked]:text-calo-green" : "border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground")}
+                />
+                <Label htmlFor="manualOverrideMacros" className={cn(labelClasses, "flex items-center cursor-pointer")}>
+                  <Edit className="w-4 h-4 mr-2 text-muted-foreground" />
+                  Manually set macronutrients
+                </Label>
+              </div>
+              
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                 <div>
-                  <Label htmlFor="calories" className={cn(labelClasses, "text-xs")}>Calories (kcal)</Label>
-                  <Input id="calories" type="number" step="any" {...form.register('calories')} placeholder="e.g., 500" className={cn(inputClasses, "h-9 text-sm")} />
+                  <Label htmlFor="calories" className={cn(labelClasses, "text-xs", !userWantsToOverrideMacros && "text-muted-foreground/70")}>Calories (kcal)</Label>
+                  <Input id="calories" type="number" step="any" {...form.register('calories')} placeholder="e.g., 500" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />
                   {form.formState.errors.calories && <p className={cn("text-xs text-destructive mt-1")}>{form.formState.errors.calories.message}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="protein" className={cn(labelClasses, "text-xs")}>Protein (g)</Label>
-                  <Input id="protein" type="number" step="any" {...form.register('protein')} placeholder="e.g., 30" className={cn(inputClasses, "h-9 text-sm")} />
+                  <Label htmlFor="protein" className={cn(labelClasses, "text-xs", !userWantsToOverrideMacros && "text-muted-foreground/70")}>Protein (g)</Label>
+                  <Input id="protein" type="number" step="any" {...form.register('protein')} placeholder="e.g., 30" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />
                   {form.formState.errors.protein && <p className={cn("text-xs text-destructive mt-1")}>{form.formState.errors.protein.message}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="carbs" className={cn(labelClasses, "text-xs")}>Carbs (g)</Label>
-                  <Input id="carbs" type="number" step="any" {...form.register('carbs')} placeholder="e.g., 50" className={cn(inputClasses, "h-9 text-sm")} />
+                  <Label htmlFor="carbs" className={cn(labelClasses, "text-xs", !userWantsToOverrideMacros && "text-muted-foreground/70")}>Carbs (g)</Label>
+                  <Input id="carbs" type="number" step="any" {...form.register('carbs')} placeholder="e.g., 50" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />
                   {form.formState.errors.carbs && <p className={cn("text-xs text-destructive mt-1")}>{form.formState.errors.carbs.message}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="fat" className={cn(labelClasses, "text-xs")}>Fat (g)</Label>
-                  <Input id="fat" type="number" step="any" {...form.register('fat')} placeholder="e.g., 20" className={cn(inputClasses, "h-9 text-sm")} />
+                  <Label htmlFor="fat" className={cn(labelClasses, "text-xs", !userWantsToOverrideMacros && "text-muted-foreground/70")}>Fat (g)</Label>
+                  <Input id="fat" type="number" step="any" {...form.register('fat')} placeholder="e.g., 20" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />
                   {form.formState.errors.fat && <p className={cn("text-xs text-destructive mt-1")}>{form.formState.errors.fat.message}</p>}
                 </div>
               </div>
-               <p className="text-xs text-muted-foreground mt-1">If you provide values here, they will override AI estimates for this entry.</p>
+               <p className={cn("text-xs mt-1 flex items-start gap-1.5", isGuestView ? "text-white/70" : "text-muted-foreground")}>
+                  <Info className="h-3 w-3 shrink-0 mt-0.5" />
+                  <span>If checked, values entered here will override AI estimates. If unchecked, AI will recalculate macros on update.</span>
+                </p>
             </div>
           )}
 
