@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { db } from '@/config/firebase';
 import { collection, query, where, orderBy, getDocs, Timestamp } from 'firebase/firestore';
-import type { TimelineEntry, LoggedFoodItem, SymptomLog, TimeRange, MacroPoint, CaloriePoint, SafetyPoint, SymptomFrequency } from '@/types';
+import type { TimelineEntry, LoggedFoodItem, SymptomLog, TimeRange, MacroPoint, CaloriePoint, SafetyPoint, SymptomFrequency, MicronutrientDetail, MicronutrientAchievement } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -15,9 +15,10 @@ import DailyMacrosTrendChart from '@/components/trends/DailyMacrosTrendChart';
 import DailyCaloriesTrendChart from '@/components/trends/DailyCaloriesTrendChart';
 import LoggedSafetyTrendChart from '@/components/trends/LoggedSafetyTrendChart';
 import SymptomOccurrenceChart from '@/components/trends/SymptomOccurrenceChart';
+import MicronutrientAchievementList from '@/components/trends/MicronutrientAchievementList'; // New import
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, AlertTriangle, BarChart3 } from 'lucide-react';
+import { Loader2, AlertTriangle, BarChart3, Award } from 'lucide-react'; // Added Award for new section
 import { subDays, subMonths, subYears, formatISO, startOfDay, endOfDay, parseISO } from 'date-fns';
 
 export default function TrendsPage() {
@@ -41,8 +42,6 @@ export default function TrendsPage() {
       setError(null);
       try {
         const entriesColRef = collection(db, 'users', user.uid, 'timelineEntries');
-        // For "All Time", we don't apply a time filter at the query level
-        // For other ranges, we might, but client-side filtering is simpler for now
         const q = query(entriesColRef, orderBy('timestamp', 'desc'));
         const querySnapshot = await getDocs(q);
         const fetchedEntries: TimelineEntry[] = querySnapshot.docs.map(docSnap => {
@@ -72,7 +71,7 @@ export default function TrendsPage() {
 
     switch (selectedTimeRange) {
       case '1D':
-        startDate = startOfDay(now); // Use startOfDay for 1D
+        startDate = startOfDay(now);
         break;
       case '7D':
         startDate = subDays(now, 7);
@@ -88,10 +87,9 @@ export default function TrendsPage() {
         break;
       case 'ALL':
       default:
-        return timelineEntries; // No date filtering for ALL
+        return timelineEntries;
     }
     
-    // For 1D, we also need an end date for precise filtering.
     const endDate = selectedTimeRange === '1D' ? endOfDay(now) : now;
 
     return timelineEntries.filter(entry => {
@@ -139,7 +137,7 @@ export default function TrendsPage() {
   }, [filteredEntries]);
 
   const safetyData = useMemo<SafetyPoint[]>(() => {
-     const foodEntries = filteredEntries.filter(e => e.entryType === 'food') as LoggedFoodItem[]; // Exclude manual_macro for safety
+     const foodEntries = filteredEntries.filter(e => e.entryType === 'food') as LoggedFoodItem[];
     return aggregateDataByDay(foodEntries, (date, items) => ({
       date,
       safe: items.filter(item => item.userFeedback === 'safe').length,
@@ -157,6 +155,56 @@ export default function TrendsPage() {
       });
     });
     return Object.entries(frequencyMap).map(([name, value]) => ({ name, value }));
+  }, [filteredEntries]);
+
+  const micronutrientAchievementData = useMemo<MicronutrientAchievement[]>(() => {
+    const foodEntries = filteredEntries.filter(e => e.entryType === 'food' || e.entryType === 'manual_macro') as LoggedFoodItem[];
+    const dailyMicronutrientTotals: Record<string, Record<string, { dv: number, iconName?: string }>> = {}; // { 'date': { 'Iron': { dv: 70, iconName: 'Bean' } } }
+
+    foodEntries.forEach(entry => {
+      const dayKey = formatISO(new Date(entry.timestamp), { representation: 'date' });
+      if (!dailyMicronutrientTotals[dayKey]) {
+        dailyMicronutrientTotals[dayKey] = {};
+      }
+
+      const microsInfo = entry.fodmapData?.micronutrientsInfo;
+      if (microsInfo) {
+        const allMicros: MicronutrientDetail[] = [];
+        if (microsInfo.notable) allMicros.push(...microsInfo.notable);
+        if (microsInfo.fullList) allMicros.push(...microsInfo.fullList);
+        
+        allMicros.forEach(micro => {
+          if (micro.dailyValuePercent !== undefined) {
+            if (!dailyMicronutrientTotals[dayKey][micro.name]) {
+              dailyMicronutrientTotals[dayKey][micro.name] = { dv: 0, iconName: micro.iconName };
+            }
+            dailyMicronutrientTotals[dayKey][micro.name].dv += micro.dailyValuePercent;
+            if (micro.iconName && !dailyMicronutrientTotals[dayKey][micro.name].iconName) {
+               dailyMicronutrientTotals[dayKey][micro.name].iconName = micro.iconName;
+            }
+          }
+        });
+      }
+    });
+
+    const achievementCounts: Record<string, { achievedDays: number, iconName?: string }> = {};
+    Object.values(dailyMicronutrientTotals).forEach(dayData => {
+      Object.entries(dayData).forEach(([nutrientName, data]) => {
+        if (data.dv >= 100) {
+          if (!achievementCounts[nutrientName]) {
+            achievementCounts[nutrientName] = { achievedDays: 0, iconName: data.iconName };
+          }
+          achievementCounts[nutrientName].achievedDays += 1;
+          if (data.iconName && !achievementCounts[nutrientName].iconName) {
+            achievementCounts[nutrientName].iconName = data.iconName;
+          }
+        }
+      });
+    });
+
+    return Object.entries(achievementCounts)
+      .map(([name, data]) => ({ name, achievedDays: data.achievedDays, iconName: data.iconName }))
+      .sort((a, b) => b.achievedDays - a.achievedDays);
   }, [filteredEntries]);
 
 
@@ -256,10 +304,22 @@ export default function TrendsPage() {
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-foreground">Symptom Occurrence</CardTitle>
               </CardHeader>
-              <CardContent className="h-[350px] flex items-center justify-center"> {/* Ensure chart has height */}
+              <CardContent className="h-[350px] flex items-center justify-center">
                  {symptomFrequencyData.length > 0 ? <SymptomOccurrenceChart data={symptomFrequencyData} theme={currentTheme} isDarkMode={isDarkMode} /> : <p className="text-muted-foreground text-center py-8">No symptoms logged for this period.</p>}
               </CardContent>
             </Card>
+            
+            <Card className="bg-card shadow-lg border-border lg:col-span-2"> 
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-foreground flex items-center">
+                  <Award className="mr-2 h-6 w-6 text-yellow-500" /> Micronutrient Target Achievements
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <MicronutrientAchievementList data={micronutrientAchievementData} />
+              </CardContent>
+            </Card>
+
           </div>
         </main>
       </ScrollArea>

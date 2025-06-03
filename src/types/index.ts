@@ -149,3 +149,9 @@ export interface SymptomFrequency {
   name: string;
   value: number;
 }
+
+export interface MicronutrientAchievement {
+  name: string;
+  achievedDays: number;
+  iconName?: string; // Optional: to store a suggested icon from AI or mapping
+}
