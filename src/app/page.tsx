@@ -3,9 +3,9 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary, DailyFodmapCount } from '@/types';
+import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary } from '@/types'; // Removed DailyFodmapCount
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp, SmilePlus, Zap, Pencil, CalendarDays, Edit3, ChevronUp } from 'lucide-react'; // Replaced CircleDotDashed with SmilePlus
+import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp, SmilePlus, Zap, Pencil, CalendarDays, Edit3, ChevronUp } from 'lucide-react';
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
 import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow';
@@ -635,7 +635,7 @@ export default function FoodTimelinePage() {
       setIsSimplifiedAddFoodDialogOpen(true);
     }
   };
-  
+
   const handleLogPreviousMealFlow = (logMethod: 'AI' | 'Manual') => {
     if (logMethod === 'AI') {
       handleSimplifiedLogFoodClick(true);
@@ -650,11 +650,11 @@ export default function FoodTimelinePage() {
     setEditingItem(null);
     setIsAddManualMacroDialogOpen(true);
   };
-  
+
   const handleOpenLogPreviousMealDialog = () => {
     setIsCentralPopoverOpen(false);
     setEditingItem(null);
-    setSelectedLogDateForPreviousMeal(new Date()); 
+    setSelectedLogDateForPreviousMeal(new Date());
     setIsLogPreviousMealDialogOpen(true);
   };
 
@@ -719,26 +719,10 @@ export default function FoodTimelinePage() {
     return totals;
   }, [timelineEntries]);
 
-  const dailyFodmapCount = useMemo<DailyFodmapCount>(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-
-    const counts: DailyFodmapCount = { green: 0, yellow: 0, red: 0 };
-    timelineEntries.forEach(entry => {
-      if (entry.entryType === 'food') {
-        const entryDate = new Date(entry.timestamp);
-        if (entryDate >= today && entryDate < tomorrow) {
-          const risk = entry.fodmapData?.overallRisk;
-          if (risk === 'Green') counts.green++;
-          else if (risk === 'Yellow') counts.yellow++;
-          else if (risk === 'Red') counts.red++;
-        }
-      }
-    });
-    return counts;
-  }, [timelineEntries]);
+  // dailyFodmapCount is removed as per request to modify summary bar
+  // const dailyFodmapCount = useMemo<DailyFodmapCount>(() => {
+  // ...
+  // }, [timelineEntries]);
 
   const handleGuestLogFoodOpen = () => {
     setEditingItem(null);
@@ -854,11 +838,6 @@ export default function FoodTimelinePage() {
                 className="rounded-full h-32 w-32 sm:h-40 sm:w-40 border-2 border-primary bg-transparent animate-pulse-glow hover:bg-primary/10 focus:bg-primary/10 focus:ring-primary focus:ring-offset-background focus:ring-offset-2"
                 aria-label="Open Actions Menu"
               >
-                {/* 
-                  Placeholder App Logo for Button: 
-                  Replace this SmilePlus icon with your actual logo.
-                  Consider creating an SVG component for your logo that can be styled.
-                */}
               <img
                  src="/Gutcheck_logo.png"
                  alt="GutCheck Logo"
@@ -896,7 +875,7 @@ export default function FoodTimelinePage() {
             userProfile={userProfile}
             timelineEntries={timelineEntries}
             dailyNutritionSummary={dailyNutritionSummary}
-            dailyFodmapCount={dailyFodmapCount}
+            // dailyFodmapCount={dailyFodmapCount} // Removed
             isLoadingAi={isLoadingAi}
             onSetFeedback={handleSetFoodFeedback}
             onRemoveTimelineEntry={handleRemoveTimelineEntry}
@@ -980,7 +959,7 @@ export default function FoodTimelinePage() {
                 setIsAddFoodDialogOpen(open);
             }}
             onSubmitFoodItem={(data) => handleSubmitFoodItem(data, selectedLogDateForPreviousMeal)}
-            isEditing={!!editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription} 
+            isEditing={!!editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription}
             initialValues={editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription ?
               { name: editingItem.name, ingredients: editingItem.ingredients, portionSize: editingItem.portionSize, portionUnit: editingItem.portionUnit }
               : undefined
