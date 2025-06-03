@@ -74,6 +74,14 @@ const initialGuestProfile: UserProfile = {
   premium: false,
 };
 
+const lightModeButtonColors = [
+  { id: 'sky', base: 'bg-sky-500', border: 'border-sky-700', hover: 'hover:bg-sky-600', focusRing: 'focus:ring-sky-500', glowRgb: '56, 189, 248' },
+  { id: 'amber', base: 'bg-amber-500', border: 'border-amber-700', hover: 'hover:bg-amber-600', focusRing: 'focus:ring-amber-500', glowRgb: '245, 158, 11' },
+  { id: 'emerald', base: 'bg-emerald-500', border: 'border-emerald-700', hover: 'hover:bg-emerald-600', focusRing: 'focus:ring-emerald-500', glowRgb: '16, 185, 129' },
+  { id: 'rose', base: 'bg-rose-500', border: 'border-rose-700', hover: 'hover:bg-rose-600', focusRing: 'focus:ring-rose-500', glowRgb: '244, 63, 94' },
+  { id: 'violet', base: 'bg-violet-500', border: 'border-violet-700', hover: 'hover:bg-violet-600', focusRing: 'focus:ring-violet-500', glowRgb: '139, 92, 246' },
+];
+
 
 export default function FoodTimelinePage() {
   const { toast } = useToast();
@@ -92,6 +100,7 @@ export default function FoodTimelinePage() {
   const [isAddManualMacroDialogOpen, setIsAddManualMacroDialogOpen] = useState(false);
   const [isLogPreviousMealDialogOpen, setIsLogPreviousMealDialogOpen] = useState(false);
   const [selectedLogDateForPreviousMeal, setSelectedLogDateForPreviousMeal] = useState<Date | undefined>(undefined);
+  const [activeLightModeColorScheme, setActiveLightModeColorScheme] = useState(lightModeButtonColors[0]);
 
 
   const [symptomDialogContext, setSymptomDialogContext] = useState<{ foodItemIds?: string[] }>({});
@@ -105,6 +114,18 @@ export default function FoodTimelinePage() {
   const [isGuestSheetOpen, setIsGuestSheetOpen] = useState(false);
 
   const [editingItem, setEditingItem] = useState<LoggedFoodItem | null>(null);
+
+  useEffect(() => {
+    if (!isDarkMode) {
+      const randomIndex = Math.floor(Math.random() * lightModeButtonColors.length);
+      const selectedScheme = lightModeButtonColors[randomIndex];
+      setActiveLightModeColorScheme(selectedScheme);
+      document.documentElement.style.setProperty('--glow-color-rgb', selectedScheme.glowRgb);
+    } else {
+      // Reset or set a default dark mode glow if needed
+      document.documentElement.style.removeProperty('--glow-color-rgb');
+    }
+  }, [isDarkMode]); // Re-randomize if mode changes to light or on initial load in light mode
 
  useEffect(() => {
     const setupUser = async () => {
@@ -803,10 +824,10 @@ export default function FoodTimelinePage() {
             <Button
               variant="outline"
               className={cn(
-                "rounded-full h-32 w-32 sm:h-40 sm:w-40 border-2 animate-pulse-glow focus:ring-offset-background focus:ring-offset-2", // Common styles
-                !isDarkMode
-                  ? "bg-lime-500 border-lime-700 hover:bg-lime-600 focus:bg-lime-600 focus:ring-lime-500" // Light mode: Green inside, green border
-                  : "bg-transparent border-primary hover:bg-primary/10 focus:bg-primary/10 focus:ring-primary" // Dark mode: Transparent inside, theme primary border
+                "rounded-full h-32 w-32 sm:h-40 sm:w-40 border-2 animate-pulse-glow focus:ring-offset-background focus:ring-offset-2",
+                !isDarkMode && activeLightModeColorScheme
+                  ? `${activeLightModeColorScheme.base} ${activeLightModeColorScheme.border} ${activeLightModeColorScheme.hover} ${activeLightModeColorScheme.focusRing}`
+                  : "bg-transparent border-primary hover:bg-primary/10 focus:bg-primary/10 focus:ring-primary"
               )}
               aria-label="Open Actions Menu"
             >
