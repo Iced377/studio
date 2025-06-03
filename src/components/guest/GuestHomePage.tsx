@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image'; // Added Image import
 import { ChevronUp } from 'lucide-react'; 
 import { Button } from '@/components/ui/button';
 import GuestLastLogSheet from './GuestLastLogSheet';
@@ -28,7 +29,6 @@ export default function GuestHomePage({
   onRemoveItem,
   isLoadingAiForItem,
 }: GuestHomePageProps) {
-  const mainButtonText = 'Check My Meal'; 
 
   const handleMainButtonClick = () => {
     onLogFoodClick();
@@ -39,12 +39,24 @@ export default function GuestHomePage({
       <Navbar isGuest={true} />
 
       <main className="flex-grow flex flex-col items-center justify-center p-4 relative text-center">
-        <Button
-          onClick={handleMainButtonClick}
-          className="bg-white text-calo-green text-xl font-semibold rounded-full h-16 w-4/5 max-w-xs animate-pulse-glow hover:bg-gray-50 focus:ring-4 focus:ring-green-300"
-        >
-          {mainButtonText}
-        </Button>
+        <div className="flex flex-col items-center space-y-4">
+          <button
+            onClick={handleMainButtonClick}
+            className="bg-calo-green text-white rounded-full h-36 w-36 sm:h-40 sm:w-40 flex items-center justify-center border-2 border-black dark:border-white animate-pulse-glow focus:outline-none focus:ring-4 focus:ring-green-300 dark:focus:ring-green-700 shadow-xl"
+            aria-label="Check My Meal"
+          >
+            <Image
+              src="/Gutcheck_logo.png" 
+              alt="GutCheck Logo"
+              width={80} 
+              height={80} 
+              className="object-contain" // Ensures the logo fits well
+            />
+          </button>
+          <span className="text-2xl sm:text-3xl font-semibold text-white font-headline">
+            GutCheck
+          </span>
+        </div>
       </main>
 
       {lastLoggedItem && !isSheetOpen && (

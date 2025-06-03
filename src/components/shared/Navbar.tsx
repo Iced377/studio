@@ -69,36 +69,35 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
   const defaultHeaderClasses = "border-border/40 bg-background/95 text-foreground";
 
   const logoIconBaseClasses = "h-7 w-7";
-  const guestLogoIconClasses = "text-white";
-  // defaultLogoIconClasses is effectively replaced by conditional logic below
+  const guestLogoIconClasses = "text-white"; // This won't affect a raster image like PNG
 
   const appNameBaseClasses = "font-bold font-headline sm:inline-block text-xl";
 
   return (
     <header className={cn(headerBaseClasses, isGuest ? guestHeaderClasses : defaultHeaderClasses)}>
       <div className="container flex h-16 max-w-screen-2xl items-center">
-        <Link href="/" className="mr-auto flex items-center space-x-2">
-          {/* If Gutcheck_logo.png is an SVG and its paths use `fill="currentColor"`, this will work.
-              If it's a raster image (PNG/JPG), text-black/text-primary won't change its color.
-              You might need two versions of the logo or an SVG that can be styled. */}
-          <Image
-            src="/Gutcheck_logo.png"
-            alt="GutCheck Logo"
-            width={28}
-            height={28}
-            className={cn(
-              "object-contain",
-              logoIconBaseClasses,
-              isGuest
-                ? guestLogoIconClasses // white for guest
-                : (isDarkMode ? "text-primary" : "text-black") // text-primary (light gray) for dark mode, text-black for light mode
-            )}
-          />
-          <span className={cn(appNameBaseClasses, isGuest ? 'text-white' : 'text-foreground')}>
-            {APP_NAME}
-          </span>
-          {!isGuest && <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>}
-        </Link>
+        {!isGuest && (
+           <Link href="/" className="mr-auto flex items-center space-x-2">
+            <Image
+              src="/Gutcheck_logo.png" // Replace with your actual logo path
+              alt="GutCheck Logo"
+              width={28}
+              height={28}
+              className={cn(
+                "object-contain",
+                logoIconBaseClasses,
+                isDarkMode ? "filter-none" : "" // Ensure no filter in dark, rely on original for light
+                // For true color change of PNGs, you'd need different image files or SVG manipulation
+              )}
+            />
+            <span className={cn(appNameBaseClasses, 'text-foreground')}>
+              {APP_NAME}
+            </span>
+            <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
+          </Link>
+        )}
+        {isGuest && <div className="mr-auto"></div>} {/* Placeholder to push other items to the right */}
+
 
         <div className="flex items-center space-x-1 sm:space-x-1.5">
           {isGuest ? (
