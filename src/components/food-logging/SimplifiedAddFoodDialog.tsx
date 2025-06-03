@@ -53,7 +53,6 @@ interface SimplifiedAddFoodDialogProps {
   isEditing?: boolean;
   initialValues?: Partial<SimplifiedFoodLogFormValues>;
   initialMacrosOverridden?: boolean; // New prop
-  key?: string; // Added key prop for re-initialization
 }
 
 export default function SimplifiedAddFoodDialog({
@@ -63,8 +62,7 @@ export default function SimplifiedAddFoodDialog({
   isGuestView = false,
   isEditing = false,
   initialValues,
-  initialMacrosOverridden = false, // Default to false
-  key,
+  initialMacrosOverridden = false,
 }: SimplifiedAddFoodDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -72,7 +70,7 @@ export default function SimplifiedAddFoodDialog({
 
   const form = useForm<SimplifiedFoodLogFormValues>({
     resolver: zodResolver(simplifiedFoodLogSchema),
-    defaultValues: { // defaultValues are set when the form is first created or re-keyed
+    defaultValues: {
       mealDescription: '',
       calories: undefined,
       protein: undefined,
@@ -85,7 +83,7 @@ export default function SimplifiedAddFoodDialog({
   useEffect(() => {
     if (isOpen) {
       if (isEditing && initialValues) {
-        form.reset({ // Reset form with potentially new initialValues when dialog opens for editing
+        form.reset({ 
           mealDescription: initialValues.mealDescription || '',
           calories: initialValues.calories,
           protein: initialValues.protein,
@@ -98,13 +96,15 @@ export default function SimplifiedAddFoodDialog({
         setUserWantsToOverrideMacros(false);
       }
     }
-  }, [isOpen, isEditing, initialValues, initialMacrosOverridden, form, key]); // Added key to dependencies
+  // form and initialMacrosOverridden are dependencies for re-initializing state when these change *while the dialog is open*,
+  // though key-based re-mounting typically handles initial state for edits more robustly.
+  // initialValues is captured by defaultValues, key prop handles re-mounts.
+  }, [isOpen, isEditing, initialValues, initialMacrosOverridden, form]);
 
 
   const handleSubmit = async (data: SimplifiedFoodLogFormValues) => {
     setIsLoading(true);
     try {
-      // Pass the state of userWantsToOverrideMacros to the onSubmitLog callback
       await onSubmitLog(data, userWantsToOverrideMacros);
       if (!isEditing) {
         form.reset();
@@ -189,7 +189,7 @@ export default function SimplifiedAddFoodDialog({
 
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange} key={key}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className={dialogContentClasses}>
         <DialogHeader>
           <DialogTitle className={titleClasses}>
