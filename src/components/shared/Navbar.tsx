@@ -23,7 +23,7 @@ import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import { cn } from '@/lib/utils';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "v2.8";
+export const APP_VERSION = "v2.9";
 
 interface NavbarProps {
   onUpgradeClick?: () => void;
@@ -64,9 +64,9 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
     }
   };
 
-  const headerBaseClasses = "sticky top-0 z-50 w-full"; // Removed border-b
-  const guestHeaderClasses = "bg-calo-green border-white/20 text-white";
-  const defaultHeaderClasses = "border-border/40 bg-background text-foreground";
+  const headerBaseClasses = "sticky top-0 z-50 w-full";
+  const guestHeaderClasses = "bg-calo-green text-white";
+  const defaultHeaderClasses = "bg-background text-foreground";
 
   const logoIconBaseClasses = "h-7 w-7";
   const guestLogoIconClasses = "text-white"; 
@@ -78,20 +78,15 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
       <div className="container flex h-16 max-w-screen-2xl items-center">
         {!isGuest && (
            <Link href="/" className="mr-auto flex items-center space-x-2">
-            {/* 
-              Replace this Image component with your actual logo SVG or optimized image.
-              If using an SVG, you can import it as a component.
-              If using a PNG/JPG, ensure it's optimized and placed in the `public` folder.
-            */}
             <Image
               src="/Gutcheck_logo.png" 
               alt="GutCheck Logo"
               width={28}
               height={28}
               className={cn(
-                "object-contain", // Ensures the logo scales correctly
+                "object-contain", 
                 logoIconBaseClasses,
-                isDarkMode ? "" : "filter brightness-0" // Makes the logo black in light mode, uses original in dark
+                isDarkMode ? "" : "filter brightness-0" 
               )}
             />
             <span className={cn(appNameBaseClasses, 'text-foreground')}>
