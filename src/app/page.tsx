@@ -41,6 +41,8 @@ import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet';
 import Navbar from '@/components/shared/Navbar';
 import GuestHomePage from '@/components/guest/GuestHomePage';
 import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { useTheme } from '@/contexts/ThemeContext';
 
 
 const generateFallbackFodmapProfile = (foodName: string): FoodFODMAPProfile => {
@@ -77,6 +79,7 @@ export default function FoodTimelinePage() {
   const { toast } = useToast();
   const { user: authUser, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { isDarkMode } = useTheme();
 
   const [userProfile, setUserProfile] = useState<UserProfile>(initialGuestProfile);
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
@@ -799,13 +802,18 @@ export default function FoodTimelinePage() {
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="rounded-full h-32 w-32 sm:h-40 sm:w-40 border-2 border-primary bg-transparent animate-pulse-glow hover:bg-primary/10 focus:bg-primary/10 focus:ring-primary focus:ring-offset-background focus:ring-offset-2"
+              className={cn(
+                "rounded-full h-32 w-32 sm:h-40 sm:w-40 border-2 animate-pulse-glow focus:ring-offset-background focus:ring-offset-2", // Common styles
+                !isDarkMode
+                  ? "bg-lime-500 border-lime-700 hover:bg-lime-600 focus:bg-lime-600 focus:ring-lime-500" // Light mode: Green inside, green border
+                  : "bg-transparent border-primary hover:bg-primary/10 focus:bg-primary/10 focus:ring-primary" // Dark mode: Transparent inside, theme primary border
+              )}
               aria-label="Open Actions Menu"
             >
             <img
-               src="/Gutcheck_logo.png" // Ensure this path is correct
+               src="/Gutcheck_logo.png" 
                alt="GutCheck Logo"
-               className="h-16 w-16 sm:h-20 sm:w-20 object-contain" // Adjusted size
+               className="h-16 w-16 sm:h-20 sm:w-20 object-contain" 
                 />
             </Button>
           </PopoverTrigger>
@@ -851,7 +859,7 @@ export default function FoodTimelinePage() {
        <div></div>
       </PremiumDashboardSheet>
 
-      {!isPremiumDashboardOpen && ( // Show swipe up/tap only if dashboard is closed
+      {!isPremiumDashboardOpen && ( 
           <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4">
               <Button
                   variant="ghost"
