@@ -834,7 +834,7 @@ export default function FoodTimelinePage() {
             <img
                src="/Gutcheck_logo.png" 
                alt="GutCheck Logo"
-               className="h-16 w-16 sm:h-20 sm:w-20 object-contain" 
+               className="h-20 w-20 sm:h-24 sm:w-24 object-contain" 
                 />
             </Button>
           </PopoverTrigger>
