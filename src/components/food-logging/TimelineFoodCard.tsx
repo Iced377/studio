@@ -10,7 +10,7 @@ import DietaryFiberIndicator from '@/components/shared/DietaryFiberIndicator';
 import MicronutrientsIndicator from '@/components/shared/MicronutrientsIndicator';
 import GutBacteriaIndicator from '@/components/shared/GutBacteriaIndicator';
 import { Badge } from '@/components/ui/badge';
-import { ThumbsUp, ThumbsDown, Trash2, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3, CheckCheck, PencilLine, Sparkles, Leaf, Users, Activity } from 'lucide-react'; // Added new icons
+import { ThumbsUp, ThumbsDown, Trash2, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3, CheckCheck, PencilLine, Sparkles, Leaf, Users, Activity } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -79,9 +79,7 @@ export default function TimelineFoodCard({
             )}
             {!isManualMacroEntry && <p className={cn("text-sm", mutedTextClass)}>Portion: {item.portionSize} {item.portionUnit}</p>}
           </div>
-          {!isManualMacroEntry && (
-             <FodmapIndicator score={item.fodmapData?.overallRisk} reason={item.fodmapData?.reason} />
-          )}
+          {/* FodmapIndicator REMOVED from here */}
         </div>
          {item.sourceDescription && !isManualMacroEntry ? (
            <p className={cn("text-xs italic pt-1 truncate", mutedTextClass, isGuestView ? "text-green-700/80" : "text-muted-foreground/70")}>Original: "{item.sourceDescription}"</p>
@@ -122,6 +120,7 @@ export default function TimelineFoodCard({
                 <GlycemicIndexIndicator giInfo={item.fodmapData.glycemicIndexInfo} />
                 <DietaryFiberIndicator fiberInfo={item.fodmapData.dietaryFiberInfo} />
                 <MicronutrientsIndicator micronutrientsInfo={item.fodmapData.micronutrientsInfo} />
+                <FodmapIndicator score={item.fodmapData?.overallRisk} reason={item.fodmapData?.reason} />
                 <GutBacteriaIndicator gutImpact={item.fodmapData.gutBacteriaImpact} />
             </div>
         )}
@@ -211,3 +210,4 @@ export default function TimelineFoodCard({
     </Card>
   );
 }
+
