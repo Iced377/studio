@@ -23,7 +23,7 @@ import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import { cn } from '@/lib/utils';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "v2.7";
+export const APP_VERSION = "v2.8";
 
 interface NavbarProps {
   onUpgradeClick?: () => void;
@@ -64,12 +64,12 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
     }
   };
 
-  const headerBaseClasses = "sticky top-0 z-50 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-background/60";
+  const headerBaseClasses = "sticky top-0 z-50 w-full border-b";
   const guestHeaderClasses = "bg-calo-green border-white/20 text-white";
-  const defaultHeaderClasses = "border-border/40 bg-background/95 text-foreground";
+  const defaultHeaderClasses = "border-border/40 bg-background text-foreground";
 
   const logoIconBaseClasses = "h-7 w-7";
-  const guestLogoIconClasses = "text-white"; // This won't affect a raster image like PNG
+  const guestLogoIconClasses = "text-white"; 
 
   const appNameBaseClasses = "font-bold font-headline sm:inline-block text-xl";
 
@@ -79,15 +79,14 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
         {!isGuest && (
            <Link href="/" className="mr-auto flex items-center space-x-2">
             <Image
-              src="/Gutcheck_logo.png" // Replace with your actual logo path
+              src="/Gutcheck_logo.png" 
               alt="GutCheck Logo"
               width={28}
               height={28}
               className={cn(
                 "object-contain",
                 logoIconBaseClasses,
-                isDarkMode ? "filter-none" : "" // Ensure no filter in dark, rely on original for light
-                // For true color change of PNGs, you'd need different image files or SVG manipulation
+                isDarkMode ? "" : "filter brightness-0" 
               )}
             />
             <span className={cn(appNameBaseClasses, 'text-foreground')}>
@@ -96,7 +95,7 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
             <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
           </Link>
         )}
-        {isGuest && <div className="mr-auto"></div>} {/* Placeholder to push other items to the right */}
+        {isGuest && <div className="mr-auto"></div>}
 
 
         <div className="flex items-center space-x-1 sm:space-x-1.5">

@@ -207,12 +207,12 @@
 
 @keyframes pulse-glow {
   0%, 100% {
-    /* Base glow - less intense, slightly smaller spread */
-    box-shadow: 0 0 30px 20px rgba(57, 255, 20, 0.7), 0 0 60px 35px rgba(57, 255, 20, 0.5);
+    /* Base glow - less intense, smaller spread */
+    box-shadow: 0 0 30px 10px rgba(57, 255, 20, 0.7), 0 0 60px 18px rgba(57, 255, 20, 0.5);
   }
   50% {
-    /* Peak glow - very bright, large spread */
-    box-shadow: 0 0 60px 35px rgba(57, 255, 20, 1), 0 0 90px 50px rgba(57, 255, 20, 0.8);
+    /* Peak glow - very bright, larger spread */
+    box-shadow: 0 0 60px 18px rgba(57, 255, 20, 1), 0 0 90px 25px rgba(57, 255, 20, 0.8);
   }
 }
 
