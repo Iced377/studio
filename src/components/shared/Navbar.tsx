@@ -64,7 +64,7 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
     }
   };
 
-  const headerBaseClasses = "sticky top-0 z-50 w-full border-b";
+  const headerBaseClasses = "sticky top-0 z-50 w-full"; // Removed border-b
   const guestHeaderClasses = "bg-calo-green border-white/20 text-white";
   const defaultHeaderClasses = "border-border/40 bg-background text-foreground";
 
@@ -78,15 +78,20 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
       <div className="container flex h-16 max-w-screen-2xl items-center">
         {!isGuest && (
            <Link href="/" className="mr-auto flex items-center space-x-2">
+            {/* 
+              Replace this Image component with your actual logo SVG or optimized image.
+              If using an SVG, you can import it as a component.
+              If using a PNG/JPG, ensure it's optimized and placed in the `public` folder.
+            */}
             <Image
               src="/Gutcheck_logo.png" 
               alt="GutCheck Logo"
               width={28}
               height={28}
               className={cn(
-                "object-contain",
+                "object-contain", // Ensures the logo scales correctly
                 logoIconBaseClasses,
-                isDarkMode ? "" : "filter brightness-0" 
+                isDarkMode ? "" : "filter brightness-0" // Makes the logo black in light mode, uses original in dark
               )}
             />
             <span className={cn(appNameBaseClasses, 'text-foreground')}>
