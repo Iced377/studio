@@ -6,9 +6,9 @@ import Image from 'next/image';
 import { ChevronUp } from 'lucide-react';
 import GuestLastLogSheet from './GuestLastLogSheet';
 import type { LoggedFoodItem } from '@/types';
-import { APP_VERSION } from '@/components/shared/Navbar';
 import Navbar from '@/components/shared/Navbar';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/contexts/ThemeContext'; // Import useTheme
 
 interface GuestHomePageProps {
   onLogFoodClick: () => void;
@@ -20,7 +20,6 @@ interface GuestHomePageProps {
   isLoadingAiForItem: boolean;
 }
 
-// Palette for randomized button colors in light mode for guests
 const lightModeButtonColors = [
   { id: 'sky', base: 'bg-sky-500', border: 'border-sky-700', hover: 'hover:bg-sky-600', focusRing: 'focus:ring-sky-500', glowRgb: '56, 189, 248' },
   { id: 'amber', base: 'bg-amber-500', border: 'border-amber-700', hover: 'hover:bg-amber-600', focusRing: 'focus:ring-amber-500', glowRgb: '245, 158, 11' },
@@ -39,15 +38,22 @@ export default function GuestHomePage({
   isLoadingAiForItem,
 }: GuestHomePageProps) {
   const [activeLightModeColorScheme, setActiveLightModeColorScheme] = useState(lightModeButtonColors[0]);
+  const { isDarkMode } = useTheme(); // Get dark mode state, although guest view is now always light
 
   useEffect(() => {
-    // Randomize color scheme for light mode on mount
+    // Guest view is now always light-themed, so we always pick a random light mode color
     const randomIndex = Math.floor(Math.random() * lightModeButtonColors.length);
     const selectedScheme = lightModeButtonColors[randomIndex];
     setActiveLightModeColorScheme(selectedScheme);
-    // Set CSS variable for the glow effect defined in globals.css
     document.documentElement.style.setProperty('--glow-color-rgb', selectedScheme.glowRgb);
-  }, []); // Empty dependency array ensures this runs once on mount
+    
+    // Ensure light mode classes are set for guest view
+    document.documentElement.classList.remove('dark');
+    if (!document.documentElement.classList.contains('theme-black')) {
+      document.documentElement.classList.add('theme-black');
+    }
+
+  }, []); // Empty dependency array: run once on mount
 
   const handleMainButtonClick = () => {
     onLogFoodClick();
@@ -74,8 +80,8 @@ export default function GuestHomePage({
             <Image
               src="/Gutcheck_logo.png"
               alt="GutCheck Logo"
-              width={112}
-              height={112}
+              width={128} 
+              height={128}
               className="object-contain"
             />
           </button>
@@ -94,10 +100,8 @@ export default function GuestHomePage({
           <span className="text-xs text-muted-foreground/70">Swipe Up or Tap to View the Meal</span>
         </div>
       )}
-
-      <p className="text-xs text-muted-foreground/70 text-center pb-2 fixed bottom-0 left-1/2 -translate-x-1/2">
-        {APP_VERSION}
-      </p>
+      
+      {/* App version removed from here, as it's not displayed for guests via Navbar */}
 
       <GuestLastLogSheet
         isOpen={isSheetOpen}

@@ -22,13 +22,13 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "v3.2"; // Updated App Version
+export const APP_VERSION = "v3.2"; // App Version remains, but display is conditional
 
 interface GuestButtonScheme {
   base: string;
   border: string;
   hover: string;
-  focusRing?: string; // Optional, as it might not be directly used for sign-in button
+  focusRing?: string; 
 }
 
 interface NavbarProps {
@@ -69,55 +69,41 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
     }
   };
 
-  const headerBaseClasses = "sticky top-0 z-50 w-full border-b border-border/50"; // Added border for definition
-  const guestHeaderClasses = "bg-background text-foreground"; // Changed from calo-green
+  const headerBaseClasses = "sticky top-0 z-50 w-full"; 
+  const guestHeaderClasses = "bg-background text-foreground"; 
   const defaultHeaderClasses = "bg-background text-foreground";
 
   const logoIconBaseClasses = "h-7 w-7";
-
   const appNameBaseClasses = "font-bold font-headline sm:inline-block text-xl";
 
   return (
-    <header className={cn(headerBaseClasses, isGuest ? guestHeaderClasses : defaultHeaderClasses)}>
+    <header className={cn(
+        headerBaseClasses, 
+        isGuest ? guestHeaderClasses : defaultHeaderClasses,
+        !isGuest && "border-b border-border/50" // Conditional border for non-guests
+    )}>
       <div className="container flex h-16 max-w-screen-2xl items-center">
-        {!isGuest && (
-           <Link href="/" className="mr-auto flex items-center space-x-2">
-            <Image
-              src="/Gutcheck_logo.png"
-              alt="GutCheck Logo"
-              width={28}
-              height={28}
-              className={cn(
-                "object-contain",
-                logoIconBaseClasses,
-                 isDarkMode ? "" : "filter brightness-0 invert" // Invert for light mode, keep as is for dark
-              )}
-            />
-            <span className={cn(appNameBaseClasses, 'text-foreground')}>
-              {APP_NAME}
-            </span>
-            <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
-          </Link>
-        )}
-        {isGuest && (
-          <div className="mr-auto flex items-center space-x-2">
-             <Image
-              src="/Gutcheck_logo.png"
-              alt="GutCheck Logo"
-              width={28}
-              height={28}
-              className={cn(
-                "object-contain filter brightness-0 invert", // Always inverted for light guest view
-                logoIconBaseClasses
-              )}
-            />
-            <span className={cn(appNameBaseClasses, 'text-foreground')}>
-              {APP_NAME}
-            </span>
-            <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
-          </div>
-        )}
-
+        <Link href="/" className="mr-auto flex items-center space-x-2">
+          <Image
+            src="/Gutcheck_logo.png"
+            alt="GutCheck Logo"
+            width={28}
+            height={28}
+            className={cn(
+              "object-contain",
+              logoIconBaseClasses,
+              isGuest ? "filter brightness-0 invert" : (isDarkMode ? "" : "filter brightness-0 invert") 
+            )}
+          />
+          {!isGuest && (
+            <>
+              <span className={cn(appNameBaseClasses, 'text-foreground')}>
+                {APP_NAME}
+              </span>
+              <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
+            </>
+          )}
+        </Link>
 
         <div className="flex items-center space-x-1 sm:space-x-1.5">
           {isGuest ? (

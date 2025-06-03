@@ -123,7 +123,7 @@ export default function FoodTimelinePage() {
       document.documentElement.style.setProperty('--glow-color-rgb', selectedScheme.glowRgb);
     } else {
       // Reset or set a default dark mode glow if needed
-      document.documentElement.style.removeProperty('--glow-color-rgb');
+      document.documentElement.style.removeProperty('--glow-color-rgb'); // Default to globals.css keyframe for dark mode
     }
   }, [isDarkMode]); // Re-randomize if mode changes to light or on initial load in light mode
 
@@ -799,8 +799,8 @@ export default function FoodTimelinePage() {
           lastLoggedItem={lastGuestFoodItem}
           isSheetOpen={isGuestSheetOpen}
           onSheetOpenChange={setIsGuestSheetOpen}
-          onSetFeedback={handleGuestSetFoodFeedback} // Pass feedback handler
-          onRemoveItem={handleGuestRemoveFoodItem}   // Pass remove handler
+          onSetFeedback={handleGuestSetFoodFeedback} 
+          onRemoveItem={handleGuestRemoveFoodItem}   
           isLoadingAiForItem={lastGuestFoodItem ? !!isLoadingAi[lastGuestFoodItem.id] : false}
         />
         <SimplifiedAddFoodDialog
@@ -834,7 +834,7 @@ export default function FoodTimelinePage() {
             <img
                src="/Gutcheck_logo.png" 
                alt="GutCheck Logo"
-               className="h-24 w-24 sm:h-28 sm:w-28 object-contain" 
+               className="h-28 w-28 sm:h-32 sm:w-32 object-contain"  // Increased logo size
                 />
             </Button>
           </PopoverTrigger>
@@ -922,7 +922,7 @@ export default function FoodTimelinePage() {
             }
             : { mealDescription: '' }}
         initialMacrosOverridden={editingItem?.macrosOverridden || false}
-        isGuestView={false}
+        isGuestView={false} // Registered users always use the standard theme for this dialog
         key={editingItem?.id ? `edit-simplified-${editingItem.id}` : 'new-simplified'}
       />
       <AddFoodItemDialog

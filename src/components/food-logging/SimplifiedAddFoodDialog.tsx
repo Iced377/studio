@@ -18,7 +18,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox'; // Added Checkbox
+import { Checkbox } from '@/components/ui/checkbox'; 
 import { Sprout, Loader2, Edit, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -48,11 +48,11 @@ export type SimplifiedFoodLogFormValues = z.infer<typeof simplifiedFoodLogSchema
 interface SimplifiedAddFoodDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onSubmitLog: (data: SimplifiedFoodLogFormValues, userDidOverrideMacros: boolean) => Promise<void>; // Updated signature
-  isGuestView?: boolean;
+  onSubmitLog: (data: SimplifiedFoodLogFormValues, userDidOverrideMacros: boolean) => Promise<void>; 
+  isGuestView?: boolean; // Still used for button text and placeholder logic
   isEditing?: boolean;
   initialValues?: Partial<SimplifiedFoodLogFormValues>;
-  initialMacrosOverridden?: boolean; // New prop
+  initialMacrosOverridden?: boolean; 
 }
 
 export default function SimplifiedAddFoodDialog({
@@ -96,9 +96,6 @@ export default function SimplifiedAddFoodDialog({
         setUserWantsToOverrideMacros(false);
       }
     }
-  // form and initialMacrosOverridden are dependencies for re-initializing state when these change *while the dialog is open*,
-  // though key-based re-mounting typically handles initial state for edits more robustly.
-  // initialValues is captured by defaultValues, key prop handles re-mounts.
   }, [isOpen, isEditing, initialValues, initialMacrosOverridden, form]);
 
 
@@ -123,61 +120,18 @@ export default function SimplifiedAddFoodDialog({
     }
   };
 
-  const dialogContentClasses = cn(
-    "sm:max-w-lg",
-    isGuestView ? "bg-calo-green text-white border-white/20" : "bg-card text-card-foreground border-border"
-  );
-
-  const titleClasses = cn(
-    "font-headline text-xl flex items-center",
-    isGuestView ? "text-white" : "text-foreground"
-  );
-
-  const descriptionClasses = cn(
-    isGuestView ? "text-white/80" : "text-muted-foreground"
-  );
-
-  const sproutIconClasses = cn(
-    "mr-2 h-6 w-6",
-    isGuestView ? "text-white/80" : "text-gray-400"
-  );
-
-  const sproutSubmitIconClasses = cn(
-    "mr-2 h-5 w-5",
-    isGuestView ? "" : ""
-  );
-
-  const textAreaClasses = cn(
-    "mt-1 text-base min-h-[100px]",
-    isGuestView
-      ? "bg-white/10 text-white placeholder:text-white/60 border-white/30 focus:ring-white/50 focus:border-white/50"
-      : "bg-input text-foreground placeholder:text-muted-foreground border-input focus:ring-ring focus:border-ring"
-  );
-  
-  const inputClasses = cn(
-    "mt-1",
-    isGuestView
-      ? "bg-white/10 text-white placeholder:text-white/60 border-white/30 focus:ring-white/50 focus:border-white/50"
-      : "bg-input text-foreground placeholder:text-muted-foreground"
-  );
-
-
-  const cancelButtonClasses = cn(
-    isGuestView
-      ? "border-white/50 text-white hover:bg-white/10"
-      : "border-accent text-accent-foreground hover:bg-accent/20"
-  );
-
-  const submitButtonClasses = cn(
-    isGuestView
-      ? "bg-white text-calo-green hover:bg-gray-100"
-      : "bg-primary text-primary-foreground hover:bg-primary/80"
-  );
-
-  const labelClasses = cn(
-    "text-sm font-medium",
-    isGuestView ? "text-white/90" : "text-foreground"
-  );
+  // Dialog now uses standard theme classes, not guest-specific ones
+  const dialogContentClasses = cn("sm:max-w-lg", "bg-card text-card-foreground border-border");
+  const titleClasses = cn("font-headline text-xl flex items-center", "text-foreground");
+  const descriptionClasses = cn("text-muted-foreground");
+  const sproutIconClasses = cn("mr-2 h-6 w-6", "text-gray-400");
+  const sproutSubmitIconClasses = cn("mr-2 h-5 w-5");
+  const textAreaClasses = cn("mt-1 text-base min-h-[100px]", "bg-input text-foreground placeholder:text-muted-foreground border-input focus:ring-ring focus:border-ring");
+  const inputClasses = cn("mt-1", "bg-input text-foreground placeholder:text-muted-foreground");
+  const cancelButtonClasses = cn("border-accent text-accent-foreground hover:bg-accent/20");
+  const submitButtonClasses = cn("bg-primary text-primary-foreground hover:bg-primary/80");
+  const labelClasses = cn("text-sm font-medium", "text-foreground");
+  const checkboxErrorClasses = cn("text-xs mt-1", "text-destructive"); // For potential future checkbox errors
 
   const dialogTitleText = isGuestView
     ? "What did you eat?"
@@ -216,7 +170,7 @@ export default function SimplifiedAddFoodDialog({
               rows={isEditing ? 3 : 4}
             />
             {form.formState.errors.mealDescription && (
-              <p className={cn("text-xs mt-1", isGuestView ? "text-red-300" : "text-destructive")}>{form.formState.errors.mealDescription.message}</p>
+              <p className={checkboxErrorClasses}>{form.formState.errors.mealDescription.message}</p>
             )}
           </div>
 
@@ -227,7 +181,7 @@ export default function SimplifiedAddFoodDialog({
                   id="manualOverrideMacros"
                   checked={userWantsToOverrideMacros}
                   onCheckedChange={(checked) => setUserWantsToOverrideMacros(Boolean(checked))}
-                  className={cn(isGuestView ? "border-white/50 data-[state=checked]:bg-white data-[state=checked]:text-calo-green" : "border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground")}
+                  className={cn("border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground")}
                 />
                 <Label htmlFor="manualOverrideMacros" className={cn(labelClasses, "flex items-center cursor-pointer")}>
                   <Edit className="w-4 h-4 mr-2 text-muted-foreground" />
@@ -257,7 +211,7 @@ export default function SimplifiedAddFoodDialog({
                   {form.formState.errors.fat && <p className={cn("text-xs text-destructive mt-1")}>{form.formState.errors.fat.message}</p>}
                 </div>
               </div>
-               <p className={cn("text-xs mt-1 flex items-start gap-1.5", isGuestView ? "text-white/70" : "text-muted-foreground")}>
+               <p className={cn("text-xs mt-1 flex items-start gap-1.5", "text-muted-foreground")}>
                   <Info className="h-3 w-3 shrink-0 mt-0.5" />
                   <span>If checked, values entered here will override AI estimates. If unchecked, AI will recalculate macros on update.</span>
                 </p>
@@ -271,7 +225,7 @@ export default function SimplifiedAddFoodDialog({
               </Button>
             </DialogClose>
             <Button type="submit" className={submitButtonClasses} disabled={isLoading || (form.formState.isSubmitting || !form.formState.isValid && form.formState.isSubmitted) }>
-              {isLoading ? <Loader2 className={cn("animate-spin h-5 w-5 mr-2", isGuestView ? "text-calo-green" : "text-primary-foreground" )} /> : <Sprout className={sproutSubmitIconClasses} />}
+              {isLoading ? <Loader2 className={cn("animate-spin h-5 w-5 mr-2", isGuestView ? "text-primary" : "text-primary-foreground" )} /> : <Sprout className={sproutSubmitIconClasses} />}
               {submitButtonText}
             </Button>
           </DialogFooter>
