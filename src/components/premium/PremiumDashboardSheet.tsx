@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -9,23 +8,24 @@ import Navbar from "@/components/shared/Navbar"
 import type { TimelineEntry, UserProfile, DailyNutritionSummary, LoggedFoodItem, MicronutrientDetail } from '@/types';
 import TimelineFoodCard from '@/components/food-logging/TimelineFoodCard';
 import TimelineSymptomCard from '@/components/food-logging/TimelineSymptomCard';
-import { Flame, Beef, Wheat, Droplet, Utensils, Check, Atom, Sparkles } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Flame, Beef, Wheat, Droplet, Utensils, Check, Atom, Sparkles, Bone, Nut, Citrus, Carrot, Leaf, Milk, Sun, Brain, Activity, Zap as Bolt } from 'lucide-react'; // Added more specific icons
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { startOfDay, endOfDay } from 'date-fns';
 
+// Expanded mapping for micronutrient icons
 const LucideIconsForSummary: { [key: string]: React.ElementType } = {
-  Atom, Sparkles, 
-  Bone: require('lucide-react').Bone,
-  Nut: require('lucide-react').Nut,
-  Citrus: require('lucide-react').Citrus,
-  Carrot: require('lucide-react').Carrot,
-  BeefIcon: require('lucide-react').Beef, 
-  LeafIcon: require('lucide-react').Leaf, 
-  MilkIcon: require('lucide-react').Milk, 
+  Atom, Sparkles, Bone, Nut, Citrus, Carrot, BeefIcon: Beef, LeafIcon: Leaf, MilkIcon: Milk, Sun, Brain, Activity, Bolt,
   Iron: Atom, 
-  Calcium: require('lucide-react').Bone, 
-  VitaminC: require('lucide-react').Citrus, 
+  Calcium: Bone,
+  VitaminC: Citrus,
+  VitaminD: Sun,
+  VitaminB12: Brain,
+  Potassium: Activity, // Or a banana icon if available/custom
+  Magnesium: Bolt, // Or Leaf for leafy greens
+  Zinc: Sparkles, // Generic
+  Folate: Leaf,
+  // Add more as needed based on AI suggestions
 };
 
 
@@ -134,25 +134,23 @@ export default function PremiumDashboardSheet({
                 </div>
                 {achievedMicronutrients.length > 0 && (
                   <div className="flex items-center text-xs text-muted-foreground gap-1.5">
-                     <span className="font-medium">Targets Met:</span>
-                    <TooltipProvider>
+                     <span className="font-medium">Micronutrients Target Met:</span>
                       {achievedMicronutrients.map(micro => {
-                        const IconComponent = micro.iconName && LucideIconsForSummary[micro.iconName] ? LucideIconsForSummary[micro.iconName] : Atom;
+                        const IconComponent = micro.iconName && LucideIconsForSummary[micro.iconName] ? LucideIconsForSummary[micro.iconName] : (LucideIconsForSummary[micro.name] || Atom);
                         return (
-                          <Tooltip key={micro.name}>
-                            <TooltipTrigger asChild>
+                          <Popover key={micro.name}>
+                            <PopoverTrigger asChild>
                               <div className="relative p-0.5 cursor-pointer">
-                                <IconComponent className="h-4 w-4 text-green-500" />
-                                <Check className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 text-green-600 bg-background rounded-full p-0.5" />
+                                <IconComponent className="h-4.5 w-4.5 text-green-500" />
+                                <Check className="absolute -bottom-0.5 -right-0.5 h-3 w-3 text-green-600 bg-background rounded-full p-0.5" />
                               </div>
-                            </TooltipTrigger>
-                            <TooltipContent className="bg-popover text-popover-foreground border-border">
-                              <p>{micro.name} ({Math.round(micro.totalDV)}% DV)</p>
-                            </TooltipContent>
-                          </Tooltip>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto max-w-xs bg-popover text-popover-foreground border-border p-2 text-sm">
+                              <p><span className="font-semibold">{micro.name}:</span> {Math.round(micro.totalDV)}% DV achieved</p>
+                            </PopoverContent>
+                          </Popover>
                         );
                       })}
-                    </TooltipProvider>
                   </div>
                 )}
             </div>

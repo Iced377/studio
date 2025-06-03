@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -22,7 +21,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "v3.2.1"; 
+export const APP_VERSION = "v3.2.2"; 
 
 interface GuestButtonScheme {
   base: string;
@@ -71,7 +70,6 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
 
   const headerBaseClasses = "sticky top-0 z-50 w-full";
   const guestHeaderClasses = "bg-background text-foreground"; 
-  // For registered users in light mode, use bg-muted. For dark mode, use bg-background.
   const registeredUserHeaderClasses = !isDarkMode ? "bg-muted text-foreground" : "bg-background text-foreground";
 
   const logoIconBaseClasses = "h-7 w-7";
@@ -81,23 +79,33 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
     <header className={cn(
         headerBaseClasses,
         isGuest ? guestHeaderClasses : registeredUserHeaderClasses,
-        !isGuest && "border-b border-border/50" // Border only for non-guests
+        !isGuest && "border-b border-border/50"
     )}>
       <div className="container flex h-16 max-w-screen-2xl items-center">
-        <Link href="/" className="mr-auto flex items-center space-x-2">
-          <Image
-            src="/Gutcheck_logo.png"
-            alt="GutCheck Logo"
-            width={28}
-            height={28}
-            className={cn(
-              "object-contain",
-              logoIconBaseClasses,
-               // Invert logic for logo based on background. If navbar is light (guest or light mode registered), logo should be dark.
-               // If navbar is dark (dark mode registered), logo should be light (inverted).
-              (isGuest || !isDarkMode) ? "" : "filter brightness-0 invert"
-            )}
-          />
+        <Link href="/" className="mr-auto flex items-center space-x-1.5">
+          {!isGuest && !isDarkMode ? (
+            <div className="rounded-full bg-foreground p-1 flex items-center justify-center mr-0.5">
+              <Image
+                src="/Gutcheck_logo.png"
+                alt="GutCheck Logo"
+                width={24} // Slightly smaller to fit in circle
+                height={24}
+                className="object-contain filter brightness-0 invert" // Invert for dark logo on light circle
+              />
+            </div>
+          ) : (
+            <Image
+              src="/Gutcheck_logo.png"
+              alt="GutCheck Logo"
+              width={28}
+              height={28}
+              className={cn(
+                "object-contain",
+                logoIconBaseClasses,
+                (isGuest || !isDarkMode) ? "" : "filter brightness-0 invert"
+              )}
+            />
+          )}
           {!isGuest && (
             <>
               <span className={cn(appNameBaseClasses, 'text-foreground')}>
@@ -109,13 +117,24 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
         </Link>
 
         <div className="flex items-center space-x-1 sm:space-x-1.5">
-          {isGuest ? (
+          {isGuest && guestButtonScheme ? (
             <Button
               onClick={() => router.push('/login')}
               className={cn(
                 "h-9 px-4 text-white", 
-                guestButtonScheme ? `${guestButtonScheme.base} ${guestButtonScheme.border} ${guestButtonScheme.hover}` : "bg-primary border-primary hover:bg-primary/90"
+                guestButtonScheme.base, 
+                guestButtonScheme.border, 
+                guestButtonScheme.hover
               )}
+            >
+              <UserPlus className="mr-2 h-5 w-5" />
+              Sign In / Sign Up
+            </Button>
+          ) : isGuest ? ( // Fallback if guestButtonScheme is not provided
+             <Button
+              onClick={() => router.push('/login')}
+              variant="default"
+              className="h-9 px-4"
             >
               <UserPlus className="mr-2 h-5 w-5" />
               Sign In / Sign Up

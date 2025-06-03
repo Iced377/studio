@@ -1,12 +1,12 @@
-
 'use client';
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose, SheetFooter } from "@/components/ui/sheet"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button" // Import buttonVariants
 import { Utensils } from 'lucide-react';
 import type { LoggedFoodItem } from '@/types';
 import TimelineFoodCard from '@/components/food-logging/TimelineFoodCard';
 import { cn } from "@/lib/utils";
+import Link from "next/link"; // Import Link
 
 interface GuestLastLogSheetProps {
   isOpen: boolean;
@@ -53,9 +53,14 @@ export default function GuestLastLogSheet({
               <p className="text-sm">Tap "Check My Meal" to see your entry here.</p>
             </div>
           )}
-          <p className="text-muted-foreground text-center text-sm pt-3 px-2">
-            Sign in or sign up to save your food history, track trends, and view all your entries.
-          </p>
+          <div className="text-center pt-3 px-2">
+             <Link 
+              href="/login" 
+              className={cn(buttonVariants({ variant: "default" }), "w-full max-w-xs mx-auto")} // Styled as a default button
+            >
+              Sign In or Sign Up to save history & track trends!
+            </Link>
+          </div>
         </div>
          <SheetFooter className="p-3 border-t border-border sticky bottom-0 bg-card">
             <Button

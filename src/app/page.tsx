@@ -27,7 +27,7 @@ import {
   Timestamp,
   query,
   orderBy,
-  where, 
+  where,
 } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
@@ -105,7 +105,7 @@ export default function FoodTimelinePage() {
 
   const [symptomDialogContext, setSymptomDialogContext] = useState<{ foodItemIds?: string[] }>({});
   const [isDataLoading, setIsDataLoading] = useState(true);
-  const [isPremiumDashboardOpen, setIsPremiumDashboardOpen] = useState(false); 
+  const [isPremiumDashboardOpen, setIsPremiumDashboardOpen] = useState(false);
   const [isCentralPopoverOpen, setIsCentralPopoverOpen] = useState(false);
 
   const [lastGuestFoodItem, setLastGuestFoodItem] = useState<LoggedFoodItem | null>(null);
@@ -121,9 +121,9 @@ export default function FoodTimelinePage() {
       setActiveLightModeColorScheme(selectedScheme);
       document.documentElement.style.setProperty('--glow-color-rgb', selectedScheme.glowRgb);
     } else {
-      document.documentElement.style.removeProperty('--glow-color-rgb'); 
+      document.documentElement.style.removeProperty('--glow-color-rgb');
     }
-  }, [isDarkMode]); 
+  }, [isDarkMode]);
 
  useEffect(() => {
     const setupUser = async () => {
@@ -156,7 +156,7 @@ export default function FoodTimelinePage() {
               email: authUser.email,
               displayName: authUser.displayName,
               safeFoods: [],
-              premium: false, 
+              premium: false,
             };
             await setDoc(userDocRef, newUserProfile);
             setUserProfile(newUserProfile);
@@ -209,7 +209,7 @@ export default function FoodTimelinePage() {
              email: authUser.email,
              displayName: authUser.displayName,
              safeFoods: prev.uid === authUser.uid ? prev.safeFoods : [],
-             premium: prev.uid === authUser.uid ? prev.premium : false, 
+             premium: prev.uid === authUser.uid ? prev.premium : false,
            }));
         } finally {
             setIsDataLoading(false);
@@ -259,7 +259,7 @@ export default function FoodTimelinePage() {
         console.error("Error saving food feedback to Firestore:", error);
         setTimelineEntries(prevEntries => {
             const newEntries = [...prevEntries];
-            newEntries[itemIndex] = originalItem; 
+            newEntries[itemIndex] = originalItem;
             return newEntries;
         });
         toast({ title: 'Feedback Error', description: 'Could not save feedback to cloud.', variant: 'destructive' });
@@ -325,7 +325,7 @@ export default function FoodTimelinePage() {
         fat: fodmapAnalysis?.fat,
         entryType: 'food',
         userFeedback: editingItem ? editingItem.userFeedback : null,
-        macrosOverridden: false, 
+        macrosOverridden: false,
       };
 
       if (authUser && authUser.uid !== 'guest-user') {
@@ -383,7 +383,7 @@ export default function FoodTimelinePage() {
 
   const handleSubmitMealDescription = async (
     formData: SimplifiedFoodLogFormValues,
-    userDidOverrideMacros: boolean, 
+    userDidOverrideMacros: boolean,
     customTimestamp?: Date
   ) => {
     const currentItemId = editingItem ? editingItem.id : `food-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -458,7 +458,7 @@ export default function FoodTimelinePage() {
         fat: finalFat,
         entryType: 'food',
         userFeedback: editingItem ? editingItem.userFeedback : null,
-        macrosOverridden: userDidOverrideMacros, 
+        macrosOverridden: userDidOverrideMacros,
       };
 
       if (authUser && authUser.uid !== 'guest-user') {
@@ -572,9 +572,9 @@ export default function FoodTimelinePage() {
     if (itemToEdit.entryType === 'manual_macro') {
       setIsAddManualMacroDialogOpen(true);
     } else if (itemToEdit.entryType === 'food') {
-      if (itemToEdit.sourceDescription) { 
+      if (itemToEdit.sourceDescription) {
         setIsSimplifiedAddFoodDialogOpen(true);
-      } else { 
+      } else {
         setIsAddFoodDialogOpen(true);
       }
     }
@@ -599,7 +599,7 @@ export default function FoodTimelinePage() {
                 ...logToSave,
                 timestamp: Timestamp.fromDate(newSymptomLog.timestamp)
             });
-            newSymptomLog.id = docRef.id; 
+            newSymptomLog.id = docRef.id;
             toast({ title: "Symptoms Logged & Saved", description: "Your symptoms have been recorded." });
         } catch (error: any) {
             console.error("Error saving symptom log to Firestore:", error);
@@ -629,7 +629,7 @@ export default function FoodTimelinePage() {
             toast({ title: "Entry Removed", description: "The timeline entry has been deleted from cloud." });
         } catch (error) {
             console.error("Error removing timeline entry from Firestore:", error);
-            if (entryToRemove) addTimelineEntry(entryToRemove); 
+            if (entryToRemove) addTimelineEntry(entryToRemove);
             toast({ title: "Error Removing Entry", description: "Could not remove entry from cloud. Removed locally.", variant: "destructive" });
         }
     } else {
@@ -644,7 +644,7 @@ export default function FoodTimelinePage() {
   };
 
 
-  const handleSimplifiedLogFoodClick = () => { 
+  const handleSimplifiedLogFoodClick = () => {
     setIsCentralPopoverOpen(false);
     setEditingItem(null);
     setIsSimplifiedAddFoodDialogOpen(true);
@@ -652,9 +652,9 @@ export default function FoodTimelinePage() {
 
   const handleLogPreviousMealFlow = (logMethod: 'AI' | 'Manual') => {
     if (logMethod === 'AI') {
-      setIsSimplifiedAddFoodDialogOpen(true); 
+      setIsSimplifiedAddFoodDialogOpen(true);
     } else {
-      setIsAddFoodDialogOpen(true); 
+      setIsAddFoodDialogOpen(true);
     }
   };
 
@@ -662,7 +662,7 @@ export default function FoodTimelinePage() {
   const handleOpenLogPreviousMealDialog = () => {
     setIsCentralPopoverOpen(false);
     setEditingItem(null);
-    setSelectedLogDateForPreviousMeal(new Date()); 
+    setSelectedLogDateForPreviousMeal(new Date());
     setIsLogPreviousMealDialogOpen(true);
   };
 
@@ -680,7 +680,7 @@ export default function FoodTimelinePage() {
     timelineEntries.forEach(entry => {
       if (entry.entryType === 'food' || entry.entryType === 'manual_macro') {
         const entryDate = new Date(entry.timestamp);
-        if (entryDate >= today && entryDate < tomorrow) { 
+        if (entryDate >= today && entryDate < tomorrow) {
           totals.calories += entry.calories || 0;
           totals.protein += entry.protein || 0;
           totals.carbs += entry.carbs || 0;
@@ -736,7 +736,7 @@ export default function FoodTimelinePage() {
       };
       setLastGuestFoodItem(newFoodItem);
       toast({title: "Meal Noted (Locally)", description: "Sign in with Google to save and track!"});
-      setIsGuestSheetOpen(true); 
+      setIsGuestSheetOpen(true);
     } catch (error: any) {
         console.error('Guest AI meal processing failed:', error);
         toast({ title: "Error Noting Meal", description: "Could not analyze meal.", variant: 'destructive' });
@@ -755,7 +755,7 @@ export default function FoodTimelinePage() {
   const handleGuestRemoveFoodItem = (itemId: string) => {
      if (lastGuestFoodItem && lastGuestFoodItem.id === itemId) {
         setLastGuestFoodItem(null);
-        setIsGuestSheetOpen(false); 
+        setIsGuestSheetOpen(false);
      }
   };
 
@@ -771,7 +771,7 @@ export default function FoodTimelinePage() {
     );
   }
 
-  if (!authUser && !authLoading) { 
+  if (!authUser && !authLoading) {
     return (
       <>
         <GuestHomePage
@@ -779,16 +779,16 @@ export default function FoodTimelinePage() {
           lastLoggedItem={lastGuestFoodItem}
           isSheetOpen={isGuestSheetOpen}
           onSheetOpenChange={setIsGuestSheetOpen}
-          onSetFeedback={handleGuestSetFoodFeedback} 
-          onRemoveItem={handleGuestRemoveFoodItem}   
+          onSetFeedback={handleGuestSetFoodFeedback}
+          onRemoveItem={handleGuestRemoveFoodItem}
           isLoadingAiForItem={lastGuestFoodItem ? !!isLoadingAi[lastGuestFoodItem.id] : false}
         />
         <SimplifiedAddFoodDialog
             isOpen={isGuestLogFoodDialogOpen}
             onOpenChange={setIsGuestLogFoodDialogOpen}
-            onSubmitLog={(data, userDidOverrideMacros) => handleGuestProcessMealDescription(data)} 
+            onSubmitLog={(data, userDidOverrideMacros) => handleGuestProcessMealDescription(data)}
             isGuestView={true}
-            key={editingItem ? `edit-${editingItem.id}` : 'guest-new'} 
+            key={editingItem ? `edit-${editingItem.id}` : 'guest-new'}
         />
       </>
     );
@@ -810,9 +810,9 @@ export default function FoodTimelinePage() {
               aria-label="Open Actions Menu"
             >
             <img
-               src="/Gutcheck_logo.png" 
+               src="/Gutcheck_logo.png"
                alt="GutCheck Logo"
-               className="h-32 w-32 sm:h-36 sm:w-36 object-contain" 
+               className="h-36 w-36 object-contain"
                 />
             </Button>
           </PopoverTrigger>
@@ -820,7 +820,7 @@ export default function FoodTimelinePage() {
               side="top"
               align="center"
               className="w-auto bg-card text-card-foreground border-border shadow-xl rounded-xl p-0"
-              onInteractOutside={() => setIsCentralPopoverOpen(false)} 
+              onInteractOutside={() => setIsCentralPopoverOpen(false)}
           >
               <div className="flex flex-col gap-1 p-2">
                     <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleSimplifiedLogFoodClick}>
@@ -841,7 +841,7 @@ export default function FoodTimelinePage() {
           isOpen={isPremiumDashboardOpen}
           onOpenChange={setIsPremiumDashboardOpen}
           userProfile={userProfile}
-          timelineEntries={timelineEntries} 
+          timelineEntries={timelineEntries}
           dailyNutritionSummary={dailyNutritionSummary}
           isLoadingAi={isLoadingAi}
           onSetFeedback={handleSetFoodFeedback}
@@ -852,7 +852,7 @@ export default function FoodTimelinePage() {
        <div></div>
       </PremiumDashboardSheet>
 
-      {!isPremiumDashboardOpen && ( 
+      {!isPremiumDashboardOpen && (
           <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4">
               <Button
                   variant="ghost"
@@ -897,7 +897,7 @@ export default function FoodTimelinePage() {
             }
             : { mealDescription: '' }}
         initialMacrosOverridden={editingItem?.macrosOverridden || false}
-        isGuestView={false} 
+        isGuestView={false}
         key={editingItem?.id ? `edit-simplified-${editingItem.id}` : 'new-simplified'}
       />
       <AddFoodItemDialog
