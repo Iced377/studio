@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -8,12 +9,11 @@ import Navbar from "@/components/shared/Navbar"
 import type { TimelineEntry, UserProfile, DailyNutritionSummary, LoggedFoodItem, MicronutrientDetail } from '@/types';
 import TimelineFoodCard from '@/components/food-logging/TimelineFoodCard';
 import TimelineSymptomCard from '@/components/food-logging/TimelineSymptomCard';
-import { Flame, Beef, Wheat, Droplet, Utensils, Check, Atom, Sparkles, Bone, Nut, Citrus, Carrot, Leaf, Milk, Sun, Brain, Activity, Zap as Bolt } from 'lucide-react'; // Added more specific icons
+import { Flame, Beef, Wheat, Droplet, Utensils, Check, Atom, Sparkles, Bone, Nut, Citrus, Carrot, Leaf, Milk, Sun, Brain, Activity, Zap as Bolt } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { startOfDay, endOfDay } from 'date-fns';
 
-// Expanded mapping for micronutrient icons
 const LucideIconsForSummary: { [key: string]: React.ElementType } = {
   Atom, Sparkles, Bone, Nut, Citrus, Carrot, BeefIcon: Beef, LeafIcon: Leaf, MilkIcon: Milk, Sun, Brain, Activity, Bolt,
   Iron: Atom, 
@@ -21,11 +21,10 @@ const LucideIconsForSummary: { [key: string]: React.ElementType } = {
   VitaminC: Citrus,
   VitaminD: Sun,
   VitaminB12: Brain,
-  Potassium: Activity, // Or a banana icon if available/custom
-  Magnesium: Bolt, // Or Leaf for leafy greens
-  Zinc: Sparkles, // Generic
+  Potassium: Activity,
+  Magnesium: Bolt, 
+  Zinc: Sparkles, 
   Folate: Leaf,
-  // Add more as needed based on AI suggestions
 };
 
 
@@ -133,14 +132,14 @@ export default function PremiumDashboardSheet({
                   <p className="text-xs text-muted-foreground">FAT</p>
                 </div>
                 {achievedMicronutrients.length > 0 && (
-                  <div className="flex items-center text-xs text-muted-foreground gap-1.5">
+                  <div className="text-sm font-semibold text-foreground mt-1 flex items-center flex-wrap gap-x-2 gap-y-1">
                      <span className="font-medium">Micronutrients Target Met:</span>
                       {achievedMicronutrients.map(micro => {
                         const IconComponent = micro.iconName && LucideIconsForSummary[micro.iconName] ? LucideIconsForSummary[micro.iconName] : (LucideIconsForSummary[micro.name] || Atom);
                         return (
                           <Popover key={micro.name}>
                             <PopoverTrigger asChild>
-                              <div className="relative p-0.5 cursor-pointer">
+                              <div className="relative p-0.5 cursor-pointer flex items-center">
                                 <IconComponent className="h-4.5 w-4.5 text-green-500" />
                                 <Check className="absolute -bottom-0.5 -right-0.5 h-3 w-3 text-green-600 bg-background rounded-full p-0.5" />
                               </div>

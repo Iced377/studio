@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -79,7 +80,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
     <header className={cn(
         headerBaseClasses,
         isGuest ? guestHeaderClasses : registeredUserHeaderClasses,
-        !isGuest && "border-b border-border/50"
+        !isGuest && !isGuest && "border-b border-border/50" 
     )}>
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <Link href="/" className="mr-auto flex items-center space-x-1.5">
@@ -88,9 +89,9 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
               <Image
                 src="/Gutcheck_logo.png"
                 alt="GutCheck Logo"
-                width={24} // Slightly smaller to fit in circle
+                width={24}
                 height={24}
-                className="object-contain filter brightness-0 invert" // Invert for dark logo on light circle
+                className="object-contain filter brightness-0 invert" 
               />
             </div>
           ) : (
@@ -102,7 +103,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
               className={cn(
                 "object-contain",
                 logoIconBaseClasses,
-                (isGuest || !isDarkMode) ? "" : "filter brightness-0 invert"
+                (isGuest || isDarkMode) ? "filter brightness-0 invert" : "" 
               )}
             />
           )}
@@ -118,19 +119,22 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
 
         <div className="flex items-center space-x-1 sm:space-x-1.5">
           {isGuest && guestButtonScheme ? (
-            <Button
-              onClick={() => router.push('/login')}
-              className={cn(
-                "h-9 px-4 text-white", 
-                guestButtonScheme.base, 
-                guestButtonScheme.border, 
-                guestButtonScheme.hover
-              )}
-            >
-              <UserPlus className="mr-2 h-5 w-5" />
-              Sign In / Sign Up
-            </Button>
-          ) : isGuest ? ( // Fallback if guestButtonScheme is not provided
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <span className="hidden sm:inline text-sm text-foreground font-medium">Unlock your gut's secrets! ✨</span>
+              <Button
+                onClick={() => router.push('/login')}
+                className={cn(
+                  "h-9 px-3 sm:px-4 text-white text-xs sm:text-sm", 
+                  guestButtonScheme.base, 
+                  guestButtonScheme.border, 
+                  guestButtonScheme.hover
+                )}
+              >
+                <UserPlus className="mr-1.5 h-4 sm:h-5 w-4 sm:w-5" />
+                Sign In / Sign Up
+              </Button>
+            </div>
+          ) : isGuest ? ( 
              <Button
               onClick={() => router.push('/login')}
               variant="default"
@@ -154,7 +158,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
               {!loading && user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Button variant="ghost" className="relative h-9 w-9 rounded-full border-2 border-black dark:border-white p-0">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
                         <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
