@@ -20,7 +20,7 @@ interface GuestButtonScheme {
 }
 
 const lightModeButtonColors: GuestButtonScheme[] = [
-  { id: 'sky', base: 'bg-sky-500', border: 'border-sky-700', hover: 'hover:bg-sky-600', focusRing: 'focus:ring-sky-500', glowRgb: '14, 165, 233' }, // Updated for sky-500 (#0ea5e9)
+  { id: 'sky', base: 'bg-sky-500', border: 'border-sky-700', hover: 'hover:bg-sky-600', focusRing: 'focus:ring-sky-500', glowRgb: '14, 165, 233' },
   { id: 'amber', base: 'bg-amber-500', border: 'border-amber-700', hover: 'hover:bg-amber-600', focusRing: 'focus:ring-amber-500', glowRgb: '245, 158, 11' },
   { id: 'emerald', base: 'bg-emerald-500', border: 'border-emerald-700', hover: 'hover:bg-emerald-600', focusRing: 'focus:ring-emerald-500', glowRgb: '16, 185, 129' },
   { id: 'rose', base: 'bg-rose-500', border: 'border-rose-700', hover: 'hover:bg-rose-600', focusRing: 'focus:ring-rose-500', glowRgb: '244, 63, 94' },
@@ -92,6 +92,7 @@ export default function GuestHomePage({
               width={144}
               height={144}
               className="object-contain"
+              priority
             />
           </button>
           <span className="text-2xl sm:text-3xl font-semibold text-foreground font-headline">

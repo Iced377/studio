@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User } from 'lucide-react'; // Added User icon
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -70,17 +70,19 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   };
 
   const headerBaseClasses = "sticky top-0 z-50 w-full";
-  const guestHeaderClasses = "bg-background text-foreground";
-  const registeredUserHeaderClasses = !isDarkMode ? "bg-muted text-foreground" : "bg-background text-foreground";
+  const guestHeaderClasses = "bg-background text-foreground"; // No bottom border for guest
+  const registeredUserHeaderClasses = cn(
+    !isDarkMode ? "bg-muted text-foreground" : "bg-background text-foreground",
+    "border-b border-border/50"
+  );
 
-  const logoIconBaseClasses = "h-7 w-7";
+
   const appNameBaseClasses = "font-bold font-headline sm:inline-block text-xl";
 
   return (
     <header className={cn(
         headerBaseClasses,
-        isGuest ? guestHeaderClasses : registeredUserHeaderClasses,
-        !isGuest && "border-b border-border/50"
+        isGuest ? guestHeaderClasses : registeredUserHeaderClasses
     )}>
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <Link href="/" className="mr-auto flex items-center space-x-1.5">
@@ -92,6 +94,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                 width={24}
                 height={24}
                 className="object-contain filter brightness-0 invert"
+                priority
               />
             </div>
           ) : (
@@ -100,11 +103,8 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
               alt="GutCheck Logo"
               width={28}
               height={28}
-              className={cn(
-                "object-contain",
-                logoIconBaseClasses,
-                (isGuest || isDarkMode) ? "filter brightness-0 invert" : ""
-              )}
+              className="object-contain filter brightness-0 invert"
+              priority
             />
           )}
           {!isGuest && (
