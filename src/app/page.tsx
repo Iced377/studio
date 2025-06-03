@@ -92,7 +92,7 @@ export default function FoodTimelinePage() {
 
 
   const [symptomDialogContext, setSymptomDialogContext] = useState<{ foodItemIds?: string[] }>({});
-  // const [aiInsights, setAiInsights] = useState<SymptomCorrelationOutput['insights']>([]); // AI insights might be less useful with 2-day data
+  // const [aiInsights, setAiInsights] = useState<SymptomCorrelationOutput['insights']>([]); // AI insights depend on timeline entries
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [isPremiumDashboardOpen, setIsPremiumDashboardOpen] = useState(false); // Controls the main dashboard sheet
   const [isCentralPopoverOpen, setIsCentralPopoverOpen] = useState(false);
@@ -148,7 +148,7 @@ export default function FoodTimelinePage() {
             const twoDaysAgo = new Date();
             twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
             q = query(timelineEntriesColRef, orderBy('timestamp', 'desc'), where('timestamp', '>=', Timestamp.fromDate(twoDaysAgo)));
-             toast({ title: "Data Retention Notice", description: "As a free user, your data is retained for 2 days. Upgrade to premium for unlimited history.", variant: "default", duration: 10000 });
+             toast({ title: "Data Retention Notice", description: "As a free user, your data is retained for 2 days.", variant: "default", duration: 10000 });
           }
 
           const querySnapshot = await getDocs(q);
@@ -661,27 +661,6 @@ export default function FoodTimelinePage() {
     setIsLogPreviousMealDialogOpen(true);
   };
 
-  const handleSimulateUpgrade = async () => {
-     if (authUser && authUser.uid !== 'guest-user') {
-        setUserProfile(prev => ({ ...prev, premium: true }));
-        const userDocRef = doc(db, 'users', authUser.uid);
-        try {
-            await updateDoc(userDocRef, { premium: true });
-            toast({ title: "Upgrade Successful!", description: "You are now a Premium User! All data will be retained." });
-            // Optionally re-fetch data to get full history
-            // This would require recalling the data fetching logic from useEffect or a dedicated function
-        } catch (error) {
-            console.error("Error updating premium status in Firestore:", error);
-            toast({ title: "Upgrade Error", description: "Could not save premium status to cloud.", variant: "destructive" });
-            setUserProfile(prev => ({ ...prev, premium: false })); // Revert on error
-        }
-    } else if (!authUser) {
-        router.push('/login');
-        toast({title: "Login Required", description: "Please login to upgrade to premium."})
-    }
-  };
-
-
   const isAnyItemLoadingAi = Object.values(isLoadingAi).some(loading => loading);
 
   const dailyNutritionSummary = useMemo<DailyNutritionSummary>(() => {
@@ -868,9 +847,6 @@ export default function FoodTimelinePage() {
           onRemoveTimelineEntry={handleRemoveTimelineEntry}
           onLogSymptomsForFood={openSymptomDialog}
           onEditIngredients={handleEditTimelineEntry}
-          // onUpgradeClick is removed as upgrading is now about data retention, not features.
-          // A separate "Account/Subscription" page would handle upgrades.
-          // For simulation, you can add a button elsewhere if needed to toggle premium status.
       >
        <div></div>
       </PremiumDashboardSheet>
@@ -901,15 +877,6 @@ export default function FoodTimelinePage() {
               </Button>
           </div>
       )}
-      {/* Button to simulate upgrade for testing data retention */}
-      {authUser && !userProfile.premium && !isPremiumDashboardOpen && (
-        <div className="absolute bottom-16 left-1/2 -translate-x-1/2">
-          <Button onClick={handleSimulateUpgrade} variant="secondary" size="sm">
-            Simulate Upgrade (Retain All Data)
-          </Button>
-        </div>
-      )}
-
 
       {/* Dialogs remain available */}
       <SimplifiedAddFoodDialog

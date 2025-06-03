@@ -14,13 +14,16 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(true); // Default to dark mode
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false); // Default to light mode
 
   useEffect(() => {
     // Removed localStorage logic for 'app-theme'
     const storedDarkMode = localStorage.getItem('app-dark-mode');
     if (storedDarkMode !== null) {
       setIsDarkMode(storedDarkMode === 'true');
+    } else {
+      // If no stored preference, apply the default (light mode)
+      localStorage.setItem('app-dark-mode', 'false');
     }
   }, []);
 

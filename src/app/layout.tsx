@@ -10,7 +10,20 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
   title: 'GutCheck',
-  description: 'Your AI companion for managing IBS through smart food logging.',
+  description: 'Your Ai companion for easy food logging and meaningful insights.',
+  openGraph: {
+    title: 'GutCheck',
+    description: 'Your Ai companion for easy food logging and meaningful insights.',
+    images: [
+      {
+        url: '/Gutcheck_logo.png', // Assuming Gutcheck_logo.png is in the public folder
+        width: 512, // Provide appropriate width
+        height: 512, // Provide appropriate height
+        alt: 'GutCheck Logo',
+      },
+    ],
+    type: 'website',
+  },
 };
 
 export default function RootLayout({
@@ -19,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
