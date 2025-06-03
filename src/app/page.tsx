@@ -868,7 +868,7 @@ export default function FoodTimelinePage() {
           timelineEntries={timelineEntries} // This will be filtered for free users
           dailyNutritionSummary={dailyNutritionSummary}
           isLoadingAi={isLoadingAi}
-          onSetFeedback={onSetFeedback}
+          onSetFeedback={handleSetFoodFeedback}
           onRemoveTimelineEntry={handleRemoveTimelineEntry}
           onLogSymptomsForFood={openSymptomDialog}
           onEditIngredients={handleEditTimelineEntry}
@@ -976,3 +976,6 @@ export default function FoodTimelinePage() {
     </div>
   );
 }
+
+
+    
