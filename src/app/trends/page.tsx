@@ -4,10 +4,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { db } from '@/config/firebase';
-import { collection, query, where, orderBy, getDocs, Timestamp } from 'firebase/firestore';
-import type { TimelineEntry, LoggedFoodItem, SymptomLog, TimeRange, MacroPoint, CaloriePoint, SafetyPoint, SymptomFrequency, MicronutrientDetail, MicronutrientAchievement } from '@/types';
+import { collection, query, where, orderBy, getDocs, Timestamp, doc, getDoc } from 'firebase/firestore'; // Added doc, getDoc
+import type { TimelineEntry, LoggedFoodItem, SymptomLog, TimeRange, MacroPoint, CaloriePoint, SafetyPoint, SymptomFrequency, MicronutrientDetail, MicronutrientAchievement, UserProfile } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useToast } from '@/hooks/use-toast'; // Added toast
 
 import Navbar from '@/components/shared/Navbar';
 import TimeRangeToggle from '@/components/trends/TimeRangeToggle';
@@ -15,15 +16,17 @@ import DailyMacrosTrendChart from '@/components/trends/DailyMacrosTrendChart';
 import DailyCaloriesTrendChart from '@/components/trends/DailyCaloriesTrendChart';
 import LoggedSafetyTrendChart from '@/components/trends/LoggedSafetyTrendChart';
 import SymptomOccurrenceChart from '@/components/trends/SymptomOccurrenceChart';
-import MicronutrientAchievementList from '@/components/trends/MicronutrientAchievementList'; // New import
+import MicronutrientAchievementList from '@/components/trends/MicronutrientAchievementList'; 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, AlertTriangle, BarChart3, Award } from 'lucide-react'; // Added Award for new section
+import { Loader2, AlertTriangle, BarChart3, Award } from 'lucide-react'; 
 import { subDays, subMonths, subYears, formatISO, startOfDay, endOfDay, parseISO } from 'date-fns';
 
 export default function TrendsPage() {
   const { user, loading: authLoading } = useAuth();
   const { theme: currentTheme, isDarkMode } = useTheme();
+  const { toast } = useToast(); // Initialize toast
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null); // Store user profile for premium status
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('30D');
@@ -33,7 +36,6 @@ export default function TrendsPage() {
     if (authLoading) return;
     if (!user) {
       setIsLoadingData(false);
-      // Optionally redirect to login or show a message
       return;
     }
 
@@ -41,8 +43,34 @@ export default function TrendsPage() {
       setIsLoadingData(true);
       setError(null);
       try {
+        // Fetch user profile to check premium status
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        let isPremium = false;
+        if (userDocSnap.exists()) {
+          const profileData = userDocSnap.data() as UserProfile;
+          setUserProfile(profileData);
+          isPremium = profileData.premium || false;
+        } else {
+          // Handle case where profile might not exist yet, assume not premium
+          setUserProfile({ uid: user.uid, email: user.email, displayName: user.displayName, safeFoods: [], premium: false });
+        }
+
         const entriesColRef = collection(db, 'users', user.uid, 'timelineEntries');
-        const q = query(entriesColRef, orderBy('timestamp', 'desc'));
+        let q;
+
+        if (isPremium) {
+          q = query(entriesColRef, orderBy('timestamp', 'desc'));
+        } else {
+          const twoDaysAgo = new Date();
+          twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+          q = query(entriesColRef, orderBy('timestamp', 'desc'), where('timestamp', '>=', Timestamp.fromDate(twoDaysAgo)));
+          // Toast only if on trends page and free user, not on every data load
+          if (pathname === '/trends') { // Assuming pathname is available or manage this differently
+             toast({ title: "Data Retention Notice", description: "As a free user, your trends are based on the last 2 days of data. Upgrade for full history.", variant: "default", duration: 10000 });
+          }
+        }
+        
         const querySnapshot = await getDocs(q);
         const fetchedEntries: TimelineEntry[] = querySnapshot.docs.map(docSnap => {
           const data = docSnap.data();
@@ -62,10 +90,16 @@ export default function TrendsPage() {
     };
 
     fetchData();
-  }, [user, authLoading]);
+  }, [user, authLoading, toast]); // Added toast to dependency array
+
+  // To use pathname, you'd need to import it from next/navigation
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+
 
   const filteredEntries = useMemo(() => {
     if (timelineEntries.length === 0) return [];
+    // Data is already filtered by 2 days for free users at fetch time.
+    // This filter applies the selectedTimeRange on top of that.
     const now = new Date();
     let startDate: Date;
 
@@ -87,7 +121,7 @@ export default function TrendsPage() {
         break;
       case 'ALL':
       default:
-        return timelineEntries;
+        return timelineEntries; // Already filtered by 2 days for free users if applicable
     }
     
     const endDate = selectedTimeRange === '1D' ? endOfDay(now) : now;
@@ -159,7 +193,7 @@ export default function TrendsPage() {
 
   const micronutrientAchievementData = useMemo<MicronutrientAchievement[]>(() => {
     const foodEntries = filteredEntries.filter(e => e.entryType === 'food' || e.entryType === 'manual_macro') as LoggedFoodItem[];
-    const dailyMicronutrientTotals: Record<string, Record<string, { dv: number, iconName?: string }>> = {}; // { 'date': { 'Iron': { dv: 70, iconName: 'Bean' } } }
+    const dailyMicronutrientTotals: Record<string, Record<string, { dv: number, iconName?: string }>> = {}; 
 
     foodEntries.forEach(entry => {
       const dayKey = formatISO(new Date(entry.timestamp), { representation: 'date' });
@@ -255,6 +289,7 @@ export default function TrendsPage() {
           <h1 className="text-3xl font-bold mb-2 text-foreground">Trends Dashboard</h1>
           <p className="text-muted-foreground">
             Not enough data yet. Start logging your meals and symptoms to see your trends over time!
+            {!userProfile?.premium && " (Free users: trends based on last 2 days of data)"}
           </p>
         </div>
       </div>
@@ -271,6 +306,11 @@ export default function TrendsPage() {
           <div className="mb-8">
             <TimeRangeToggle selectedRange={selectedTimeRange} onRangeChange={setSelectedTimeRange} />
           </div>
+           {!userProfile?.premium && (
+                <p className="text-sm text-center text-muted-foreground mb-6">
+                Free users: Trends are based on data from the last 2 days. <Link href="/account/subscription" className="underline text-primary">Upgrade</Link> for full historical data. (Note: Subscription page not implemented)
+                </p>
+            )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="bg-card shadow-lg border-border">
@@ -326,3 +366,11 @@ export default function TrendsPage() {
     </div>
   );
 }
+
+// Helper to get pathname for toast display logic, ensure it's only client-side
+const getPathname = () => {
+  if (typeof window !== "undefined") {
+    return window.location.pathname;
+  }
+  return "";
+};

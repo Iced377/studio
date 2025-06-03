@@ -5,10 +5,10 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, Utensils, PlusCircle, ListChecks, Brain, Activity, Info, TrendingUp, SmilePlus, Zap, Pencil, CalendarDays, Edit3, ChevronUp } from 'lucide-react';
+import { Loader2, PlusCircle, ListChecks, Pencil, CalendarDays, Edit3, ChevronUp } from 'lucide-react';
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
-import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow';
+// import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow'; // Symptom correlation might be less effective with 2-day data for free users. Consider implications.
 import { processMealDescription, type ProcessMealDescriptionOutput } from '@/ai/flows/process-meal-description-flow';
 
 
@@ -27,23 +27,16 @@ import {
   Timestamp,
   query,
   orderBy,
+  where, // Added for date filtering
 } from 'firebase/firestore';
 
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import AddFoodItemDialog, { type ManualEntryFormValues } from '@/components/food-logging/AddFoodItemDialog';
 import SimplifiedAddFoodDialog, { type SimplifiedFoodLogFormValues } from '@/components/food-logging/SimplifiedAddFoodDialog';
-import TimelineFoodCard from '@/components/food-logging/TimelineFoodCard';
-import TimelineSymptomCard from '@/components/food-logging/TimelineSymptomCard';
 import SymptomLoggingDialog from '@/components/food-logging/SymptomLoggingDialog';
 import AddManualMacroEntryDialog, { type ManualMacroFormValues } from '@/components/food-logging/AddManualMacroEntryDialog';
 import LogPreviousMealDialog from '@/components/food-logging/LogPreviousMealDialog';
-import InsightCard from '@/components/insights/InsightCard';
-import DailyTotalsCard from '@/components/insights/DailyTotalsCard';
-import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder';
-import InterstitialAdPlaceholder from '@/components/ads/InterstitialAdPlaceholder';
 import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet';
 import Navbar from '@/components/shared/Navbar';
 import GuestHomePage from '@/components/guest/GuestHomePage';
@@ -79,7 +72,6 @@ const initialGuestProfile: UserProfile = {
   premium: false,
 };
 
-type PendingAction = 'logFood' | 'simplifiedLogFood' | 'logPreviousMeal_AI' | 'logPreviousMeal_Manual';
 
 export default function FoodTimelinePage() {
   const { toast } = useToast();
@@ -100,11 +92,9 @@ export default function FoodTimelinePage() {
 
 
   const [symptomDialogContext, setSymptomDialogContext] = useState<{ foodItemIds?: string[] }>({});
-  const [aiInsights, setAiInsights] = useState<SymptomCorrelationOutput['insights']>([]);
-  const [showInterstitialAd, setShowInterstitialAd] = useState(false);
+  // const [aiInsights, setAiInsights] = useState<SymptomCorrelationOutput['insights']>([]); // AI insights might be less useful with 2-day data
   const [isDataLoading, setIsDataLoading] = useState(true);
-  const [pendingActionAfterInterstitial, setPendingActionAfterInterstitial] = useState<PendingAction | null>(null);
-  const [isPremiumDashboardOpen, setIsPremiumDashboardOpen] = useState(false);
+  const [isPremiumDashboardOpen, setIsPremiumDashboardOpen] = useState(false); // Controls the main dashboard sheet
   const [isCentralPopoverOpen, setIsCentralPopoverOpen] = useState(false);
 
   const [lastGuestFoodItem, setLastGuestFoodItem] = useState<LoggedFoodItem | null>(null);
@@ -112,10 +102,6 @@ export default function FoodTimelinePage() {
   const [isGuestSheetOpen, setIsGuestSheetOpen] = useState(false);
 
   const [editingItem, setEditingItem] = useState<LoggedFoodItem | null>(null);
-
-
-  const bannerAdUnitId = process.env.NEXT_PUBLIC_BANNER_AD_UNIT_ID;
-  const interstitialAdUnitId = process.env.NEXT_PUBLIC_INTERSTITIAL_AD_UNIT_ID;
 
  useEffect(() => {
     const setupUser = async () => {
@@ -131,14 +117,16 @@ export default function FoodTimelinePage() {
 
         try {
           const userDocSnap = await getDoc(userDocRef);
+          let currentIsPremium = false;
           if (userDocSnap.exists()) {
             const data = userDocSnap.data();
+            currentIsPremium = data.premium || false;
             setUserProfile({
               uid: authUser.uid,
               email: authUser.email,
               displayName: authUser.displayName,
               safeFoods: data.safeFoods || [],
-              premium: data.premium || false,
+              premium: currentIsPremium,
             });
           } else {
             const newUserProfile: UserProfile = {
@@ -146,13 +134,23 @@ export default function FoodTimelinePage() {
               email: authUser.email,
               displayName: authUser.displayName,
               safeFoods: [],
-              premium: false,
+              premium: false, // New users start as free
             };
             await setDoc(userDocRef, newUserProfile);
             setUserProfile(newUserProfile);
+            currentIsPremium = false;
           }
 
-          const q = query(timelineEntriesColRef, orderBy('timestamp', 'desc'));
+          let q;
+          if (currentIsPremium) {
+            q = query(timelineEntriesColRef, orderBy('timestamp', 'desc'));
+          } else {
+            const twoDaysAgo = new Date();
+            twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+            q = query(timelineEntriesColRef, orderBy('timestamp', 'desc'), where('timestamp', '>=', Timestamp.fromDate(twoDaysAgo)));
+             toast({ title: "Data Retention Notice", description: "As a free user, your data is retained for 2 days. Upgrade to premium for unlimited history.", variant: "default", duration: 10000 });
+          }
+
           const querySnapshot = await getDocs(q);
           const fetchedEntries: TimelineEntry[] = querySnapshot.docs.map(docSnap => {
             const data = docSnap.data();
@@ -189,7 +187,7 @@ export default function FoodTimelinePage() {
              email: authUser.email,
              displayName: authUser.displayName,
              safeFoods: prev.uid === authUser.uid ? prev.safeFoods : [],
-             premium: prev.uid === authUser.uid ? prev.premium : false,
+             premium: prev.uid === authUser.uid ? prev.premium : false, // Use current or fetched premium status
            }));
         } finally {
             setIsDataLoading(false);
@@ -197,7 +195,7 @@ export default function FoodTimelinePage() {
       } else {
         setUserProfile(initialGuestProfile);
         setTimelineEntries([]);
-        setAiInsights([]);
+        // setAiInsights([]); // AI insights depend on timeline entries
         setLastGuestFoodItem(null);
         setIsDataLoading(false);
       }
@@ -331,7 +329,7 @@ export default function FoodTimelinePage() {
 
   const handleSubmitMealDescription = async (
     formData: SimplifiedFoodLogFormValues,
-    userDidOverrideMacros: boolean, // Added parameter
+    userDidOverrideMacros: boolean, 
     customTimestamp?: Date
   ) => {
     const currentItemId = editingItem ? editingItem.id : `food-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -406,7 +404,7 @@ export default function FoodTimelinePage() {
         fat: finalFat,
         entryType: 'food',
         userFeedback: editingItem ? editingItem.userFeedback : null,
-        macrosOverridden: userDidOverrideMacros, // Set based on checkbox
+        macrosOverridden: userDidOverrideMacros, 
       };
 
       if (authUser && authUser.uid !== 'guest-user') {
@@ -520,7 +518,12 @@ export default function FoodTimelinePage() {
     if (itemToEdit.entryType === 'manual_macro') {
       setIsAddManualMacroDialogOpen(true);
     } else if (itemToEdit.entryType === 'food') {
-      setIsSimplifiedAddFoodDialogOpen(true);
+      // Check if it was logged via simplified AI or manual detailed
+      if (itemToEdit.sourceDescription) { // Likely from simplified AI
+        setIsSimplifiedAddFoodDialogOpen(true);
+      } else { // Likely from manual detailed
+        setIsAddFoodDialogOpen(true);
+      }
     }
   };
 
@@ -543,7 +546,7 @@ export default function FoodTimelinePage() {
                 ...logToSave,
                 timestamp: Timestamp.fromDate(newSymptomLog.timestamp)
             });
-            newSymptomLog.id = docRef.id;
+            newSymptomLog.id = docRef.id; // Update with Firestore-generated ID
             toast({ title: "Symptoms Logged & Saved", description: "Your symptoms have been recorded." });
         } catch (error: any) {
             console.error("Error saving symptom log to Firestore:", error);
@@ -580,7 +583,7 @@ export default function FoodTimelinePage() {
         console.error("Error saving food feedback to Firestore:", error);
         setTimelineEntries(prevEntries => {
             const newEntries = [...prevEntries];
-            newEntries[itemIndex] = originalItem;
+            newEntries[itemIndex] = originalItem; // Revert on error
             return newEntries;
         });
         toast({ title: 'Feedback Error', description: 'Could not save feedback to cloud.', variant: 'destructive' });
@@ -606,7 +609,7 @@ export default function FoodTimelinePage() {
             toast({ title: "Entry Removed", description: "The timeline entry has been deleted from cloud." });
         } catch (error) {
             console.error("Error removing timeline entry from Firestore:", error);
-            if (entryToRemove) addTimelineEntry(entryToRemove);
+            if (entryToRemove) addTimelineEntry(entryToRemove); // Re-add on error
             toast({ title: "Error Removing Entry", description: "Could not remove entry from cloud. Removed locally.", variant: "destructive" });
         }
     } else {
@@ -621,38 +624,31 @@ export default function FoodTimelinePage() {
   };
 
 
-  const handleLogFoodClick = (isForPreviousMeal = false) => {
+  const handleLogFoodClick = () => { // Used for manual detailed entry
     setIsCentralPopoverOpen(false);
     setEditingItem(null);
-    if (!isForPreviousMeal && authUser && authUser.uid !== 'guest-user' && !userProfile.premium) {
-      setPendingActionAfterInterstitial('logFood');
-      setShowInterstitialAd(true);
-    } else {
-      setIsAddFoodDialogOpen(true);
-    }
+    setIsAddFoodDialogOpen(true);
   };
 
-  const handleSimplifiedLogFoodClick = (isForPreviousMeal = false) => {
+  const handleSimplifiedLogFoodClick = () => { // Used for AI description entry
     setIsCentralPopoverOpen(false);
     setEditingItem(null);
-    if (!isForPreviousMeal && authUser && authUser.uid !== 'guest-user' && !userProfile.premium) {
-      setPendingActionAfterInterstitial('simplifiedLogFood');
-      setShowInterstitialAd(true);
-    } else {
-      setIsSimplifiedAddFoodDialogOpen(true);
-    }
+    setIsSimplifiedAddFoodDialogOpen(true);
   };
 
   const handleLogPreviousMealFlow = (logMethod: 'AI' | 'Manual') => {
+    // This function is called from LogPreviousMealDialog.
+    // It will then open the appropriate dialog (Simplified for AI, AddFoodItem for Manual)
+    // with the selectedLogDateForPreviousMeal already set.
     if (logMethod === 'AI') {
-      handleSimplifiedLogFoodClick(true);
+      setIsSimplifiedAddFoodDialogOpen(true); // Open SimplifiedAddFoodDialog for AI processing
     } else {
-      handleLogFoodClick(true);
+      setIsAddFoodDialogOpen(true); // Open AddFoodItemDialog for manual entry
     }
   };
 
 
-  const handleAddManualMacroClick = (isForPreviousMeal = false) => {
+  const handleAddManualMacroClick = () => {
     setIsCentralPopoverOpen(false);
     setEditingItem(null);
     setIsAddManualMacroDialogOpen(true);
@@ -661,28 +657,23 @@ export default function FoodTimelinePage() {
   const handleOpenLogPreviousMealDialog = () => {
     setIsCentralPopoverOpen(false);
     setEditingItem(null);
-    setSelectedLogDateForPreviousMeal(new Date());
+    setSelectedLogDateForPreviousMeal(new Date()); // Set a default, user can change in dialog
     setIsLogPreviousMealDialogOpen(true);
   };
 
-
-  useEffect(() => {
-    if (timelineEntries.length === 0 && !isDataLoading && authUser && !authLoading) {
-        setAiInsights([]);
-    }
-  }, [timelineEntries, isDataLoading, authUser, authLoading]);
-
-  const handleUpgradeToPremium = async () => {
-    if (authUser && authUser.uid !== 'guest-user') {
+  const handleSimulateUpgrade = async () => {
+     if (authUser && authUser.uid !== 'guest-user') {
         setUserProfile(prev => ({ ...prev, premium: true }));
         const userDocRef = doc(db, 'users', authUser.uid);
         try {
             await updateDoc(userDocRef, { premium: true });
-            toast({ title: "Upgrade Successful!", description: "You are now a Premium User!" });
+            toast({ title: "Upgrade Successful!", description: "You are now a Premium User! All data will be retained." });
+            // Optionally re-fetch data to get full history
+            // This would require recalling the data fetching logic from useEffect or a dedicated function
         } catch (error) {
             console.error("Error updating premium status in Firestore:", error);
             toast({ title: "Upgrade Error", description: "Could not save premium status to cloud.", variant: "destructive" });
-            setUserProfile(prev => ({ ...prev, premium: false }));
+            setUserProfile(prev => ({ ...prev, premium: false })); // Revert on error
         }
     } else if (!authUser) {
         router.push('/login');
@@ -690,16 +681,6 @@ export default function FoodTimelinePage() {
     }
   };
 
-  const handleInterstitialClosed = (continued: boolean) => {
-    setShowInterstitialAd(false);
-    if (continued && pendingActionAfterInterstitial) {
-        switch(pendingActionAfterInterstitial) {
-            case 'logFood': setIsAddFoodDialogOpen(true); break;
-            case 'simplifiedLogFood': setIsSimplifiedAddFoodDialogOpen(true); break;
-        }
-    }
-    setPendingActionAfterInterstitial(null);
-  };
 
   const isAnyItemLoadingAi = Object.values(isLoadingAi).some(loading => loading);
 
@@ -712,10 +693,11 @@ export default function FoodTimelinePage() {
 
     let totals: DailyNutritionSummary = { calories: 0, protein: 0, carbs: 0, fat: 0 };
 
+    // timelineEntries for free users is already filtered to last 2 days
     timelineEntries.forEach(entry => {
       if (entry.entryType === 'food' || entry.entryType === 'manual_macro') {
         const entryDate = new Date(entry.timestamp);
-        if (entryDate >= today && entryDate < tomorrow) {
+        if (entryDate >= today && entryDate < tomorrow) { // Ensure we only sum for *today*
           totals.calories += entry.calories || 0;
           totals.protein += entry.protein || 0;
           totals.carbs += entry.carbs || 0;
@@ -771,7 +753,7 @@ export default function FoodTimelinePage() {
       };
       setLastGuestFoodItem(newFoodItem);
       toast({title: "Meal Noted (Locally)", description: "Sign in with Google to save and track!"});
-      setIsGuestSheetOpen(true);
+      setIsGuestSheetOpen(true); // Open the sheet to show the logged item
     } catch (error: any) {
         console.error('Guest AI meal processing failed:', error);
         toast({ title: "Error Noting Meal", description: "Could not analyze meal.", variant: 'destructive' });
@@ -790,7 +772,7 @@ export default function FoodTimelinePage() {
   const handleGuestRemoveFoodItem = (itemId: string) => {
      if (lastGuestFoodItem && lastGuestFoodItem.id === itemId) {
         setLastGuestFoodItem(null);
-        setIsGuestSheetOpen(false);
+        setIsGuestSheetOpen(false); // Close sheet if item is removed
      }
   };
 
@@ -806,7 +788,7 @@ export default function FoodTimelinePage() {
     );
   }
 
-  if (!authUser && !authLoading) {
+  if (!authUser && !authLoading) { // Guest View
     return (
       <>
         <GuestHomePage
@@ -814,412 +796,191 @@ export default function FoodTimelinePage() {
           lastLoggedItem={lastGuestFoodItem}
           isSheetOpen={isGuestSheetOpen}
           onSheetOpenChange={setIsGuestSheetOpen}
-          onSetFeedback={handleGuestSetFoodFeedback}
-          onRemoveItem={handleGuestRemoveFoodItem}
+          onSetFeedback={handleGuestSetFoodFeedback} // Pass feedback handler
+          onRemoveItem={handleGuestRemoveFoodItem}   // Pass remove handler
           isLoadingAiForItem={lastGuestFoodItem ? !!isLoadingAi[lastGuestFoodItem.id] : false}
         />
         <SimplifiedAddFoodDialog
             isOpen={isGuestLogFoodDialogOpen}
             onOpenChange={setIsGuestLogFoodDialogOpen}
-            onSubmitLog={(data, userDidOverrideMacros) => handleGuestProcessMealDescription(data)}
+            onSubmitLog={(data, userDidOverrideMacros) => handleGuestProcessMealDescription(data)} // userDidOverrideMacros is false for guest
             isGuestView={true}
-            key={editingItem ? `edit-${editingItem.id}` : 'guest-new'}
+            key={editingItem ? `edit-${editingItem.id}` : 'guest-new'} // Ensure key for guest
         />
       </>
     );
   }
 
-  // Registered User UI
-  if (userProfile.premium) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden">
-
-        <div className="flex-grow flex items-center justify-center">
-          <Popover open={isCentralPopoverOpen} onOpenChange={setIsCentralPopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="rounded-full h-32 w-32 sm:h-40 sm:w-40 border-2 border-primary bg-transparent animate-pulse-glow hover:bg-primary/10 focus:bg-primary/10 focus:ring-primary focus:ring-offset-background focus:ring-offset-2"
-                aria-label="Open Actions Menu"
-              >
-              <img
-                 src="/Gutcheck_logo.png"
-                 alt="GutCheck Logo"
-                 className="h-16 w-16 sm:h-20 sm:w-20 object-contain"
-                  />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
-                side="top"
-                align="center"
-                className="w-auto bg-card text-card-foreground border-border shadow-xl rounded-xl p-0"
-                onInteractOutside={() => setIsCentralPopoverOpen(false)}
-            >
-                <div className="flex flex-col gap-1 p-2">
-                     <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => handleSimplifiedLogFoodClick()}>
-                        <PlusCircle className="mr-3 h-5 w-5" /> Log Food
-                    </Button>
-                    <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => openSymptomDialog()}>
-                        <ListChecks className="mr-3 h-5 w-5" /> Log Symptoms
-                    </Button>
-                     <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => handleAddManualMacroClick()}>
-                        <Pencil className="mr-3 h-5 w-5" /> Add Macros Manually
-                    </Button>
-                    <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleOpenLogPreviousMealDialog}>
-                        <CalendarDays className="mr-3 h-5 w-5" /> Log Previous Meal
-                    </Button>
-                </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <PremiumDashboardSheet
-            isOpen={isPremiumDashboardOpen}
-            onOpenChange={setIsPremiumDashboardOpen}
-            userProfile={userProfile}
-            timelineEntries={timelineEntries}
-            dailyNutritionSummary={dailyNutritionSummary}
-            isLoadingAi={isLoadingAi}
-            onSetFeedback={handleSetFoodFeedback}
-            onRemoveTimelineEntry={handleRemoveTimelineEntry}
-            onLogSymptomsForFood={openSymptomDialog}
-            onUpgradeClick={handleUpgradeToPremium}
-            onEditIngredients={handleEditTimelineEntry}
-        >
-         <div></div>
-        </PremiumDashboardSheet>
-
-        {!isPremiumDashboardOpen && (
-            <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4">
-                <Button
-                    variant="ghost"
-                    className="text-xs text-muted-foreground/70 hover:text-muted-foreground hover:bg-muted/30 py-1 px-3 rounded-full flex items-center"
-                    onClick={() => setIsPremiumDashboardOpen(true)}
-                    aria-label="Open Dashboard"
-                >
-                   <div className="flex flex-col items-center mr-2">
-                      <ChevronUp
-                        className="h-3 w-3 text-primary animate-neon-chevron-pulse"
-                        style={{ animationDelay: '0s' }}
-                      />
-                      <ChevronUp
-                        className="h-3 w-3 text-primary animate-neon-chevron-pulse -mt-1"
-                        style={{ animationDelay: '0.2s' }}
-                      />
-                      <ChevronUp
-                        className="h-3 w-3 text-primary animate-neon-chevron-pulse -mt-1"
-                        style={{ animationDelay: '0.4s' }}
-                      />
-                    </div>
-                    Swipe Up or Tap to View Dashboard
-                </Button>
-            </div>
-        )}
-
-        <SimplifiedAddFoodDialog
-          isOpen={isSimplifiedAddFoodDialogOpen}
-          onOpenChange={(open) => {
-            if (!open) setEditingItem(null);
-            setIsSimplifiedAddFoodDialogOpen(open);
-          }}
-          onSubmitLog={(data, userDidOverrideMacros) => handleSubmitMealDescription(data, userDidOverrideMacros, selectedLogDateForPreviousMeal)}
-          isEditing={!!editingItem && editingItem.entryType === 'food'}
-          initialValues={editingItem && editingItem.entryType === 'food' ?
-              {
-                mealDescription: editingItem.sourceDescription || `${editingItem.name}${editingItem.ingredients && editingItem.ingredients !== "See description" ? ' (' + editingItem.ingredients + ')' : ''}`,
-                calories: editingItem.calories,
-                protein: editingItem.protein,
-                carbs: editingItem.carbs,
-                fat: editingItem.fat
-              }
-              : { mealDescription: '' }}
-          initialMacrosOverridden={editingItem?.macrosOverridden || false}
-          isGuestView={false}
-          key={editingItem ? `edit-${editingItem.id}` : 'new'}
-        />
-        <SymptomLoggingDialog
-            isOpen={isSymptomLogDialogOpen}
-            onOpenChange={setIsSymptomLogDialogOpen}
-            onLogSymptoms={handleLogSymptoms}
-            context={symptomDialogContext}
-            allSymptoms={COMMON_SYMPTOMS}
-        />
-        <AddManualMacroEntryDialog
-            isOpen={isAddManualMacroDialogOpen}
-            onOpenChange={(open) => {
-                if (!open) setEditingItem(null);
-                setIsAddManualMacroDialogOpen(open);
-            }}
-            onSubmitEntry={(data) => handleSubmitManualMacroEntry(data, selectedLogDateForPreviousMeal)}
-            isEditing={!!editingItem && editingItem.entryType === 'manual_macro'}
-            initialValues={editingItem && editingItem.entryType === 'manual_macro' ?
-              { calories: editingItem.calories, protein: editingItem.protein, carbs: editingItem.carbs, fat: editingItem.fat, entryName: editingItem.name }
-              : undefined
-            }
-            key={editingItem ? `edit-macro-${editingItem.id}` : 'new-macro'}
-        />
-         <AddFoodItemDialog
-            isOpen={isAddFoodDialogOpen}
-            onOpenChange={(open) => {
-                if (!open) setEditingItem(null);
-                setIsAddFoodDialogOpen(open);
-            }}
-            onSubmitFoodItem={(data) => handleSubmitFoodItem(data, selectedLogDateForPreviousMeal)}
-            isEditing={!!editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription}
-            initialValues={editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription ?
-              { name: editingItem.name, ingredients: editingItem.ingredients, portionSize: editingItem.portionSize, portionUnit: editingItem.portionUnit }
-              : undefined
-            }
-            key={editingItem ? `edit-manual-${editingItem.id}` : 'new-manual'}
-        />
-        <LogPreviousMealDialog
-            isOpen={isLogPreviousMealDialogOpen}
-            onOpenChange={setIsLogPreviousMealDialogOpen}
-            onDateSelect={setSelectedLogDateForPreviousMeal}
-            onLogMethodSelect={handleLogPreviousMealFlow}
-            currentSelectedDate={selectedLogDateForPreviousMeal}
-        />
-        {isAnyItemLoadingAi && (
-            <div className="fixed bottom-20 right-4 bg-card text-card-foreground p-3 rounded-lg shadow-lg flex items-center space-x-2 z-50">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <span>AI is analyzing...</span>
-            </div>
-        )}
-      </div>
-    );
-  }
-
-  // Standard (Non-Premium) User UI
+  // Registered User UI (Free or Premium) - Unified Experience
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <Navbar onUpgradeClick={handleUpgradeToPremium} isPremium={userProfile.premium || false} />
-      <header className="sticky top-16 bg-background/80 backdrop-blur-md z-40 py-6 mb-6 shadow-xl rounded-b-2xl border-b border-border">
-        <div className="container mx-auto flex flex-col items-center gap-4">
-          <Button
-            size="lg"
-            className="w-72 h-20 text-2xl rounded-full bg-primary text-primary-foreground hover:bg-primary/80 focus:ring-4 ring-ring flex items-center justify-center animate-pulse-glow"
-            onClick={() => handleSimplifiedLogFoodClick()}
-            aria-label="Log Food with AI"
-            disabled={(showInterstitialAd && authUser && authUser.uid !== 'guest-user' && !userProfile.premium) || isAnyItemLoadingAi}
+    <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden">
+      {/* Navbar is now part of PremiumDashboardSheet for logged-in users */}
+      <div className="flex-grow flex items-center justify-center">
+        <Popover open={isCentralPopoverOpen} onOpenChange={setIsCentralPopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="rounded-full h-32 w-32 sm:h-40 sm:w-40 border-2 border-primary bg-transparent animate-pulse-glow hover:bg-primary/10 focus:bg-primary/10 focus:ring-primary focus:ring-offset-background focus:ring-offset-2"
+              aria-label="Open Actions Menu"
+            >
+            <img
+               src="/Gutcheck_logo.png" // Ensure this path is correct
+               alt="GutCheck Logo"
+               className="h-16 w-16 sm:h-20 sm:w-20 object-contain" // Adjusted size
+                />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+              side="top"
+              align="center"
+              className="w-auto bg-card text-card-foreground border-border shadow-xl rounded-xl p-0"
+              onInteractOutside={() => setIsCentralPopoverOpen(false)} // Ensure it closes on outside click
           >
-            <PlusCircle className="mr-3 h-8 w-8" /> Tap to Log Food
-          </Button>
-          <div className="flex flex-wrap justify-center gap-3 mt-3">
-             <Button variant="outline" className="text-foreground border-accent hover:bg-accent hover:text-accent-foreground" onClick={() => handleLogFoodClick()} disabled={(showInterstitialAd && authUser && authUser.uid !== 'guest-user' && !userProfile.premium) || isAnyItemLoadingAi}>
-                <Pencil className="mr-2 h-5 w-5" /> Log (Manual)
-            </Button>
-            <Button variant="outline" className="text-foreground border-accent hover:bg-accent hover:text-accent-foreground" onClick={() => openSymptomDialog()}>
-              <ListChecks className="mr-2 h-5 w-5" /> Log Symptoms
-            </Button>
-             <Button variant="outline" className="text-foreground border-accent hover:bg-accent hover:text-accent-foreground" onClick={() => handleAddManualMacroClick()}>
-                <Edit3 className="mr-2 h-5 w-5" /> Add Macros
-            </Button>
-            <Button variant="outline" className="text-foreground border-accent hover:bg-accent hover:text-accent-foreground" onClick={handleOpenLogPreviousMealDialog}>
-                <CalendarDays className="mr-2 h-5 w-5" /> Log Previous
-            </Button>
-          </div>
-        </div>
-      </header>
+              <div className="flex flex-col gap-1 p-2">
+                    <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleSimplifiedLogFoodClick}>
+                      <PlusCircle className="mr-3 h-5 w-5" /> Log Food (AI)
+                  </Button>
+                  <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleLogFoodClick}>
+                      <Pencil className="mr-3 h-5 w-5" /> Log Food (Manual)
+                  </Button>
+                  <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => openSymptomDialog()}>
+                      <ListChecks className="mr-3 h-5 w-5" /> Log Symptoms
+                  </Button>
+                   <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleAddManualMacroClick}>
+                      <Edit3 className="mr-3 h-5 w-5" /> Add Macros Manually
+                  </Button>
+                  <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleOpenLogPreviousMealDialog}>
+                      <CalendarDays className="mr-3 h-5 w-5" /> Log Previous Meal
+                  </Button>
+              </div>
+          </PopoverContent>
+        </Popover>
+      </div>
 
-      <AddFoodItemDialog
-        isOpen={isAddFoodDialogOpen}
-        onOpenChange={(open) => {
-            if (!open) setEditingItem(null);
-            setIsAddFoodDialogOpen(open);
-        }}
-        onSubmitFoodItem={(data) => handleSubmitFoodItem(data, selectedLogDateForPreviousMeal)}
-        isEditing={!!editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription}
-        initialValues={editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription ?
-            { name: editingItem.name, ingredients: editingItem.ingredients, portionSize: editingItem.portionSize, portionUnit: editingItem.portionUnit }
-            : undefined
-        }
-        key={editingItem ? `edit-manual-${editingItem.id}` : 'new-manual'}
-      />
+      <PremiumDashboardSheet
+          isOpen={isPremiumDashboardOpen}
+          onOpenChange={setIsPremiumDashboardOpen}
+          userProfile={userProfile}
+          timelineEntries={timelineEntries} // This will be filtered for free users
+          dailyNutritionSummary={dailyNutritionSummary}
+          isLoadingAi={isLoadingAi}
+          onSetFeedback={handleSetFoodFeedback}
+          onRemoveTimelineEntry={handleRemoveTimelineEntry}
+          onLogSymptomsForFood={openSymptomDialog}
+          onEditIngredients={handleEditTimelineEntry}
+          // onUpgradeClick is removed as upgrading is now about data retention, not features.
+          // A separate "Account/Subscription" page would handle upgrades.
+          // For simulation, you can add a button elsewhere if needed to toggle premium status.
+      >
+       <div></div>
+      </PremiumDashboardSheet>
+
+      {!isPremiumDashboardOpen && ( // Show swipe up/tap only if dashboard is closed
+          <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4">
+              <Button
+                  variant="ghost"
+                  className="text-xs text-muted-foreground/70 hover:text-muted-foreground hover:bg-muted/30 py-1 px-3 rounded-full flex items-center"
+                  onClick={() => setIsPremiumDashboardOpen(true)}
+                  aria-label="Open Dashboard"
+              >
+                 <div className="flex flex-col items-center mr-2">
+                    <ChevronUp
+                      className="h-3 w-3 text-primary animate-neon-chevron-pulse"
+                      style={{ animationDelay: '0s' }}
+                    />
+                    <ChevronUp
+                      className="h-3 w-3 text-primary animate-neon-chevron-pulse -mt-1"
+                      style={{ animationDelay: '0.2s' }}
+                    />
+                    <ChevronUp
+                      className="h-3 w-3 text-primary animate-neon-chevron-pulse -mt-1"
+                      style={{ animationDelay: '0.4s' }}
+                    />
+                  </div>
+                  Swipe Up or Tap to View Dashboard
+              </Button>
+          </div>
+      )}
+      {/* Button to simulate upgrade for testing data retention */}
+      {authUser && !userProfile.premium && !isPremiumDashboardOpen && (
+        <div className="absolute bottom-16 left-1/2 -translate-x-1/2">
+          <Button onClick={handleSimulateUpgrade} variant="secondary" size="sm">
+            Simulate Upgrade (Retain All Data)
+          </Button>
+        </div>
+      )}
+
+
+      {/* Dialogs remain available */}
       <SimplifiedAddFoodDialog
         isOpen={isSimplifiedAddFoodDialogOpen}
         onOpenChange={(open) => {
-            if (!open) setEditingItem(null);
-            setIsSimplifiedAddFoodDialogOpen(open);
+          if (!open) setEditingItem(null);
+          setIsSimplifiedAddFoodDialogOpen(open);
         }}
         onSubmitLog={(data, userDidOverrideMacros) => handleSubmitMealDescription(data, userDidOverrideMacros, selectedLogDateForPreviousMeal)}
-        isEditing={!!editingItem && editingItem.entryType === 'food'}
-        initialValues={editingItem && editingItem.entryType === 'food' ?
+        isEditing={!!editingItem && editingItem.entryType === 'food' && !!editingItem.sourceDescription}
+        initialValues={editingItem && editingItem.entryType === 'food' && editingItem.sourceDescription ?
             {
-                mealDescription: editingItem.sourceDescription || `${editingItem.name}${editingItem.ingredients && editingItem.ingredients !== "See description" ? ' (' + editingItem.ingredients + ')' : ''}`,
-                calories: editingItem.calories,
-                protein: editingItem.protein,
-                carbs: editingItem.carbs,
-                fat: editingItem.fat
-            } : { mealDescription: '' }}
+              mealDescription: editingItem.sourceDescription,
+              calories: editingItem.calories,
+              protein: editingItem.protein,
+              carbs: editingItem.carbs,
+              fat: editingItem.fat
+            }
+            : { mealDescription: '' }}
         initialMacrosOverridden={editingItem?.macrosOverridden || false}
         isGuestView={false}
-        key={editingItem ? `edit-${editingItem.id}` : 'new'}
+        key={editingItem?.id ? `edit-simplified-${editingItem.id}` : 'new-simplified'}
       />
-       <AddManualMacroEntryDialog
-        isOpen={isAddManualMacroDialogOpen}
-        onOpenChange={(open) => {
-            if (!open) setEditingItem(null);
-            setIsAddManualMacroDialogOpen(open);
-        }}
-        onSubmitEntry={(data) => handleSubmitManualMacroEntry(data, selectedLogDateForPreviousMeal)}
-        isEditing={!!editingItem && editingItem.entryType === 'manual_macro'}
-        initialValues={editingItem && editingItem.entryType === 'manual_macro' ?
-          { calories: editingItem.calories, protein: editingItem.protein, carbs: editingItem.carbs, fat: editingItem.fat, entryName: editingItem.name }
-          : undefined
-        }
-        key={editingItem ? `edit-macro-${editingItem.id}` : 'new-macro'}
+      <AddFoodItemDialog
+          isOpen={isAddFoodDialogOpen}
+          onOpenChange={(open) => {
+              if (!open) setEditingItem(null);
+              setIsAddFoodDialogOpen(open);
+          }}
+          onSubmitFoodItem={(data) => handleSubmitFoodItem(data, selectedLogDateForPreviousMeal)}
+          isEditing={!!editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription}
+          initialValues={editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription ?
+            { name: editingItem.name, ingredients: editingItem.ingredients, portionSize: editingItem.portionSize, portionUnit: editingItem.portionUnit }
+            : undefined
+          }
+          key={editingItem?.id ? `edit-manual-${editingItem.id}` : 'new-manual'}
       />
       <SymptomLoggingDialog
-        isOpen={isSymptomLogDialogOpen}
-        onOpenChange={setIsSymptomLogDialogOpen}
-        onLogSymptoms={handleLogSymptoms}
-        context={symptomDialogContext}
-        allSymptoms={COMMON_SYMPTOMS}
+          isOpen={isSymptomLogDialogOpen}
+          onOpenChange={setIsSymptomLogDialogOpen}
+          onLogSymptoms={handleLogSymptoms}
+          context={symptomDialogContext}
+          allSymptoms={COMMON_SYMPTOMS}
       />
-      <LogPreviousMealDialog
-            isOpen={isLogPreviousMealDialogOpen}
-            onOpenChange={setIsLogPreviousMealDialogOpen}
-            onDateSelect={setSelectedLogDateForPreviousMeal}
-            onLogMethodSelect={handleLogPreviousMealFlow}
-            currentSelectedDate={selectedLogDateForPreviousMeal}
+      <AddManualMacroEntryDialog
+          isOpen={isAddManualMacroDialogOpen}
+          onOpenChange={(open) => {
+              if (!open) setEditingItem(null);
+              setIsAddManualMacroDialogOpen(open);
+          }}
+          onSubmitEntry={(data) => handleSubmitManualMacroEntry(data, selectedLogDateForPreviousMeal)}
+          isEditing={!!editingItem && editingItem.entryType === 'manual_macro'}
+          initialValues={editingItem && editingItem.entryType === 'manual_macro' ?
+            { calories: editingItem.calories, protein: editingItem.protein, carbs: editingItem.carbs, fat: editingItem.fat, entryName: editingItem.name }
+            : undefined
+          }
+          key={editingItem?.id ? `edit-macro-${editingItem.id}` : 'new-macro'}
       />
-      {showInterstitialAd && authUser && authUser.uid !== 'guest-user' && !userProfile.premium && interstitialAdUnitId && (
-        <InterstitialAdPlaceholder
-          isOpen={showInterstitialAd}
-          onClose={() => handleInterstitialClosed(false)}
-          onContinue={() => handleInterstitialClosed(true)}
-          adUnitId={interstitialAdUnitId}
-          actionName={pendingActionAfterInterstitial === 'logFood' ? 'Log Food (Manual)' : pendingActionAfterInterstitial === 'simplifiedLogFood' ? 'Log Food (AI)' : 'Action'}
-        />
-      )}
-
+       <LogPreviousMealDialog
+          isOpen={isLogPreviousMealDialogOpen}
+          onOpenChange={setIsLogPreviousMealDialogOpen}
+          onDateSelect={setSelectedLogDateForPreviousMeal}
+          onLogMethodSelect={handleLogPreviousMealFlow}
+          currentSelectedDate={selectedLogDateForPreviousMeal}
+      />
       {isAnyItemLoadingAi && (
-        <div className="fixed bottom-4 right-4 bg-card text-card-foreground p-3 rounded-lg shadow-lg flex items-center space-x-2 z-50 border border-border">
+          <div className="fixed bottom-20 right-4 bg-card text-card-foreground p-3 rounded-lg shadow-lg flex items-center space-x-2 z-50">
           <Loader2 className="h-5 w-5 animate-spin" />
           <span>AI is analyzing...</span>
-        </div>
-      )}
-
-      <main className="flex-grow container mx-auto px-2 sm:px-4 py-2">
-        <div className="mb-6">
-           <DailyTotalsCard summary={dailyNutritionSummary} onEditMacrosClick={() => handleAddManualMacroClick()} />
-        </div>
-
-        {aiInsights.length > 0 && (
-          <Card className="mb-6 bg-card border-border shadow-md">
-            <CardHeader>
-              <CardTitle className="font-headline text-xl sm:text-2xl flex items-center text-foreground">
-                <Brain className="mr-3 h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground" /> AI Insights
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {aiInsights.map((insight, index) => (
-                <InsightCard key={index} insight={insight} />
-              ))}
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="space-y-6">
-         {timelineEntries.length === 0 && !isAnyItemLoadingAi && !isDataLoading && !authLoading && (
-            <Card className="text-center py-12 bg-card border-border shadow-md">
-              <CardContent>
-                <Utensils className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-                <h2 className="text-2xl font-semibold font-headline mb-2 text-foreground">Your Timeline is Empty</h2>
-                <p className="text-muted-foreground mb-6">Tap a log button above to record your first food item or symptom.</p>
-                 {!authUser && <p className="text-muted-foreground">Consider <Link href="/login" className="underline text-primary">logging in</Link> to save your data.</p>}
-              </CardContent>
-            </Card>
-          )}
-
-          {timelineEntries.map(entry => {
-            if (entry.entryType === 'food' || entry.entryType === 'manual_macro') {
-              return (
-                <TimelineFoodCard
-                  key={entry.id}
-                  item={entry}
-                  onSetFeedback={handleSetFoodFeedback}
-                  onRemoveItem={() => handleRemoveTimelineEntry(entry.id)}
-                  onLogSymptoms={() => openSymptomDialog([entry.id])}
-                  isLoadingAi={!!isLoadingAi[entry.id]}
-                  onEditIngredients={handleEditTimelineEntry}
-                />
-              );
-            }
-            if (entry.entryType === 'symptom') {
-              return (
-                <TimelineSymptomCard
-                  key={entry.id}
-                  item={entry}
-                  onRemoveItem={() => handleRemoveTimelineEntry(entry.id)}
-                />
-              );
-            }
-            return null;
-          })}
-        </div>
-
-        {authUser && authUser.uid !== 'guest-user' && !userProfile.premium && bannerAdUnitId && (
-          <div className="mt-8">
-            <BannerAdPlaceholder adUnitId={bannerAdUnitId} />
           </div>
-        )}
-
-        <Card className="mt-12 bg-card border-border shadow-md">
-          <CardHeader>
-            <CardTitle className="font-headline text-xl sm:text-2xl flex items-center text-foreground">
-              <Activity className="mr-3 h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground" />
-              Your Safe Foods List (Legacy)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {userProfile.safeFoods.length === 0 ? (
-              <p className="text-muted-foreground">You haven&apos;t marked any foods as safe using the old system. Use the Thumbs Up icon on food items to mark them as safe.</p>
-            ) : (
-              <ScrollArea className="h-60">
-                <ul className="space-y-3 pr-4">
-                  {userProfile.safeFoods.map(sf => (
-                    <li key={sf.id} className="p-4 border border-border rounded-lg bg-card shadow-sm">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-semibold text-lg text-foreground">{sf.name}</p>
-                          <p className="text-sm text-muted-foreground">Portion: {sf.portionSize} {sf.portionUnit}</p>
-                          <p className="text-xs text-muted-foreground break-all">Ingredients: {sf.ingredients}</p>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </ScrollArea>
-            )}
-             {authUser && authUser.uid !== 'guest-user' && !userProfile.premium && (
-                <div className="mt-6 text-center">
-                    <Button onClick={handleUpgradeToPremium} className="bg-primary text-primary-foreground hover:bg-primary/80">
-                        <Zap className="mr-2 h-4 w-4" /> Upgrade to Premium (Simulated)
-                    </Button>
-                    <p className="text-xs text-muted-foreground mt-2">Current Status: Free User</p>
-                </div>
-            )}
-            {authUser && userProfile.premium && (
-                 <p className="text-sm text-center text-green-400 mt-4">Premium User - Ads Removed</p>
-            )}
-             {!authUser && (
-                 <p className="text-sm text-center text-muted-foreground mt-4">
-                    This app is best experienced when <Link href="/login" className="underline text-primary">Logged In</Link>.
-                </p>
-            )}
-          </CardContent>
-        </Card>
-         <div className="py-8 text-center">
-            <Info className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground">
-                GutCheck helps you track food and symptoms.
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-                This app is not a substitute for professional medical advice.
-            </p>
-        </div>
-      </main>
+      )}
     </div>
   );
 }

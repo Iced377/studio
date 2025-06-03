@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus } from 'lucide-react'; // Added UserPlus
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -19,19 +19,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from '@/contexts/ThemeContext';
-// GoogleSignInButton is no longer directly used here for guest, but might be on login page
 import { cn } from '@/lib/utils';
 
 const APP_NAME = "GutCheck";
 export const APP_VERSION = "v3.0"; // Updated App Version
 
 interface NavbarProps {
-  onUpgradeClick?: () => void;
-  isPremium?: boolean;
   isGuest?: boolean;
+  // onUpgradeClick and isPremium props are removed as the model changes
 }
 
-export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarProps) {
+export default function Navbar({ isGuest }: NavbarProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -44,7 +42,7 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
       toast({ title: 'Logout Failed', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Logged Out', description: 'You have been successfully logged out.' });
-      router.push('/'); // Redirect to home/login after sign out
+      router.push('/'); 
     }
   };
 
@@ -58,9 +56,7 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
   const trendsLinkHandler = (e: React.MouseEvent) => {
     if (pathname === '/trends') {
       e.preventDefault();
-      // Potentially refresh or navigate to home if already on trends, or just do nothing.
-      // For now, let's simplify and allow re-navigation or just push.
-      router.push('/'); // Or conditionally router.refresh() if on /trends
+      router.push('/'); 
     } else {
       router.push('/trends');
     }
@@ -71,8 +67,7 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
   const defaultHeaderClasses = "bg-background text-foreground";
 
   const logoIconBaseClasses = "h-7 w-7";
-  // const guestLogoIconClasses = "text-white"; // Not used if logo is hidden for guest
-
+  
   const appNameBaseClasses = "font-bold font-headline sm:inline-block text-xl";
 
   return (
@@ -88,7 +83,7 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
               className={cn(
                 "object-contain",
                 logoIconBaseClasses,
-                isDarkMode && !isGuest ? "" : "filter brightness-0" // Black logo in light mode for default nav
+                isDarkMode && !isGuest ? "" : "filter brightness-0" 
               )}
             />
             <span className={cn(appNameBaseClasses, 'text-foreground')}>
@@ -97,14 +92,14 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
             <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
           </Link>
         )}
-        {isGuest && <div className="mr-auto"></div>}
+        {isGuest && <div className="mr-auto"></div>} {/* Spacer for guest view */}
 
 
         <div className="flex items-center space-x-1 sm:space-x-1.5">
           {isGuest ? (
             <Button
               variant="outline"
-              onClick={() => router.push('/login')}
+              onClick={() => router.push('/login')} // Navigate to login page
               className="bg-transparent text-white border-white hover:bg-white/10 h-9 px-4"
             >
               <UserPlus className="mr-2 h-5 w-5" />
@@ -144,11 +139,6 @@ export default function Navbar({ onUpgradeClick, isPremium, isGuest }: NavbarPro
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    {/* Placeholder for future items like "Settings" or "Profile" */}
-                    {/* <DropdownMenuItem onClick={() => router.push('/profile')} className="cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
-                    </DropdownMenuItem> */}
                     <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Log out</span>

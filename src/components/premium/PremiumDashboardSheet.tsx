@@ -21,30 +21,28 @@ const LucideIconsForSummary: { [key: string]: React.ElementType } = {
   Nut: require('lucide-react').Nut,
   Citrus: require('lucide-react').Citrus,
   Carrot: require('lucide-react').Carrot,
-  BeefIcon: require('lucide-react').BeefIcon, // Note: BeefIcon is often just Beef
-  LeafIcon: require('lucide-react').LeafIcon, // Note: LeafIcon is often just Leaf
-  MilkIcon: require('lucide-react').MilkIcon, // Note: MilkIcon is often just Milk
-  // Add more specific mappings if AI provides these keys
-  Iron: Atom, // Fallback example
-  Calcium: require('lucide-react').Bone, // Fallback example
-  VitaminC: require('lucide-react').Citrus, // Fallback example
+  BeefIcon: require('lucide-react').Beef, 
+  LeafIcon: require('lucide-react').Leaf, 
+  MilkIcon: require('lucide-react').Milk, 
+  Iron: Atom, 
+  Calcium: require('lucide-react').Bone, 
+  VitaminC: require('lucide-react').Citrus, 
 };
 
 
 interface PremiumDashboardSheetProps {
-  children: React.ReactNode;
+  children: React.ReactNode; // Still useful if sheet content is sometimes passed
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   userProfile: UserProfile;
   timelineEntries: TimelineEntry[];
   dailyNutritionSummary: DailyNutritionSummary;
-  // dailyFodmapCount: DailyFodmapCount; // Removed
   isLoadingAi: Record<string, boolean>;
   onSetFeedback: (itemId: string, feedback: 'safe' | 'unsafe' | null) => void;
   onRemoveTimelineEntry: (entryId: string) => void;
   onLogSymptomsForFood: (foodItemId?: string) => void;
-  onUpgradeClick: () => void;
   onEditIngredients?: (item: LoggedFoodItem) => void;
+  // onUpgradeClick prop is removed
 }
 
 interface AchievedMicronutrient {
@@ -60,12 +58,10 @@ export default function PremiumDashboardSheet({
   userProfile,
   timelineEntries,
   dailyNutritionSummary,
-  // dailyFodmapCount, // Removed
   isLoadingAi,
   onSetFeedback,
   onRemoveTimelineEntry,
   onLogSymptomsForFood,
-  onUpgradeClick,
   onEditIngredients
 }: PremiumDashboardSheetProps) {
 
@@ -77,6 +73,8 @@ export default function PremiumDashboardSheet({
     timelineEntries.forEach(entry => {
       if (entry.entryType === 'food' || entry.entryType === 'manual_macro') {
         const entryDate = new Date(entry.timestamp);
+        // Ensure entries are within the current day for *this specific summary*
+        // The overall timelineEntries are already filtered by 2 days for free users in page.tsx
         if (entryDate >= todayStart && entryDate <= todayEnd) {
           const foodItem = entry as LoggedFoodItem;
           const microsInfo = foodItem.fodmapData?.micronutrientsInfo;
@@ -104,14 +102,15 @@ export default function PremiumDashboardSheet({
     return Object.entries(dailyTotals)
       .filter(([, data]) => data.totalDV >= 100)
       .map(([name, data]) => ({ name, iconName: data.iconName, totalDV: data.totalDV }))
-      .slice(0, 5); // Display up to 5 achieved micronutrients
+      .sort((a,b) => b.totalDV - a.totalDV) // Sort by highest DV achieved
+      .slice(0, 5); 
   }, [timelineEntries]);
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[90vh] flex flex-col p-0 bg-background text-foreground border-t-2 border-border">
         <SheetHeader className="p-0">
-          <Navbar onUpgradeClick={onUpgradeClick} isPremium={userProfile.premium} />
+          <Navbar /> {/* Navbar is now simpler, not needing isPremium or onUpgradeClick */}
           <SheetTitle className="sr-only">Main Dashboard and Timeline</SheetTitle>
         </SheetHeader>
 
@@ -168,7 +167,9 @@ export default function PremiumDashboardSheet({
             <div className="text-center py-12">
               <Utensils className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
               <h2 className="text-2xl font-semibold font-headline mb-2 text-foreground">Timeline is Empty</h2>
-              <p className="text-muted-foreground">Log food or symptoms using the central button.</p>
+              <p className="text-muted-foreground">
+                {userProfile.premium ? "Log food or symptoms using the central button." : "Log food or symptoms. Data is retained for 2 days for free users."}
+              </p>
             </div>
           )}
           <div className="space-y-4">
