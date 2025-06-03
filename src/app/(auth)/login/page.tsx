@@ -1,5 +1,5 @@
 
-import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
+import LoginForm from '@/components/auth/LoginForm';
 
 export default function LoginPage() {
   return (
@@ -9,12 +9,12 @@ export default function LoginPage() {
           Welcome to GutCheck
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Sign in with Google to continue.
+          Sign in with your email and password or use Google.
         </p>
       </div>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-card py-8 px-4 shadow sm:rounded-lg sm:px-10 flex flex-col items-center">
-          <GoogleSignInButton />
+        <div className="bg-card py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <LoginForm />
         </div>
       </div>
     </div>
