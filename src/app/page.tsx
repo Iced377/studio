@@ -834,7 +834,7 @@ export default function FoodTimelinePage() {
             <img
                src="/Gutcheck_logo.png" 
                alt="GutCheck Logo"
-               className="h-20 w-20 sm:h-24 sm:w-24 object-contain" 
+               className="h-24 w-24 sm:h-28 sm:w-28 object-contain" 
                 />
             </Button>
           </PopoverTrigger>
@@ -848,15 +848,11 @@ export default function FoodTimelinePage() {
                     <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleSimplifiedLogFoodClick}>
                       <PlusCircle className="mr-3 h-5 w-5" /> Log Food (AI)
                   </Button>
-                  <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleLogFoodClick}>
-                      <Pencil className="mr-3 h-5 w-5" /> Log Food (Manual)
-                  </Button>
+                  {/* "Log Food (Manual)" button removed */}
                   <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => openSymptomDialog()}>
                       <ListChecks className="mr-3 h-5 w-5" /> Log Symptoms
                   </Button>
-                   <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleAddManualMacroClick}>
-                      <Edit3 className="mr-3 h-5 w-5" /> Add Macros Manually
-                  </Button>
+                   {/* "Add Macros Manually" button removed */}
                   <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleOpenLogPreviousMealDialog}>
                       <CalendarDays className="mr-3 h-5 w-5" /> Log Previous Meal
                   </Button>
@@ -872,7 +868,7 @@ export default function FoodTimelinePage() {
           timelineEntries={timelineEntries} // This will be filtered for free users
           dailyNutritionSummary={dailyNutritionSummary}
           isLoadingAi={isLoadingAi}
-          onSetFeedback={handleSetFoodFeedback}
+          onSetFeedback={onSetFeedback}
           onRemoveTimelineEntry={handleRemoveTimelineEntry}
           onLogSymptomsForFood={openSymptomDialog}
           onEditIngredients={handleEditTimelineEntry}

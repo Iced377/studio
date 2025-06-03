@@ -48,8 +48,8 @@ export default function GuestHomePage({
             <Image
               src="/Gutcheck_logo.png" 
               alt="GutCheck Logo"
-              width={96} 
-              height={96} 
+              width={112} 
+              height={112} 
               className="object-contain" // Ensures the logo fits well
             />
           </button>
