@@ -30,18 +30,18 @@ const RepresentativeLucideIcons: { [key: string]: React.ElementType } = {
   Droplet: Droplet, Wind: Wind, Brain: Brain, Baby: Baby, Heart: Heart, ShieldQuestion: ShieldQuestion,
   Network: Network, Target: Target,
   // Fallback / General Icons
-  Atom, Sparkles, HelpCircle, Nut, // Nut is more general if AI suggests it
+  Atom, Sparkles, HelpCircle, Nut, 
 };
 
 const KEY_MICRONUTRIENTS_CONFIG: Array<{ name: string; targetDV?: number }> = [
   { name: 'Vitamin A', targetDV: 100 }, { name: 'Vitamin C', targetDV: 100 }, { name: 'Vitamin D', targetDV: 100 },
-  { name: 'Vitamin E', targetDV: 100 }, { name: 'Vitamin K', targetDV: 100 }, { name: 'VitaminB1', targetDV: 100 }, // Thiamin
-  { name: 'VitaminB2', targetDV: 100 }, // Riboflavin
-  { name: 'VitaminB3', targetDV: 100 }, // Niacin
+  { name: 'Vitamin E', targetDV: 100 }, { name: 'Vitamin K', targetDV: 100 }, { name: 'VitaminB1', targetDV: 100 }, 
+  { name: 'VitaminB2', targetDV: 100 }, 
+  { name: 'VitaminB3', targetDV: 100 }, 
   { name: 'VitaminB6', targetDV: 100 }, { name: 'Folate', targetDV: 100 }, { name: 'VitaminB12', targetDV: 100 },
   { name: 'Calcium', targetDV: 100 }, { name: 'Iron', targetDV: 100 }, { name: 'Magnesium', targetDV: 100 },
   { name: 'Zinc', targetDV: 100 }, { name: 'Potassium', targetDV: 100 }, { name: 'Selenium', targetDV: 100 },
-  { name: 'Iodine', targetDV: 100 }, { name: 'Phosphorus', targetDV: 100}, { name: 'Sodium', targetDV: 2300 } // Sodium is often tracked differently, e.g. upper limit mg
+  { name: 'Iodine', targetDV: 100 }, { name: 'Phosphorus', targetDV: 100}, { name: 'Sodium', targetDV: 2300 } 
 ];
 
 
@@ -90,7 +90,7 @@ export default function MicronutrientProgressDisplay({ userId }: MicronutrientPr
           dailyTotals[keyMicro.name] = {
             name: keyMicro.name,
             achievedDV: 0,
-            icon: RepresentativeLucideIcons[keyMicro.name] || Atom, // Default icon from key name
+            icon: RepresentativeLucideIcons[keyMicro.name] || Atom, 
             targetDV: keyMicro.targetDV || 100,
           };
         });
@@ -104,25 +104,17 @@ export default function MicronutrientProgressDisplay({ userId }: MicronutrientPr
             ];
             
             allMicrosFromItem.forEach(microDetail => {
-              // Check if this nutrient is one we are tracking from KEY_MICRONUTRIENTS_CONFIG
               if (dailyTotals[microDetail.name] && microDetail.dailyValuePercent !== undefined) {
                 dailyTotals[microDetail.name].achievedDV += microDetail.dailyValuePercent;
                 
-                // Icon selection: AI's iconName if valid, then nutrient name, then fallback
                 const iconFromAIName = microDetail.iconName ? RepresentativeLucideIcons[microDetail.iconName] : undefined;
                 const iconFromNutrientName = RepresentativeLucideIcons[microDetail.name];
                 
                 if (iconFromAIName) {
                    dailyTotals[microDetail.name].icon = iconFromAIName;
                 } else if (iconFromNutrientName) {
-                   // This is already set as default, but good to confirm logic
                    dailyTotals[microDetail.name].icon = iconFromNutrientName;
                 }
-                // else it keeps the default icon (Atom) assigned during initialization
-              } else if (KEY_MICRONUTRIENTS_CONFIG.some(k => k.name === microDetail.name) && microDetail.dailyValuePercent !== undefined) {
-                // Nutrient is in our key list, but wasn't initialized (should not happen if KEY_MICRONUTRIENTS_CONFIG is exhaustive for display)
-                // Or, if we want to display *any* nutrient AI provides, even if not in KEY_MICRONUTRIENTS_CONFIG
-                // For now, we stick to KEY_MICRONUTRIENTS_CONFIG for the display list.
               }
             });
           }
@@ -141,7 +133,7 @@ export default function MicronutrientProgressDisplay({ userId }: MicronutrientPr
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
+      <div className="flex items-center justify-center p-8 flex-grow">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="ml-2 text-muted-foreground">Loading progress...</p>
       </div>
@@ -149,29 +141,24 @@ export default function MicronutrientProgressDisplay({ userId }: MicronutrientPr
   }
 
   if (error) {
-    return <p className="text-destructive p-4 text-center">{error}</p>;
+    return <p className="text-destructive p-4 text-center flex-grow">{error}</p>;
   }
 
   if (!progressData || Object.keys(progressData).length === 0) {
-    return <p className="text-muted-foreground p-4 text-center">No micronutrient data logged for today yet.</p>;
+    return <p className="text-muted-foreground p-4 text-center flex-grow">No micronutrient data logged for today yet.</p>;
   }
 
   const sortedMicronutrients = Object.values(progressData).sort((a, b) => {
-    // Sort by name for consistent order
     return a.name.localeCompare(b.name);
   });
 
   return (
-    <div className="p-1 flex flex-col h-full">
-      <h3 className="text-lg font-semibold mb-3 px-3 text-foreground">Today's Micronutrient Goals</h3>
-      <ScrollArea className="flex-grow min-h-0 pr-3">
+    <div className="flex flex-col h-full">
+      <h3 className="text-lg font-semibold mb-3 px-0 sm:px-1 text-foreground">Today's Micronutrient Goals</h3>
+      <ScrollArea className="flex-grow min-h-0 pr-1 sm:pr-2">
         <div className="space-y-3">
           {sortedMicronutrients.map((micro) => {
             const IconComponent = micro.icon || Atom;
-            // For Sodium, the target might be different (e.g., 2300mg, not 100% DV for deficiency).
-            // For simplicity in this display, we'll still use % of a nominal 100 if targetDV is 100,
-            // but if targetDV is e.g. 2300, the percentage calculation would need to be adjusted
-            // if `achievedDV` is also in mg. For now, assuming `achievedDV` is always % for simplicity.
             const target = micro.name === 'Sodium' ? (micro.targetDV || 2300) : (micro.targetDV || 100);
             const isSodium = micro.name === 'Sodium';
             const percentage = target ? Math.min(100, (micro.achievedDV / target) * 100) : Math.min(100, micro.achievedDV);
@@ -180,17 +167,18 @@ export default function MicronutrientProgressDisplay({ userId }: MicronutrientPr
             const displayDV = Math.round(micro.achievedDV);
             const displayTarget = Math.round(target);
 
-            const isAchieved = isSodium ? micro.achievedDV <= target : micro.achievedDV >= target; // Sodium is an upper limit
+            const isAchieved = isSodium ? micro.achievedDV <= target : micro.achievedDV >= target; 
 
             return (
-              <div key={micro.name} className="px-1">
-                <div className="flex items-center justify-between mb-0.5">
-                  <div className="flex items-center text-sm text-foreground">
-                    <IconComponent className={cn("h-4 w-4 mr-2", isAchieved ? 'text-green-500' : 'text-muted-foreground')} />
-                    <span>{micro.name}</span>
+              <div key={micro.name} className="px-0 sm:px-1">
+                <div className="flex items-center justify-between mb-0.5 break-words">
+                  <div className="flex items-center text-sm text-foreground min-w-0 mr-2">
+                    <IconComponent className={cn("h-4 w-4 mr-2 shrink-0", isAchieved ? 'text-green-500' : 'text-muted-foreground')} />
+                    <span className="truncate">{micro.name}</span>
                   </div>
-                  <span className={cn("text-xs font-medium", isAchieved ? 'text-green-500' : 'text-muted-foreground')}>
-                    {displayDV}{isSodium ? 'mg' : '%'} <span className="text-xs text-muted-foreground/80">of {displayTarget}{isSodium ? 'mg' : '% DV'}</span>
+                  <span className={cn("text-xs font-medium text-right shrink-0", isAchieved ? 'text-green-500' : 'text-muted-foreground')}>
+                    {displayDV}{isSodium ? 'mg' : '%'} 
+                    <span className="text-xs text-muted-foreground/80"> of {displayTarget}{isSodium ? 'mg' : '% DV'}</span>
                   </span>
                 </div>
                 <Progress 
