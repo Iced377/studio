@@ -1,7 +1,9 @@
 
 import type { AnalyzeFoodItemOutput as OriginalAnalyzeFoodItemOutput, FoodFODMAPProfile as DetailedFodmapProfileFromAI } from "@/ai/flows/fodmap-detection";
+import type { ProcessedFeedbackOutput as AIProcessedFeedback } from "@/ai/flows/process-feedback-flow"; // Added
 import type { FoodFODMAPProfile } from "@/ai/flows/food-similarity";
 import type React from 'react';
+import type { Timestamp } from 'firebase/firestore'; // Added
 
 export type FodmapScore = 'Green' | 'Yellow' | 'Red';
 
@@ -159,9 +161,26 @@ export interface MicronutrientAchievement {
 
 export interface SingleMicronutrientProgress {
   name: string;
-  achievedDV: number; // Percentage 0-100+
+  achievedValue?: number; // Changed from achievedDV
+  achievedDV: number;
   icon: React.ElementType;
-  targetDV?: number; // Typically 100%
+  targetDV: number;
+  unit: '%' | 'mg';
 }
 
 export type UserMicronutrientProgress = Record<string, SingleMicronutrientProgress>;
+
+// Feedback System Types
+export interface FeedbackSubmission {
+  id: string; // Document ID from Firestore
+  userId: string; // UID or 'anonymous'
+  timestamp: Timestamp; // Firestore Timestamp
+  feedbackText: string;
+  category: string; // User-selected or 'Not specified'
+  route: string; // Pathname where feedback was submitted
+  status: 'new' | 'viewed' | 'in-progress' | 'planned' | 'completed' | 'dismissed';
+  aiAnalysis: AIProcessedFeedback | null; // Output from your Genkit flow
+  adminNotes?: string;
+}
+
+export type FeedbackSubmissionCreate = Omit<FeedbackSubmission, 'id'>; // For creating new docs

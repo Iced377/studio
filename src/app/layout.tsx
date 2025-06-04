@@ -5,6 +5,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import FeedbackWidget from '@/components/feedback/FeedbackWidget'; // Added FeedbackWidget import
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -54,6 +55,7 @@ export default function RootLayout({
               {children}
             </main>
             <Toaster />
+            <FeedbackWidget /> {/* Added FeedbackWidget here */}
           </ThemeProvider>
         </AuthProvider>
       </body>

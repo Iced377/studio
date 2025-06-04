@@ -7,3 +7,4 @@ import '@/ai/flows/fodmap-detection.ts';
 import '@/ai/flows/symptom-correlation-flow.ts';
 import '@/ai/flows/process-meal-description-flow.ts';
 import '@/ai/flows/identify-food-from-image-flow.ts'; // Added new flow for image identification
+import '@/ai/flows/process-feedback-flow.ts'; // Added new feedback processing flow
