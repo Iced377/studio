@@ -153,9 +153,9 @@ export default function MicronutrientProgressDisplay({ userId }: MicronutrientPr
   });
 
   return (
-    <div className="flex flex-col h-full">
-      <h3 className="text-lg font-semibold mb-3 text-foreground">Today's Micronutrient Goals</h3>
-      <ScrollArea className="flex-grow min-h-0 pr-1"> {/* Adjusted padding */}
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <h3 className="text-lg font-semibold mb-3 text-foreground px-0 sm:px-1">Today's Micronutrient Goals</h3>
+      <ScrollArea className="flex-grow min-h-0 pr-1 sm:pr-2">
         <div className="space-y-3">
           {sortedMicronutrients.map((micro) => {
             const IconComponent = micro.icon || Atom;
@@ -170,7 +170,7 @@ export default function MicronutrientProgressDisplay({ userId }: MicronutrientPr
             const isAchieved = isSodium ? micro.achievedDV <= target : micro.achievedDV >= target; 
 
             return (
-              <div key={micro.name} className="break-words"> {/* Added break-words for better wrapping */}
+              <div key={micro.name} className="break-words">
                 <div className="flex items-center justify-between mb-0.5">
                   <div className="flex items-center text-sm text-foreground min-w-0 mr-2">
                     <IconComponent className={cn("h-4 w-4 mr-2 shrink-0", isAchieved ? 'text-green-500' : 'text-muted-foreground')} />
