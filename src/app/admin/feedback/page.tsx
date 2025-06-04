@@ -35,7 +35,8 @@ export default function AdminFeedbackPage() {
 
         if (userProfileSnap.exists()) {
           const userProfileData = userProfileSnap.data() as UserProfile;
-          if (userProfileData.premium === true && userProfileData.isAdmin === true) { // Explicitly check for isAdmin
+          // Simplified admin check: only rely on isAdmin
+          if (userProfileData.isAdmin === true) {
             setIsCurrentUserAdmin(true);
             // Fetch feedback submissions
             const feedbackQuery = query(collection(db, 'feedbackSubmissions'), orderBy('timestamp', 'desc'));
