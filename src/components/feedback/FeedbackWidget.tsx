@@ -14,7 +14,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import FeedbackForm from './FeedbackForm';
-import type { FeedbackSubmission, FeedbackSubmissionCreate } from '@/types/index'; 
+import type { FeedbackSubmission, FeedbackSubmissionCreate } from '@/types/index';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { usePathname } from 'next/navigation';
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
@@ -59,8 +59,8 @@ export default function FeedbackWidget() {
         feedbackText: data.feedbackText,
         category: data.category || 'Not specified',
         route: pathname,
-        status: 'new', 
-        aiAnalysis: aiAnalysis || null, 
+        status: 'new',
+        aiAnalysis: aiAnalysis || null,
       };
 
       await addDoc(collection(db, 'feedbackSubmissions'), feedbackData);
@@ -72,7 +72,7 @@ export default function FeedbackWidget() {
       });
       setTimeout(() => {
         setIsOpen(false);
-        setSubmissionSuccess(false); 
+        setSubmissionSuccess(false);
       }, 2000);
 
     } catch (error) {
@@ -94,12 +94,12 @@ export default function FeedbackWidget() {
   return (
     <>
       <Button
-        variant="default" 
-        size="lg" 
+        variant="default"
+        size="lg"
         className={cn(
-          "fixed bottom-6 right-6 rounded-full shadow-xl h-16 w-16 p-0 z-50", 
+          "fixed bottom-6 left-6 rounded-full shadow-xl h-16 w-16 p-0 z-50", // Changed right-6 to left-6
           "bg-[#00FF00] text-black hover:bg-[#00DD00] focus:ring-[#00FF00] focus:ring-offset-2",
-          "animate-custom-feedback-bounce" 
+          "animate-custom-feedback-bounce"
         )}
         onClick={() => setIsOpen(true)}
         aria-label="Open feedback dialog"
