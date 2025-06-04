@@ -107,7 +107,7 @@ export default function SimplifiedAddFoodDialog({
       ...(initialValues || {}),
     },
   });
-  const { control, setValue, watch, reset, formState: { errors, isSubmitting, isValid, isSubmitted }, trigger } = form;
+  const { control, setValue, watch, reset, formState: { errors, isSubmitting, isValid, isSubmitted }, trigger, handleSubmit: formHandleSubmit } = form;
 
   useEffect(() => {
     if (isOpen) {
@@ -131,7 +131,7 @@ export default function SimplifiedAddFoodDialog({
   }, [isOpen, isEditing, initialValues, initialMacrosOverridden, reset]);
 
 
-  const handleSubmit = async (data: SimplifiedFoodLogFormValues) => {
+  const handleDialogSubmit = async (data: SimplifiedFoodLogFormValues) => {
     setIsLoading(true);
     try {
       await onSubmitLog(data, userWantsToOverrideMacros);
@@ -264,7 +264,7 @@ export default function SimplifiedAddFoodDialog({
           </div>
         )}
 
-        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(watch())} } className="space-y-4 pt-2 max-h-[calc(60vh-50px)] overflow-y-auto pr-2">
+        <form onSubmit={formHandleSubmit(handleDialogSubmit)} className="space-y-4 pt-2 max-h-[calc(60vh-50px)] overflow-y-auto pr-2">
          {!isEditing && !isGuestView && (
             <div className="my-3 space-y-2">
                 <AlertDialog open={isPhotoSourceAlertOpen} onOpenChange={setIsPhotoSourceAlertOpen}>
@@ -335,10 +335,10 @@ export default function SimplifiedAddFoodDialog({
             <Controller
               name="mealDescription"
               control={control}
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <Textarea
                   id="mealDescription"
-                  value={field.value ?? ''}
+                  value={field.value ?? ''} 
                   onChange={field.onChange}
                   onBlur={field.onBlur}
                   ref={field.ref}
