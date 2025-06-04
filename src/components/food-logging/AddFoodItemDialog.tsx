@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form'; // Added Controller
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -19,11 +19,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { LoggedFoodItem } from '@/types';
-import { Sprout, Loader2 } from 'lucide-react';
+import { Sprout, Loader2, Camera, Upload, AlertTriangle } from 'lucide-react'; // Removed unused Camera, Upload, AlertTriangle
 import { useToast } from '@/hooks/use-toast';
 import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder';
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
+// identifyFoodFromImage and related types are not used here anymore
+// import { identifyFoodFromImage, type IdentifyFoodFromImageOutput } from '@/ai/flows/identify-food-from-image-flow';
+// import Image from 'next/image'; // Not used here anymore
 
 const manualEntrySchema = z.object({
   name: z.string().min(1, { message: 'Food name is required' }),
@@ -54,7 +57,8 @@ export default function AddFoodItemDialog({
   const { isDarkMode } = useTheme();
 
   const adSenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-8897507841347789";
-  const adSenseSlotIdBanner = "YOUR_BANNER_AD_SLOT_ID_HERE"; // Ensure this is updated in your .env or directly
+  const adSenseSlotIdBanner = process.env.NEXT_PUBLIC_ADSENSE_MANUAL_LOG_BANNER_AD_ID || "YOUR_MANUAL_LOG_BANNER_AD_ID_HERE";
+
 
   const form = useForm<ManualEntryFormValues>({
     resolver: zodResolver(manualEntrySchema),
@@ -151,12 +155,18 @@ export default function AddFoodItemDialog({
 
           <div>
             <Label htmlFor="ingredients" className="text-sm font-medium text-foreground">Ingredients (comma-separated)</Label>
-            <Textarea
-              id="ingredients"
-              {...form.register('ingredients')}
-              placeholder="e.g., chicken, lettuce, tomato, mayonnaise, wheat bread"
-              className="mt-1 bg-input text-foreground placeholder:text-muted-foreground"
-              rows={3}
+            <Controller
+              name="ingredients"
+              control={form.control}
+              render={({ field }) => (
+                <Textarea
+                  {...field}
+                  id="ingredients"
+                  placeholder="e.g., chicken, lettuce, tomato, mayonnaise, wheat bread"
+                  className="mt-1 bg-input text-foreground placeholder:text-muted-foreground"
+                  rows={3}
+                />
+              )}
             />
             {form.formState.errors.ingredients && (
               <p className="text-xs text-destructive mt-1">{form.formState.errors.ingredients.message}</p>
