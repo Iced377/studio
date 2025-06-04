@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, PlusCircle, ListChecks, Pencil, CalendarDays, Edit3, ChevronUp, Repeat, Camera } from 'lucide-react'; // Added Camera
+import { Loader2, PlusCircle, ListChecks, Pencil, CalendarDays, Edit3, ChevronUp, Repeat, Camera } from 'lucide-react';
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
 // import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow';
@@ -37,7 +37,7 @@ import SimplifiedAddFoodDialog, { type SimplifiedFoodLogFormValues } from '@/com
 import SymptomLoggingDialog from '@/components/food-logging/SymptomLoggingDialog';
 import AddManualMacroEntryDialog, { type ManualMacroFormValues } from '@/components/food-logging/AddManualMacroEntryDialog';
 import LogPreviousMealDialog from '@/components/food-logging/LogPreviousMealDialog';
-import IdentifyFoodByPhotoDialog, { type IdentifiedPhotoData } from '@/components/food-logging/IdentifyFoodByPhotoDialog'; // New Dialog
+import IdentifyFoodByPhotoDialog, { type IdentifiedPhotoData } from '@/components/food-logging/IdentifyFoodByPhotoDialog';
 import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet';
 import Navbar from '@/components/shared/Navbar';
 import GuestHomePage from '@/components/guest/GuestHomePage';
@@ -103,15 +103,14 @@ export default function FoodTimelinePage() {
   const [isLoadingAi, setIsLoadingAi] = useState<Record<string, boolean>>({});
 
   // Dialog states
-  const [isAddFoodDialogOpen, setIsAddFoodDialogOpen] = useState(false); // For manual entry / photo result
-  const [isSimplifiedAddFoodDialogOpen, setIsSimplifiedAddFoodDialogOpen] = useState(false); // For text-based AI
-  const [isIdentifyByPhotoDialogOpen, setIsIdentifyByPhotoDialogOpen] = useState(false); // New dialog
+  const [isAddFoodDialogOpen, setIsAddFoodDialogOpen] = useState(false);
+  const [isSimplifiedAddFoodDialogOpen, setIsSimplifiedAddFoodDialogOpen] = useState(false);
+  const [isIdentifyByPhotoDialogOpen, setIsIdentifyByPhotoDialogOpen] = useState(false);
   const [isSymptomLogDialogOpen, setIsSymptomLogDialogOpen] = useState(false);
   const [isAddManualMacroDialogOpen, setIsAddManualMacroDialogOpen] = useState(false);
   const [isLogPreviousMealDialogOpen, setIsLogPreviousMealDialogOpen] = useState(false);
   const [selectedLogDateForPreviousMeal, setSelectedLogDateForPreviousMeal] = useState<Date | undefined>(undefined);
   const [activeLightModeColorScheme, setActiveLightModeColorScheme] = useState<ButtonColorScheme>(lightModeButtonColors[0]);
-  const [prefilledFoodData, setPrefilledFoodData] = useState<Partial<ManualEntryFormValues> | undefined>(undefined);
 
 
   const [symptomDialogContext, setSymptomDialogContext] = useState<{ foodItemIds?: string[] }>({});
@@ -280,7 +279,7 @@ export default function FoodTimelinePage() {
     }
   };
 
-  // Handles submission from AddFoodItemDialog (manual or photo-identified)
+  // Handles submission from AddFoodItemDialog (manual entry)
   const handleSubmitFoodItem = async (
     foodItemData: Omit<LoggedFoodItem, 'id' | 'timestamp' | 'entryType' | 'calories' | 'protein' | 'carbs' | 'fat' | 'sourceDescription' | 'userFeedback' | 'macrosOverridden'>,
     customTimestamp?: Date
@@ -336,7 +335,7 @@ export default function FoodTimelinePage() {
         fat: fodmapAnalysis?.fat,
         entryType: 'food',
         userFeedback: editingItem ? editingItem.userFeedback : null,
-        macrosOverridden: false, // Manual entries from this dialog don't override macros initially
+        macrosOverridden: false, 
       };
 
       if (authUser && authUser.uid !== 'guest-user') {
@@ -359,8 +358,6 @@ export default function FoodTimelinePage() {
         addTimelineEntry(processedFoodItem);
       }
       if (customTimestamp) setSelectedLogDateForPreviousMeal(undefined);
-      setPrefilledFoodData(undefined); // Clear prefilled data after use
-
 
     } catch (error: any) {
       console.error('AI analysis or food logging/updating failed:', error);
@@ -530,6 +527,109 @@ export default function FoodTimelinePage() {
     }
   };
 
+  // New function to process and log food from photo identification
+  const handleProcessAndLogPhotoIdentification = async (
+    photoData: IdentifiedPhotoData,
+    customTimestamp?: Date
+  ) => {
+    const currentItemId = `food-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    setIsLoadingAi(prev => ({ ...prev, [currentItemId]: true }));
+
+    let processedFoodItem: LoggedFoodItem;
+    let fodmapAnalysis: AnalyzeFoodItemOutput | undefined;
+    let similarityOutput: FoodSimilarityOutput | undefined;
+    const logTimestamp = customTimestamp || new Date();
+
+    try {
+      fodmapAnalysis = await analyzeFoodItem({
+        foodItem: photoData.name,
+        ingredients: photoData.ingredients,
+        portionSize: photoData.portionSize,
+        portionUnit: photoData.portionUnit,
+      });
+
+      const itemFodmapProfileForSimilarity: FoodFODMAPProfile = fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(photoData.name);
+      let isSimilar = false;
+      if (userProfile.safeFoods && userProfile.safeFoods.length > 0) {
+        const safeFoodItemsForSimilarity = userProfile.safeFoods.map(sf => ({
+          name: sf.name,
+          portionSize: sf.portionSize,
+          portionUnit: sf.portionUnit,
+          fodmapProfile: sf.fodmapProfile,
+        }));
+        similarityOutput = await isSimilarToSafeFoods({
+          currentFoodItem: {
+            name: photoData.name,
+            portionSize: photoData.portionSize,
+            portionUnit: photoData.portionUnit,
+            fodmapProfile: itemFodmapProfileForSimilarity
+          },
+          userSafeFoodItems: safeFoodItemsForSimilarity,
+        });
+        isSimilar = similarityOutput?.isSimilar ?? false;
+      }
+
+      processedFoodItem = {
+        name: photoData.name,
+        ingredients: photoData.ingredients,
+        portionSize: photoData.portionSize,
+        portionUnit: photoData.portionUnit,
+        id: currentItemId,
+        timestamp: logTimestamp,
+        fodmapData: fodmapAnalysis,
+        isSimilarToSafe: isSimilar,
+        userFodmapProfile: itemFodmapProfileForSimilarity,
+        calories: fodmapAnalysis?.calories,
+        protein: fodmapAnalysis?.protein,
+        carbs: fodmapAnalysis?.carbs,
+        fat: fodmapAnalysis?.fat,
+        entryType: 'food',
+        userFeedback: null,
+        macrosOverridden: false,
+        sourceDescription: "Identified by photo",
+      };
+
+      if (authUser && authUser.uid !== 'guest-user') {
+        const { id, ...itemToSave } = processedFoodItem;
+        const docRefPath = doc(db, 'users', authUser.uid, 'timelineEntries', currentItemId);
+        await setDoc(docRefPath, { ...itemToSave, timestamp: Timestamp.fromDate(processedFoodItem.timestamp as Date) });
+        toast({ title: "Food Logged from Photo", description: `${processedFoodItem.name} added with AI analysis.` });
+      } else {
+         toast({ title: "Food Logged from Photo (Locally)", description: `${processedFoodItem.name} added. Login to save.` });
+      }
+
+      addTimelineEntry(processedFoodItem);
+      if (customTimestamp) setSelectedLogDateForPreviousMeal(undefined);
+
+    } catch (error: any) {
+      console.error('AI analysis or food logging from photo failed:', error);
+      toast({ title: 'Error Processing Photo Log', description: `Could not log food from photo. AI analysis might have failed.`, variant: 'destructive' });
+      processedFoodItem = {
+        name: photoData.name,
+        ingredients: photoData.ingredients,
+        portionSize: photoData.portionSize,
+        portionUnit: photoData.portionUnit,
+        id: currentItemId,
+        timestamp: logTimestamp,
+        isSimilarToSafe: similarityOutput?.isSimilar ?? false,
+        entryType: 'food',
+        fodmapData: fodmapAnalysis,
+        userFodmapProfile: fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(photoData.name),
+        calories: fodmapAnalysis?.calories,
+        protein: fodmapAnalysis?.protein,
+        carbs: fodmapAnalysis?.carbs,
+        fat: fodmapAnalysis?.fat,
+        userFeedback: null,
+        macrosOverridden: false,
+        sourceDescription: "Identified by photo (analysis partially failed)",
+      };
+      addTimelineEntry(processedFoodItem);
+    } finally {
+      setIsLoadingAi(prev => ({ ...prev, [currentItemId]: false }));
+      setIsIdentifyByPhotoDialogOpen(false);
+    }
+  };
+
 
   const handleSubmitManualMacroEntry = async (
     entryData: Omit<LoggedFoodItem, 'id' | 'timestamp' | 'entryType' | 'ingredients' | 'portionSize' | 'portionUnit' | 'fodmapData' | 'isSimilarToSafe' | 'userFodmapProfile' | 'sourceDescription' | 'userFeedback' | 'macrosOverridden'> & { entryType: 'manual_macro' | 'food' },
@@ -584,15 +684,11 @@ export default function FoodTimelinePage() {
     if (itemToEdit.entryType === 'manual_macro') {
       setIsAddManualMacroDialogOpen(true);
     } else if (itemToEdit.entryType === 'food') {
-      if (itemToEdit.sourceDescription) { // Indicates it was logged via Simplified (AI text)
+      if (itemToEdit.sourceDescription && !itemToEdit.sourceDescription.startsWith("Identified by photo")) { 
         setIsSimplifiedAddFoodDialogOpen(true);
-      } else { // Logged via Manual or potentially photo-to-manual
-        setPrefilledFoodData({
-            name: itemToEdit.name,
-            ingredients: itemToEdit.ingredients,
-            portionSize: itemToEdit.portionSize,
-            portionUnit: itemToEdit.portionUnit,
-        });
+      } else { 
+        // For items identified by photo or older manual entries without sourceDescription
+        // We still open the manual dialog for editing, as it's the most generic editor
         setIsAddFoodDialogOpen(true);
       }
     }
@@ -665,34 +761,24 @@ export default function FoodTimelinePage() {
   const handleSimplifiedLogFoodClick = () => {
     setIsCentralPopoverOpen(false);
     setEditingItem(null);
-    setPrefilledFoodData(undefined);
     setIsSimplifiedAddFoodDialogOpen(true);
   };
 
   const handleIdentifyByPhotoClick = () => {
     setIsCentralPopoverOpen(false);
     setEditingItem(null);
-    setPrefilledFoodData(undefined);
     setIsIdentifyByPhotoDialogOpen(true);
   };
 
-  const handleFoodIdentifiedByPhoto = (data: IdentifiedPhotoData) => {
-    setPrefilledFoodData({
-      name: data.name,
-      ingredients: data.ingredients,
-      portionSize: data.portionSize,
-      portionUnit: data.portionUnit,
-    });
-    setIsIdentifyByPhotoDialogOpen(false); // Close photo dialog
-    setIsAddFoodDialogOpen(true); // Open manual log dialog
-  };
-
   const handleLogPreviousMealFlow = (logMethod: 'AI' | 'Manual' | 'Photo') => {
+    // selectedLogDateForPreviousMeal is already set by LogPreviousMealDialog
     if (logMethod === 'AI') {
-      setIsSimplifiedAddFoodDialogOpen(true);
+      setIsSimplifiedAddFoodDialogOpen(true); // This will use selectedLogDateForPreviousMeal if set
     } else if (logMethod === 'Manual') {
-      setIsAddFoodDialogOpen(true);
+      setIsAddFoodDialogOpen(true); // This will use selectedLogDateForPreviousMeal if set
     } else if (logMethod === 'Photo') {
+      // IdentifyFoodByPhotoDialog opens, then onFoodIdentified will call
+      // handleProcessAndLogPhotoIdentification, which will use selectedLogDateForPreviousMeal
       setIsIdentifyByPhotoDialogOpen(true);
     }
   };
@@ -701,8 +787,7 @@ export default function FoodTimelinePage() {
   const handleOpenLogPreviousMealDialog = () => {
     setIsCentralPopoverOpen(false);
     setEditingItem(null);
-    setPrefilledFoodData(undefined);
-    setSelectedLogDateForPreviousMeal(new Date());
+    setSelectedLogDateForPreviousMeal(new Date()); // Pre-select today, user can change
     setIsLogPreviousMealDialogOpen(true);
   };
 
@@ -824,7 +909,7 @@ export default function FoodTimelinePage() {
         macrosOverridden: itemToRepeat.macrosOverridden || false,
       };
 
-      if (itemToRepeat.sourceDescription) { 
+      if (itemToRepeat.sourceDescription && !itemToRepeat.sourceDescription.startsWith("Identified by photo")) { 
         mealDescriptionOutput = await processMealDescription({ mealDescription: itemToRepeat.sourceDescription });
         fodmapAnalysis = await analyzeFoodItem({
           foodItem: mealDescriptionOutput.primaryFoodItemForAnalysis,
@@ -870,14 +955,15 @@ export default function FoodTimelinePage() {
         };
 
       } else { 
+        // This branch handles items that were originally manual, or from photo ID
         fodmapAnalysis = await analyzeFoodItem({
-          foodItem: itemToRepeat.name,
+          foodItem: itemToRepeat.originalName || itemToRepeat.name, // Prefer originalName if available
           ingredients: itemToRepeat.ingredients,
           portionSize: itemToRepeat.portionSize,
           portionUnit: itemToRepeat.portionUnit,
         });
 
-        const itemFodmapProfileForSimilarity: FoodFODMAPProfile = fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(itemToRepeat.name);
+        const itemFodmapProfileForSimilarity: FoodFODMAPProfile = fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(itemToRepeat.originalName || itemToRepeat.name);
         if (userProfile.safeFoods && userProfile.safeFoods.length > 0) {
            const safeFoodItemsForSimilarity = userProfile.safeFoods.map(sf => ({
               name: sf.name,
@@ -887,7 +973,7 @@ export default function FoodTimelinePage() {
           }));
           similarityOutput = await isSimilarToSafeFoods({
             currentFoodItem: {
-              name: itemToRepeat.name,
+              name: itemToRepeat.originalName || itemToRepeat.name,
               portionSize: itemToRepeat.portionSize,
               portionUnit: itemToRepeat.portionUnit,
               fodmapProfile: itemFodmapProfileForSimilarity
@@ -898,17 +984,21 @@ export default function FoodTimelinePage() {
 
         processedFoodItem = {
           ...baseRepetitionData,
-          name: itemToRepeat.name, 
+          name: itemToRepeat.name, // Keep original witty name if it was an AI entry
+          originalName: itemToRepeat.originalName || itemToRepeat.name,
           ingredients: itemToRepeat.ingredients,
           portionSize: itemToRepeat.portionSize,
           portionUnit: itemToRepeat.portionUnit,
+          sourceDescription: itemToRepeat.sourceDescription, // Carry over source, e.g. "Identified by photo"
           fodmapData: fodmapAnalysis,
           isSimilarToSafe: similarityOutput?.isSimilar ?? false,
           userFodmapProfile: itemFodmapProfileForSimilarity,
-          calories: fodmapAnalysis?.calories,
-          protein: fodmapAnalysis?.protein,
-          carbs: fodmapAnalysis?.carbs,
-          fat: fodmapAnalysis?.fat,
+          // For macros, if it was originally a photo ID, AI would have set them. If manual, user set them.
+          // If macrosOverridden was true, respect that. Otherwise, use new AI analysis.
+          calories: itemToRepeat.macrosOverridden ? itemToRepeat.calories : fodmapAnalysis?.calories,
+          protein: itemToRepeat.macrosOverridden ? itemToRepeat.protein : fodmapAnalysis?.protein,
+          carbs: itemToRepeat.macrosOverridden ? itemToRepeat.carbs : fodmapAnalysis?.carbs,
+          fat: itemToRepeat.macrosOverridden ? itemToRepeat.fat : fodmapAnalysis?.fat,
         };
       }
 
@@ -953,7 +1043,7 @@ export default function FoodTimelinePage() {
           onRemoveItem={handleGuestRemoveFoodItem}
           isLoadingAiForItem={lastGuestFoodItem ? !!isLoadingAi[lastGuestFoodItem.id] : false}
         />
-        <SimplifiedAddFoodDialog // Guest still uses simplified for text entry
+        <SimplifiedAddFoodDialog
             isOpen={isGuestLogFoodDialogOpen}
             onOpenChange={setIsGuestLogFoodDialogOpen}
             onSubmitLog={(data, userDidOverrideMacros) => handleGuestProcessMealDescription(data)}
@@ -1042,13 +1132,12 @@ export default function FoodTimelinePage() {
         onOpenChange={(open) => {
           if (!open) {
             setEditingItem(null);
-            setPrefilledFoodData(undefined);
           }
           setIsSimplifiedAddFoodDialogOpen(open);
         }}
         onSubmitLog={(data, userDidOverrideMacros) => handleSubmitMealDescription(data, userDidOverrideMacros, selectedLogDateForPreviousMeal)}
-        isEditing={!!editingItem && editingItem.entryType === 'food' && !!editingItem.sourceDescription}
-        initialValues={editingItem && editingItem.entryType === 'food' && editingItem.sourceDescription ?
+        isEditing={!!editingItem && editingItem.entryType === 'food' && !!editingItem.sourceDescription && !editingItem.sourceDescription.startsWith("Identified by photo")}
+        initialValues={editingItem && editingItem.entryType === 'food' && editingItem.sourceDescription && !editingItem.sourceDescription.startsWith("Identified by photo") ?
             {
               mealDescription: editingItem.sourceDescription,
               calories: editingItem.calories,
@@ -1064,23 +1153,22 @@ export default function FoodTimelinePage() {
       <IdentifyFoodByPhotoDialog
         isOpen={isIdentifyByPhotoDialogOpen}
         onOpenChange={setIsIdentifyByPhotoDialogOpen}
-        onFoodIdentified={handleFoodIdentifiedByPhoto}
+        onFoodIdentified={(data) => handleProcessAndLogPhotoIdentification(data, selectedLogDateForPreviousMeal)}
       />
       <AddFoodItemDialog
           isOpen={isAddFoodDialogOpen}
           onOpenChange={(open) => {
               if (!open) {
                 setEditingItem(null);
-                setPrefilledFoodData(undefined); // Clear prefilled data when dialog closes
               }
               setIsAddFoodDialogOpen(open);
           }}
           onSubmitFoodItem={(data) => handleSubmitFoodItem(data, selectedLogDateForPreviousMeal)}
-          isEditing={!!editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription}
-          initialValues={editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription 
+          isEditing={!!editingItem && editingItem.entryType === 'food' && (!editingItem.sourceDescription || editingItem.sourceDescription.startsWith("Identified by photo"))}
+          initialValues={editingItem && editingItem.entryType === 'food' && (!editingItem.sourceDescription || editingItem.sourceDescription.startsWith("Identified by photo"))
                           ? { name: editingItem.name, ingredients: editingItem.ingredients, portionSize: editingItem.portionSize, portionUnit: editingItem.portionUnit }
-                          : prefilledFoodData} // Use prefilledData if available for new entries
-          key={editingItem?.id ? `edit-manual-${editingItem.id}` : (prefilledFoodData ? `new-manual-prefill-${Date.now()}` : 'new-manual')}
+                          : undefined}
+          key={editingItem?.id ? `edit-manual-${editingItem.id}` : 'new-manual'}
       />
       <SymptomLoggingDialog
           isOpen={isSymptomLogDialogOpen}
