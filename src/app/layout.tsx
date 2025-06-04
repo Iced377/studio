@@ -17,12 +17,17 @@ export const metadata: Metadata = {
     images: [
       {
         url: '/Gutcheck_logo.png', // Assuming Gutcheck_logo.png is in the public folder
-        width: 512, // Provide appropriate width
-        height: 512, // Provide appropriate height
+        width: 512,
+        height: 512,
         alt: 'GutCheck Logo',
       },
     ],
     type: 'website',
+  },
+  icons: {
+    icon: '/Gutcheck_logo.png', // Default favicon
+    shortcut: '/Gutcheck_logo.png', // For older browsers
+    apple: '/Gutcheck_logo.png', // For Apple touch icon
   },
 };
 
