@@ -25,7 +25,7 @@ import { useState } from 'react';
 import MicronutrientProgressDisplay from './MicronutrientProgressDisplay'; 
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "3.2.7";
+export const APP_VERSION = "3.2.7"; // Version will be updated if other changes are requested
 
 interface GuestButtonScheme {
   base: string;
@@ -145,14 +145,22 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                   </Button>
                   <Popover open={isMicronutrientsPopoverOpen} onOpenChange={setIsMicronutrientsPopoverOpen}>
                     <PopoverTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Micronutrients Progress">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className={cn(
+                          "h-8 w-8",
+                          isMicronutrientsPopoverOpen && 'bg-accent text-accent-foreground'
+                        )} 
+                        aria-label="Micronutrients Progress"
+                      >
                         <Nut className="h-5 w-5" />
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent 
-                      className="w-[calc(100vw-2rem)] max-w-sm p-4 max-h-[70vh] flex flex-col" 
+                      align="center"
+                      className="w-[calc(100vw-3rem)] max-w-sm p-4 max-h-[60vh] flex flex-col overflow-hidden" 
                       side="bottom" 
-                      align="end"
                     >
                       <MicronutrientProgressDisplay userId={user.uid} />
                     </PopoverContent>
