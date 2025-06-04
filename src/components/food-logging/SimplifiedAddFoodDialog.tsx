@@ -107,7 +107,7 @@ export default function SimplifiedAddFoodDialog({
       ...(initialValues || {}),
     },
   });
-  const { control, setValue, watch, reset, formState: { errors, isSubmitting, isValid, isSubmitted } } = form;
+  const { control, setValue, watch, reset, formState: { errors, isSubmitting, isValid, isSubmitted }, trigger } = form;
 
   useEffect(() => {
     if (isOpen) {
@@ -186,12 +186,12 @@ export default function SimplifiedAddFoodDialog({
               descriptionText += ` Text from image (first 100 chars): ${trimmedOcrText.substring(0, 100)}${trimmedOcrText.length > 100 ? '...' : ''}`;
             }
             setValue('mealDescription', descriptionText, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-            form.trigger('mealDescription');
+            trigger('mealDescription');
             toast({ title: "Food Identified!", description: "Review and confirm the description." });
           } else if (hasOcrText) {
             descriptionText = `Text from image: ${trimmedOcrText}`;
             setValue('mealDescription', descriptionText, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-            form.trigger('mealDescription');
+            trigger('mealDescription');
             toast({ title: "Text Extracted", description: "OCR text populated. Please complete the meal description." });
           } else {
             setPhotoError(result.errorMessage || "AI could not extract useful information. Please describe manually.");
@@ -337,9 +337,14 @@ export default function SimplifiedAddFoodDialog({
               control={control}
               render={({ field }) => (
                 <Textarea
-                  {...field}
                   id="mealDescription"
-                  placeholder={isGuestView ? 'e.g., "A small glass of low-fat milk with 50g of Weetabix, and a handful of blueberries"' : 'e.g., "Large bowl of spaghetti bolognese with garlic bread and a side salad."'}
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  placeholder={isGuestView
+                    ? 'e.g., "A small glass of low-fat milk with 50g of Weetabix, and a handful of blueberries"'
+                    : 'e.g., "Large bowl of spaghetti bolognese with garlic bread and a side salad."'}
                   className={textAreaClasses}
                   rows={isEditing ? 3 : 4}
                 />
@@ -426,7 +431,3 @@ export default function SimplifiedAddFoodDialog({
     </Dialog>
   );
 }
-
-    
-
-    
