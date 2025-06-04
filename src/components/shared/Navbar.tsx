@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User } from 'lucide-react';
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Nut } from 'lucide-react'; // Added Nut
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -18,11 +18,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // Added Popover
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
+import { useState } from 'react'; // Added useState
+import MicronutrientProgressDisplay from './MicronutrientProgressDisplay'; // Added import
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "3.2.4";
+export const APP_VERSION = "3.2.5";
 
 interface GuestButtonScheme {
   base: string;
@@ -42,6 +45,8 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   const pathname = usePathname();
   const { toast } = useToast();
   const { isDarkMode, toggleDarkMode } = useTheme();
+  const [isMicronutrientsPopoverOpen, setIsMicronutrientsPopoverOpen] = useState(false);
+
 
   const handleSignOut = async () => {
     const error = await signOutUser();
@@ -91,7 +96,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
               alt="GutCheck Logo"
               width={28}
               height={28}
-              className="object-contain filter brightness-0 invert"
+              className={cn("object-contain", "filter brightness-0 invert")}
               priority
             />
           </div>
@@ -134,9 +139,21 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
           ) : (
             <>
               {!loading && user && (
-                <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Trends" onClick={trendsLinkHandler}>
-                  <BarChart3 className="h-5 w-5" />
-                </Button>
+                <>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Trends" onClick={trendsLinkHandler}>
+                    <BarChart3 className="h-5 w-5" />
+                  </Button>
+                  <Popover open={isMicronutrientsPopoverOpen} onOpenChange={setIsMicronutrientsPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Micronutrients Progress">
+                        <Nut className="h-5 w-5" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-96 p-0" side="bottom" align="end">
+                      <MicronutrientProgressDisplay userId={user.uid} />
+                    </PopoverContent>
+                  </Popover>
+                </>
               )}
 
               <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="h-8 w-8" aria-label="Toggle dark mode">

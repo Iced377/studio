@@ -1,6 +1,7 @@
 
 import type { AnalyzeFoodItemOutput as OriginalAnalyzeFoodItemOutput, FoodFODMAPProfile as DetailedFodmapProfileFromAI } from "@/ai/flows/fodmap-detection";
 import type { FoodFODMAPProfile } from "@/ai/flows/food-similarity";
+import type React from 'react';
 
 export type FodmapScore = 'Green' | 'Yellow' | 'Red';
 
@@ -19,7 +20,7 @@ export interface MicronutrientDetail {
   name: string; // e.g., "Iron", "Vitamin C"
   amount?: string; // e.g., "10 mg", "90 mcg"
   dailyValuePercent?: number; // e.g., 50 for 50% DV
-  iconName?: string; // Suggestion for a lucide-react icon name, e.g., "Bean" for iron
+  iconName?: string; // Suggestion for a lucide-react icon name
 }
 
 export interface MicronutrientsInfo {
@@ -109,7 +110,7 @@ export interface UserProfile {
   premium?: boolean;
 }
 
-export type { DetailedFodmapProfileFromAI }; // This might need to be aligned with ExtendedAnalyzeFoodItemOutput if used directly
+export type { DetailedFodmapProfileFromAI };
 
 export interface DailyNutritionSummary {
   calories: number;
@@ -153,5 +154,14 @@ export interface SymptomFrequency {
 export interface MicronutrientAchievement {
   name: string;
   achievedDays: number;
-  iconName?: string; // Optional: to store a suggested icon from AI or mapping
+  iconName?: string; 
 }
+
+export interface SingleMicronutrientProgress {
+  name: string;
+  achievedDV: number; // Percentage 0-100+
+  icon: React.ElementType;
+  targetDV?: number; // Typically 100%
+}
+
+export type UserMicronutrientProgress = Record<string, SingleMicronutrientProgress>;
