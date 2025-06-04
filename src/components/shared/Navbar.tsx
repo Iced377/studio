@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Nut } from 'lucide-react'; // Added Nut
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Nut } from 'lucide-react'; 
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -18,14 +18,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // Added Popover
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; 
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
-import { useState } from 'react'; // Added useState
-import MicronutrientProgressDisplay from './MicronutrientProgressDisplay'; // Added import
+import { useState } from 'react'; 
+import MicronutrientProgressDisplay from './MicronutrientProgressDisplay'; 
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "3.2.5";
+export const APP_VERSION = "3.2.6";
 
 interface GuestButtonScheme {
   base: string;
