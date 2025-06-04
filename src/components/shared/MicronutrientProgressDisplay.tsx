@@ -6,7 +6,7 @@ import { db } from '@/config/firebase';
 import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import type { TimelineEntry, LoggedFoodItem, MicronutrientDetail, SingleMicronutrientProgress, UserMicronutrientProgress } from '@/types';
 import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from '@/components/ui/scroll-area';
+// ScrollArea import removed
 import { Loader2 } from 'lucide-react';
 import {
   Atom, Sparkles, Bone, Activity, PersonStanding, Eye, ShieldCheck, Droplet, Wind, Brain, Baby, Heart, ShieldQuestion, Network, Target, HelpCircle, Nut
@@ -133,7 +133,7 @@ export default function MicronutrientProgressDisplay({ userId }: MicronutrientPr
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8 flex-grow">
+      <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="ml-2 text-muted-foreground">Loading progress...</p>
       </div>
@@ -141,11 +141,11 @@ export default function MicronutrientProgressDisplay({ userId }: MicronutrientPr
   }
 
   if (error) {
-    return <p className="text-destructive p-4 text-center flex-grow">{error}</p>;
+    return <p className="text-destructive p-4 text-center">{error}</p>;
   }
 
   if (!progressData || Object.keys(progressData).length === 0) {
-    return <p className="text-muted-foreground p-4 text-center flex-grow">No micronutrient data logged for today yet.</p>;
+    return <p className="text-muted-foreground p-4 text-center">No micronutrient data logged for today yet.</p>;
   }
 
   const sortedMicronutrients = Object.values(progressData).sort((a, b) => {
@@ -153,46 +153,45 @@ export default function MicronutrientProgressDisplay({ userId }: MicronutrientPr
   });
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden">
+    <div className=""> {/* Removed flex, flex-1, overflow-hidden */}
       <h3 className="text-lg font-semibold mb-3 text-foreground px-0 sm:px-1">Today's Micronutrient Goals</h3>
-      <ScrollArea className="flex-grow min-h-0 pr-1 sm:pr-2">
-        <div className="space-y-3">
-          {sortedMicronutrients.map((micro) => {
-            const IconComponent = micro.icon || Atom;
-            const target = micro.name === 'Sodium' ? (micro.targetDV || 2300) : (micro.targetDV || 100);
-            const isSodium = micro.name === 'Sodium';
-            const percentage = target ? Math.min(100, (micro.achievedDV / target) * 100) : Math.min(100, micro.achievedDV);
-            
-            const progressValue = isNaN(percentage) ? 0 : percentage;
-            const displayDV = Math.round(micro.achievedDV);
-            const displayTarget = Math.round(target);
+      {/* ScrollArea removed */}
+      <div className="space-y-3"> {/* This div was previously inside ScrollArea */}
+        {sortedMicronutrients.map((micro) => {
+          const IconComponent = micro.icon || Atom;
+          const target = micro.name === 'Sodium' ? (micro.targetDV || 2300) : (micro.targetDV || 100);
+          const isSodium = micro.name === 'Sodium';
+          const percentage = target ? Math.min(100, (micro.achievedDV / target) * 100) : Math.min(100, micro.achievedDV);
+          
+          const progressValue = isNaN(percentage) ? 0 : percentage;
+          const displayDV = Math.round(micro.achievedDV);
+          const displayTarget = Math.round(target);
 
-            const isAchieved = isSodium ? micro.achievedDV <= target : micro.achievedDV >= target; 
+          const isAchieved = isSodium ? micro.achievedDV <= target : micro.achievedDV >= target; 
 
-            return (
-              <div key={micro.name} className="break-words">
-                <div className="flex items-center justify-between mb-0.5">
-                  <div className="flex items-center text-sm text-foreground min-w-0 mr-2">
-                    <IconComponent className={cn("h-4 w-4 mr-2 shrink-0", isAchieved ? 'text-green-500' : 'text-muted-foreground')} />
-                    <span className="truncate">{micro.name}</span>
-                  </div>
-                  <span className={cn("text-xs font-medium text-right shrink-0", isAchieved ? 'text-green-500' : 'text-muted-foreground')}>
-                    {displayDV}{isSodium ? 'mg' : '%'} 
-                    <span className="text-xs text-muted-foreground/80"> of {displayTarget}{isSodium ? 'mg' : '% DV'}</span>
-                  </span>
+          return (
+            <div key={micro.name} className="break-words">
+              <div className="flex items-center justify-between mb-0.5">
+                <div className="flex items-center text-sm text-foreground min-w-0 mr-2">
+                  <IconComponent className={cn("h-4 w-4 mr-2 shrink-0", isAchieved ? 'text-green-500' : 'text-muted-foreground')} />
+                  <span className="truncate">{micro.name}</span>
                 </div>
-                <Progress 
-                    value={isSodium ? (target > 0 ? Math.min(100, (micro.achievedDV / target) * 100) : 0) : progressValue} 
-                    className={cn("h-2", 
-                        isSodium ? (micro.achievedDV > target ? "[&>div]:bg-red-500" : (micro.achievedDV >= target*0.8 ? "[&>div]:bg-yellow-500" : "[&>div]:bg-green-500")) 
-                                 : (progressValue >= 100 ? "[&>div]:bg-green-500" : "")
-                    )} 
-                />
+                <span className={cn("text-xs font-medium text-right shrink-0", isAchieved ? 'text-green-500' : 'text-muted-foreground')}>
+                  {displayDV}{isSodium ? 'mg' : '%'} 
+                  <span className="text-xs text-muted-foreground/80"> of {displayTarget}{isSodium ? 'mg' : '% DV'}</span>
+                </span>
               </div>
-            );
-          })}
-        </div>
-      </ScrollArea>
+              <Progress 
+                  value={isSodium ? (target > 0 ? Math.min(100, (micro.achievedDV / target) * 100) : 0) : progressValue} 
+                  className={cn("h-2", 
+                      isSodium ? (micro.achievedDV > target ? "[&>div]:bg-red-500" : (micro.achievedDV >= target*0.8 ? "[&>div]:bg-yellow-500" : "[&>div]:bg-green-500")) 
+                               : (progressValue >= 100 ? "[&>div]:bg-green-500" : "")
+                  )} 
+              />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

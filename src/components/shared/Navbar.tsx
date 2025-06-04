@@ -159,7 +159,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                     </PopoverTrigger>
                     <PopoverContent 
                       align="center"
-                      className="w-[calc(100vw-3rem)] max-w-sm p-4 max-h-[60vh] flex flex-col overflow-hidden" 
+                      className="w-[calc(100vw-3rem)] max-w-sm p-4" // Removed max-h, flex, overflow-hidden
                       side="bottom" 
                     >
                       <MicronutrientProgressDisplay userId={user.uid} />
