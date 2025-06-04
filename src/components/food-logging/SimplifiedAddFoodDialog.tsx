@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-// import { Textarea } from '@/components/ui/textarea'; // Using plain textarea for debugging
+import { Textarea } from '@/components/ui/textarea'; // Use custom Textarea
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -166,7 +166,7 @@ export default function SimplifiedAddFoodDialog({
       setImagePreview(imageDataUri);
       try {
         const result = await identifyFoodFromImage({ imageDataUri });
-        console.log('AI Image Identification Result:', result); // Added console.log for the full AI result
+        console.log('AI Image Identification Result:', result); 
         
         let descriptionText = "";
         const trimmedFoodName = result.identifiedFoodName?.trim();
@@ -280,7 +280,6 @@ export default function SimplifiedAddFoodDialog({
         )}
 
         <form onSubmit={handleSubmit(handleDialogSubmit)} className="space-y-4 pt-2 max-h-[calc(60vh-50px)] overflow-y-auto pr-2">
-         {/* Test button removed as per previous step, keeping focus on image handler */}
          {!isEditing && !isGuestView && (
             <div className="my-3 space-y-2">
                 <AlertDialog open={isPhotoSourceAlertOpen} onOpenChange={setIsPhotoSourceAlertOpen}>
@@ -349,18 +348,20 @@ export default function SimplifiedAddFoodDialog({
           
           <div>
             <Label htmlFor="mealDescription" className={labelClasses}>Meal Description</Label>
-            {/* Using plain textarea for debugging as per user instruction */}
             <Controller
               name="mealDescription"
               control={control}
-              render={({ field }) => (
-                <textarea
-                  {...field}
+              render={({ field, fieldState }) => ( // fieldState can be useful for error display
+                <Textarea // Switched back to custom Textarea
                   id="mealDescription"
+                  value={field.value ?? ''} 
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
                   placeholder={
                     isGuestView
-                      ? 'e.g., "A small glass of low-fat milk…"'
-                      : 'e.g., "Large bowl of spaghetti bolognese…"'
+                      ? 'e.g., "A small glass of low-fat milk with 50g of Weetabix, and a handful of blueberries"'
+                      : 'e.g., "Large bowl of spaghetti bolognese with garlic bread and a side salad."'
                   }
                   className={textAreaClasses}
                   rows={isEditing ? 3 : 4}
@@ -448,5 +449,4 @@ export default function SimplifiedAddFoodDialog({
     </Dialog>
   );
 }
-
     
