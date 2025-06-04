@@ -14,7 +14,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import FeedbackForm from './FeedbackForm';
-import type { FeedbackSubmission, FeedbackSubmissionCreate } from '@/types/index'; // Ensure this path is correct
+import type { FeedbackSubmission, FeedbackSubmissionCreate } from '@/types/index'; 
 import { useAuth } from '@/components/auth/AuthProvider';
 import { usePathname } from 'next/navigation';
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
@@ -46,7 +46,6 @@ export default function FeedbackWidget() {
         });
       } catch (aiError) {
         console.error("AI feedback processing error:", aiError);
-        // Continue with submission even if AI fails, log AI error
         toast({
           title: "AI Analysis Skipped",
           description: "Could not analyze feedback with AI, but your feedback will still be submitted.",
@@ -61,8 +60,8 @@ export default function FeedbackWidget() {
         feedbackText: data.feedbackText,
         category: data.category || 'Not specified',
         route: pathname,
-        status: 'new', // Default status
-        aiAnalysis: aiAnalysis || null, // Include AI analysis or null if it failed
+        status: 'new', 
+        aiAnalysis: aiAnalysis || null, 
       };
 
       // 3. Store in Firestore
@@ -75,7 +74,7 @@ export default function FeedbackWidget() {
       });
       setTimeout(() => {
         setIsOpen(false);
-        setSubmissionSuccess(false); // Reset for next time
+        setSubmissionSuccess(false); 
       }, 2000);
 
     } catch (error) {
@@ -89,6 +88,11 @@ export default function FeedbackWidget() {
       setIsSubmitting(false);
     }
   };
+
+  // Hide widget on admin routes
+  if (pathname && pathname.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <>
@@ -129,7 +133,6 @@ export default function FeedbackWidget() {
                   Cancel
                 </Button>
               </DialogClose>
-              {/* Submit button is inside FeedbackForm */}
             </DialogFooter>
           )}
         </DialogContent>

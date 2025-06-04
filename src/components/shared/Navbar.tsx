@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard } from 'lucide-react';
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon } from 'lucide-react'; // Added AdminIcon
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -20,6 +20,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react'; // Added useEffect, useState
+import { doc, getDoc } from 'firebase/firestore'; // Added Firestore imports
+import { db } from '@/config/firebase'; // Added db import
+import type { UserProfile } from '@/types'; // Added UserProfile import
 
 const APP_NAME = "GutCheck";
 export const APP_VERSION = "Beta 3.3";
@@ -34,11 +38,38 @@ interface NavbarProps {
 }
 
 export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
-  const { user, loading } = useAuth();
+  const { user: authUser, loading: authLoading } = useAuth(); // Renamed user to authUser
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
   const { isDarkMode, toggleDarkMode } = useTheme();
+  const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState(false); // State for admin status
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (authUser) {
+        try {
+          const userProfileDocRef = doc(db, 'users', authUser.uid);
+          const userProfileSnap = await getDoc(userProfileDocRef);
+          if (userProfileSnap.exists()) {
+            const userProfileData = userProfileSnap.data() as UserProfile;
+            // Ensure premium is also true for admin, as per page logic
+            setIsCurrentUserAdmin(userProfileData.premium === true && userProfileData.isAdmin === true);
+          } else {
+            setIsCurrentUserAdmin(false);
+          }
+        } catch (error) {
+          console.error("Error fetching user profile for Navbar:", error);
+          setIsCurrentUserAdmin(false);
+        }
+      } else {
+        setIsCurrentUserAdmin(false);
+      }
+    };
+    if (!authLoading) {
+      fetchUserProfile();
+    }
+  }, [authUser, authLoading]);
 
   const handleSignOut = async () => {
     const error = await signOutUser();
@@ -142,7 +173,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
             </Button>
           ) : (
             <>
-              {!loading && user && (
+              {!authLoading && authUser && (
                 <>
                   <Button 
                     variant="ghost" 
@@ -175,14 +206,14 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                 {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </Button>
 
-              {!loading && user ? (
+              {!authLoading && authUser ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-9 w-9 rounded-full border-2 border-foreground p-0">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
+                        <AvatarImage src={authUser.photoURL || undefined} alt={authUser.displayName || 'User'} />
                         <AvatarFallback className="bg-muted text-muted-foreground">
-                            {user.photoURL ? getInitials(user.displayName) : <User className="h-4 w-4" />}
+                            {authUser.photoURL ? getInitials(authUser.displayName) : <User className="h-4 w-4" />}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
@@ -191,14 +222,20 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none text-foreground">
-                          {user.displayName || 'User'}
+                          {authUser.displayName || 'User'}
                         </p>
                         <p className="text-xs leading-none text-muted-foreground">
-                          {user.email}
+                          {authUser.email}
                         </p>
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                     {isCurrentUserAdmin && (
+                       <DropdownMenuItem onClick={() => router.push('/admin/feedback')} className="cursor-pointer">
+                        <AdminIcon className="mr-2 h-4 w-4" />
+                        <span>Admin Dashboard</span>
+                      </DropdownMenuItem>
+                     )}
                      <DropdownMenuItem onClick={() => router.push('/account/subscription')} className="cursor-pointer">
                         <CreditCard className="mr-2 h-4 w-4" />
                         <span>Upgrade to Premium</span>
