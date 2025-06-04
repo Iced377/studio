@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard } from 'lucide-react'; 
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -149,7 +149,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                     size="icon" 
                     className={cn(
                         "h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", 
-                        pathname === '/trends' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                        pathname === '/trends' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                     )} 
                     aria-label="Trends" 
                     onClick={trendsLinkHandler}
@@ -161,7 +161,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                       size="icon" 
                       className={cn(
                         "h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0",
-                        pathname === '/micronutrients' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                        pathname === '/micronutrients' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                       )} 
                       aria-label="Micronutrients Progress"
                       onClick={micronutrientsLinkHandler}
