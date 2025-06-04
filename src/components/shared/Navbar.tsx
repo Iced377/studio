@@ -149,7 +149,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                         <Nut className="h-5 w-5" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-96 p-0" side="bottom" align="end">
+                    <PopoverContent className="w-96 p-0 max-h-[70vh] flex flex-col" side="bottom" align="end">
                       <MicronutrientProgressDisplay userId={user.uid} />
                     </PopoverContent>
                   </Popover>
