@@ -24,7 +24,7 @@ const IdentifyFoodFromImageOutputSchema = z.object({
   identifiedIngredients: z.string().optional().describe('A comma-separated list of ingredients identified or inferred from the image (e.g., from packaging text or visual cues). This will populate the "Ingredients" field.'),
   estimatedPortionSize: z.string().optional().describe('A rough estimate of the portion size number (e.g., "1", "100", "0.5"). This is highly approximate.'),
   estimatedPortionUnit: z.string().optional().describe('A rough estimate of the portion unit (e.g., "serving", "g", "ml", "item"). This is highly approximate.'),
-  ocrText: z.string().optional().describe('Any text extracted via OCR from the image, for informational purposes or debugging.'),
+  ocrText: z.string().optional().describe('Any visible text extracted via OCR from the image, for informational purposes or debugging.'),
   recognitionSuccess: z.boolean().describe('Whether the AI was able to confidently identify a food item and its details suitable for form population.'),
   errorMessage: z.string().optional().describe('An error message if identification failed or was problematic.'),
 });
