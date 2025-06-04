@@ -54,6 +54,9 @@ export default function SymptomLoggingDialog({
   const [showCustomSymptom, setShowCustomSymptom] = useState(false);
   const { isDarkMode } = useTheme();
 
+  const adSenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-8897507841347789";
+  const adSenseSlotIdSymptomBanner = "YOUR_SYMPTOM_LOG_BANNER_AD_ID_HERE"; // REPLACE with actual slot ID
+
   const form = useForm<SymptomLogFormValues>({
     resolver: zodResolver(symptomLogSchema),
     defaultValues: {
@@ -123,7 +126,10 @@ export default function SymptomLoggingDialog({
         </DialogHeader>
 
         <div className="my-4">
-          <BannerAdPlaceholder adUnitId="YOUR_SYMPTOM_LOG_BANNER_AD_ID" />
+          <BannerAdPlaceholder 
+            adClientId={adSenseClientId} 
+            adSlotId={adSenseSlotIdSymptomBanner} 
+          />
         </div>
 
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 pt-2">

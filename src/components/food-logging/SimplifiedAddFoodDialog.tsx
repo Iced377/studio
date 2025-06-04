@@ -71,6 +71,9 @@ export default function SimplifiedAddFoodDialog({
   const [userWantsToOverrideMacros, setUserWantsToOverrideMacros] = useState(initialMacrosOverridden);
   const { isDarkMode } = useTheme();
 
+  const adSenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-8897507841347789";
+  const adSenseSlotIdSimplifiedBanner = "YOUR_SIMPLIFIED_LOG_BANNER_AD_ID_HERE"; // REPLACE with actual slot ID
+
 
   const form = useForm<SimplifiedFoodLogFormValues>({
     resolver: zodResolver(simplifiedFoodLogSchema),
@@ -168,7 +171,10 @@ export default function SimplifiedAddFoodDialog({
 
         {!isGuestView && (
           <div className="my-4">
-            <BannerAdPlaceholder adUnitId="YOUR_SIMPLIFIED_LOG_BANNER_AD_ID" />
+            <BannerAdPlaceholder 
+              adClientId={adSenseClientId} 
+              adSlotId={adSenseSlotIdSimplifiedBanner}
+            />
           </div>
         )}
 

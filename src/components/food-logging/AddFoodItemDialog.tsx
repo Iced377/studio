@@ -52,6 +52,9 @@ export default function AddFoodItemDialog({
   const { toast } = useToast();
   const { isDarkMode } = useTheme();
 
+  const adSenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-8897507841347789"; // Your actual client ID
+  const adSenseSlotIdBanner = "YOUR_BANNER_AD_SLOT_ID_HERE"; // REPLACE with actual slot ID for this placement
+
   const form = useForm<ManualEntryFormValues>({
     resolver: zodResolver(manualEntrySchema),
     defaultValues: initialValues || {
@@ -111,7 +114,10 @@ export default function AddFoodItemDialog({
         </DialogHeader>
         
         <div className="my-4">
-          <BannerAdPlaceholder adUnitId="YOUR_BANNER_AD_UNIT_ID_HERE" />
+          <BannerAdPlaceholder 
+            adClientId={adSenseClientId} 
+            adSlotId={adSenseSlotIdBanner} 
+          />
         </div>
         
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 pt-2">
