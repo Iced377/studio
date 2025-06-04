@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, AlertTriangle, ShieldAlert, ExternalLink } from 'lucide-react';
-import Navbar from '@/components/shared/Navbar'; // Import Navbar
+import Navbar from '@/components/shared/Navbar'; 
 
 export default function AdminFeedbackPage() {
   const { user: authUser, loading: authLoading } = useAuth();
@@ -35,7 +35,7 @@ export default function AdminFeedbackPage() {
 
         if (userProfileSnap.exists()) {
           const userProfileData = userProfileSnap.data() as UserProfile;
-          if (userProfileData.isAdmin === true) { // Simplified admin check
+          if (userProfileData.isAdmin === true) { 
             setIsCurrentUserAdmin(true);
             const feedbackQuery = query(collection(db, 'feedbackSubmissions'), orderBy('timestamp', 'desc'));
             const feedbackSnapshot = await getDocs(feedbackQuery);
@@ -49,7 +49,7 @@ export default function AdminFeedbackPage() {
             setIsCurrentUserAdmin(false);
           }
         } else {
-          setIsCurrentUserAdmin(false); // Profile doesn't exist
+          setIsCurrentUserAdmin(false); 
         }
       } catch (err) {
         console.error("Error checking admin status or fetching feedback:", err);
@@ -117,7 +117,7 @@ export default function AdminFeedbackPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <main className="flex-grow container mx-auto px-2 sm:px-4 py-8">
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-foreground">Admin Feedback Submissions</CardTitle>
@@ -130,26 +130,26 @@ export default function AdminFeedbackPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[120px] px-2 py-3">Date</TableHead>
-                      <TableHead className="w-[180px] px-2 py-3">User</TableHead>
-                      <TableHead className="w-[120px] px-2 py-3">User Category</TableHead>
-                      <TableHead className="min-w-[200px] max-w-sm px-2 py-3">Feedback</TableHead>
-                      <TableHead className="min-w-[150px] max-w-xs px-2 py-3">AI Summary</TableHead>
-                      <TableHead className="w-[130px] px-2 py-3">AI Category</TableHead>
-                      <TableHead className="w-[100px] px-2 py-3">Status</TableHead>
-                       <TableHead className="w-[120px] px-2 py-3">Route</TableHead>
+                      <TableHead className="px-2 py-3 min-w-[130px] w-[10%]">Date</TableHead>
+                      <TableHead className="px-2 py-3 min-w-[150px] w-[15%]">User</TableHead>
+                      <TableHead className="px-2 py-3 min-w-[110px] w-[10%]">User Category</TableHead>
+                      <TableHead className="px-2 py-3 min-w-[250px] w-[25%]">Feedback</TableHead>
+                      <TableHead className="px-2 py-3 min-w-[200px] w-[20%]">AI Summary</TableHead>
+                      <TableHead className="px-2 py-3 min-w-[110px] w-[10%]">AI Category</TableHead>
+                      <TableHead className="px-2 py-3 min-w-[90px] w-[5%]">Status</TableHead>
+                      <TableHead className="px-2 py-3 min-w-[100px] w-[5%]">Route</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {feedbackItems.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell className="px-2 py-2">{format(new Date(item.timestamp), 'MMM d, yyyy HH:mm')}</TableCell>
+                        <TableCell className="px-2 py-2 whitespace-nowrap">{format(new Date(item.timestamp), 'MMM d, yyyy HH:mm')}</TableCell>
                         <TableCell className="px-2 py-2 break-all">{item.userId === 'anonymous' ? 'Anonymous' : item.userId}</TableCell>
                         <TableCell className="px-2 py-2">{item.category || 'N/A'}</TableCell>
-                        <TableCell className="px-2 py-2 whitespace-pre-wrap break-words">
+                        <TableCell className="px-2 py-2 whitespace-normal break-words">
                           {item.feedbackText}
                         </TableCell>
-                        <TableCell className="px-2 py-2 whitespace-pre-wrap break-words">{item.aiAnalysis?.summaryTitle || 'N/A'}</TableCell>
+                        <TableCell className="px-2 py-2 whitespace-normal break-words">{item.aiAnalysis?.summaryTitle || 'N/A'}</TableCell>
                         <TableCell className="px-2 py-2">{item.aiAnalysis?.aiSuggestedCategory || 'N/A'}</TableCell>
                         <TableCell className="px-2 py-2">
                           <Badge variant={getStatusVariant(item.status)} className="capitalize">
@@ -157,9 +157,12 @@ export default function AdminFeedbackPage() {
                           </Badge>
                         </TableCell>
                         <TableCell className="px-2 py-2 break-all">
-                          <a href={item.route} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center">
-                            {item.route || 'N/A'} <ExternalLink className="ml-1 h-3 w-3" />
-                          </a>
+                          {item.route ? (
+                            <a href={item.route} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center text-xs sm:text-sm">
+                              {item.route.length > 20 ? item.route.substring(0, 20) + "..." : item.route}
+                              <ExternalLink className="ml-1 h-3 w-3 shrink-0" />
+                            </a>
+                          ) : 'N/A'}
                         </TableCell>
                       </TableRow>
                     ))}

@@ -21,7 +21,7 @@ import { addDoc, collection, Timestamp } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import { processFeedback, type ProcessedFeedbackOutput } from '@/ai/flows/process-feedback-flow';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils'; // Import cn utility
+import { cn } from '@/lib/utils';
 
 export default function FeedbackWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,7 +36,6 @@ export default function FeedbackWidget() {
     setSubmissionSuccess(false);
 
     try {
-      // 1. AI Processing
       let aiAnalysis: ProcessedFeedbackOutput | undefined = undefined;
       try {
         aiAnalysis = await processFeedback({
@@ -54,7 +53,6 @@ export default function FeedbackWidget() {
         });
       }
 
-      // 2. Prepare data for Firestore
       const feedbackData: FeedbackSubmissionCreate = {
         userId: user?.uid || 'anonymous',
         timestamp: Timestamp.now(),
@@ -65,7 +63,6 @@ export default function FeedbackWidget() {
         aiAnalysis: aiAnalysis || null, 
       };
 
-      // 3. Store in Firestore
       await addDoc(collection(db, 'feedbackSubmissions'), feedbackData);
 
       setSubmissionSuccess(true);
@@ -90,7 +87,6 @@ export default function FeedbackWidget() {
     }
   };
 
-  // Hide widget on admin routes
   if (pathname && pathname.startsWith('/admin')) {
     return null;
   }
@@ -98,17 +94,17 @@ export default function FeedbackWidget() {
   return (
     <>
       <Button
-        variant="default"
-        size="lg"
+        variant="default" 
+        size="lg" 
         className={cn(
-          "fixed bottom-6 right-6 rounded-full shadow-xl h-14 w-14 p-0 z-50",
-          "bg-primary text-primary-foreground hover:bg-primary/90", // Explicitly use primary colors
-          "animate-bounce" // Add bounce animation
+          "fixed bottom-6 right-6 rounded-full shadow-xl h-16 w-16 p-0 z-50", 
+          "bg-[#00FF00] text-black hover:bg-[#00DD00] focus:ring-[#00FF00] focus:ring-offset-2",
+          "animate-custom-feedback-bounce" 
         )}
         onClick={() => setIsOpen(true)}
         aria-label="Open feedback dialog"
       >
-        <MessageSquarePlus className="h-6 w-6" />
+        <MessageSquarePlus className="h-7 w-7" />
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>

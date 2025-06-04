@@ -195,19 +195,9 @@
   }
 }
 
-/* Pulsating animation for guest button */
-@layer utilities {
-  .animate-pulse-glow {
-    animation: pulse-glow 3s infinite ease-in-out;
-  }
-  .animate-neon-chevron-pulse {
-    animation: neon-chevron-glow 1.5s infinite ease-in-out;
-  }
-}
-
+/* Animations */
 @keyframes pulse-glow {
   0%, 100% {
-    /* Use a default glow color (e.g., original green) or make it fully dynamic if --glow-color-rgb is not set */
     box-shadow: 0 0 30px 10px rgba(var(--glow-color-rgb, 57, 255, 20), 0.7), 0 0 60px 18px rgba(var(--glow-color-rgb, 57, 255, 20), 0.5);
   }
   50% {
@@ -223,5 +213,25 @@
   50% {
     filter: drop-shadow(0 0 6px rgba(57, 255, 20, 1));
     opacity: 1;
+  }
+}
+
+@keyframes custom-feedback-bounce {
+  /* Bounce sequence (first ~1.5s of 30s cycle = first 5%) */
+  0%, 1.66%, 3.33%, 5%, 100% { transform: translateY(0); animation-timing-function: cubic-bezier(0.8,0,1,1); } /* Troughs */
+  0.833% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0,0,0.2,1); } /* Peak 1 */
+  2.5% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0,0,0.2,1); }   /* Peak 2 */
+  4.166% { transform: translateY(-15%); animation-timing-function: cubic-bezier(0,0,0.2,1); } /* Peak 3 (smaller) */
+}
+
+@layer utilities {
+  .animate-pulse-glow {
+    animation: pulse-glow 3s infinite ease-in-out;
+  }
+  .animate-neon-chevron-pulse {
+    animation: neon-chevron-glow 1.5s infinite ease-in-out;
+  }
+  .animate-custom-feedback-bounce {
+    animation: custom-feedback-bounce 30s infinite;
   }
 }
