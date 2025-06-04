@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Textarea } from '@/components/ui/textarea'; // Use custom Textarea
+import { Textarea } from '@/components/ui/textarea'; // Keep import for other uses or later switch back
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -193,7 +193,7 @@ export default function SimplifiedAddFoodDialog({
             });
             console.log("Set value to:", descriptionText);
             console.log("Watch sees:", watch("mealDescription"));
-            console.log("getValues now:", getValues('mealDescription'));
+            console.log("getValues now:", form.getValues('mealDescription'));
             trigger('mealDescription');
             toast({ title: "Food Identified!", description: "Review and confirm the description." });
           } else if (hasOcrText) {
@@ -205,7 +205,7 @@ export default function SimplifiedAddFoodDialog({
             });
             console.log("Set value to:", descriptionText);
             console.log("Watch sees:", watch("mealDescription"));
-            console.log("getValues now:", getValues('mealDescription'));
+            console.log("getValues now:", form.getValues('mealDescription'));
             trigger('mealDescription');
             toast({ title: "Text Extracted", description: "OCR text populated. Please complete the meal description." });
           } else {
@@ -351,17 +351,14 @@ export default function SimplifiedAddFoodDialog({
             <Controller
               name="mealDescription"
               control={control}
-              render={({ field, fieldState }) => ( // fieldState can be useful for error display
-                <Textarea // Switched back to custom Textarea
+              render={({ field }) => (
+                <textarea
+                  {...field}
                   id="mealDescription"
-                  value={field.value ?? ''} 
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  ref={field.ref}
                   placeholder={
                     isGuestView
-                      ? 'e.g., "A small glass of low-fat milk with 50g of Weetabix, and a handful of blueberries"'
-                      : 'e.g., "Large bowl of spaghetti bolognese with garlic bread and a side salad."'
+                      ? 'e.g., "A small glass of low-fat milk…"'
+                      : 'e.g., "Large bowl of spaghetti bolognese…"'
                   }
                   className={textAreaClasses}
                   rows={isEditing ? 3 : 4}
