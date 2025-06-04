@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Textarea } from '@/components/ui/textarea'; // Keep import for other uses or later switch back
+import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -351,15 +351,16 @@ export default function SimplifiedAddFoodDialog({
             <Controller
               name="mealDescription"
               control={control}
-              render={({ field }) => (
-                <textarea
-                  {...field}
+              render={({ field, fieldState }) => ( 
+                <Textarea
                   id="mealDescription"
-                  placeholder={
-                    isGuestView
-                      ? 'e.g., "A small glass of low-fat milk…"'
-                      : 'e.g., "Large bowl of spaghetti bolognese…"'
-                  }
+                  value={field.value ?? ''} 
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  placeholder={isGuestView
+                    ? 'e.g., "A small glass of low-fat milk with 50g of Weetabix, and a handful of blueberries"'
+                    : 'e.g., "Large bowl of spaghetti bolognese with garlic bread and a side salad."'}
                   className={textAreaClasses}
                   rows={isEditing ? 3 : 4}
                 />
