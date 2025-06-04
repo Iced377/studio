@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard } from 'lucide-react'; // Added CreditCard
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard } from 'lucide-react'; 
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -22,7 +22,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "3.2.8";
+export const APP_VERSION = "3.2.9";
 
 interface NavbarProps {
   isGuest?: boolean;
@@ -149,7 +149,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                     size="icon" 
                     className={cn(
                         "h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", 
-                        pathname === '/trends' && 'text-primary'
+                        pathname === '/trends' ? 'text-primary' : 'text-foreground'
                     )} 
                     aria-label="Trends" 
                     onClick={trendsLinkHandler}
@@ -161,7 +161,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                       size="icon" 
                       className={cn(
                         "h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0",
-                        pathname === '/micronutrients' && 'text-primary'
+                        pathname === '/micronutrients' ? 'text-primary' : 'text-foreground'
                       )} 
                       aria-label="Micronutrients Progress"
                       onClick={micronutrientsLinkHandler}
