@@ -45,6 +45,11 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/contexts/ThemeContext';
 
+// --- TEMPORARY FEATURE UNLOCK FLAG ---
+// Set to true to give all users full feature access (e.g., no data retention limits).
+// Set to false to revert to normal premium/free tier logic.
+const TEMPORARILY_UNLOCK_ALL_FEATURES = true;
+// --- END TEMPORARY FEATURE UNLOCK FLAG ---
 
 const generateFallbackFodmapProfile = (foodName: string): FoodFODMAPProfile => {
   let hash = 0;
@@ -181,13 +186,15 @@ export default function FoodTimelinePage() {
           }
 
           let q;
-          if (currentIsPremium) {
+          if (TEMPORARILY_UNLOCK_ALL_FEATURES || currentIsPremium) {
             q = query(timelineEntriesColRef, orderBy('timestamp', 'desc'));
           } else {
             const twoDaysAgo = new Date();
             twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
             q = query(timelineEntriesColRef, orderBy('timestamp', 'desc'), where('timestamp', '>=', Timestamp.fromDate(twoDaysAgo)));
-             toast({ title: "Data Retention Notice", description: "As a free user, your data is retained for 2 days.", variant: "default", duration: 10000 });
+             if (!TEMPORARILY_UNLOCK_ALL_FEATURES) {
+               toast({ title: "Data Retention Notice", description: "As a free user, your data is retained for 2 days.", variant: "default", duration: 10000 });
+             }
           }
 
           const querySnapshot = await getDocs(q);

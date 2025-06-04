@@ -8,7 +8,8 @@ import { collection, query, where, orderBy, getDocs, Timestamp, doc, getDoc } fr
 import type { TimelineEntry, LoggedFoodItem, SymptomLog, TimeRange, MacroPoint, CaloriePoint, SafetyPoint, SymptomFrequency, MicronutrientDetail, MicronutrientAchievement, UserProfile } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useToast } from '@/hooks/use-toast'; // Added toast
+import { useToast } from '@/hooks/use-toast'; 
+import Link from 'next/link';
 
 import Navbar from '@/components/shared/Navbar';
 import TimeRangeToggle from '@/components/trends/TimeRangeToggle';
@@ -22,11 +23,17 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, AlertTriangle, BarChart3, Award } from 'lucide-react'; 
 import { subDays, subMonths, subYears, formatISO, startOfDay, endOfDay, parseISO } from 'date-fns';
 
+// --- TEMPORARY FEATURE UNLOCK FLAG ---
+// Set to true to give all users full feature access (e.g., no data retention limits for trends).
+// Set to false to revert to normal premium/free tier logic.
+const TEMPORARILY_UNLOCK_ALL_FEATURES = true;
+// --- END TEMPORARY FEATURE UNLOCK FLAG ---
+
 export default function TrendsPage() {
   const { user, loading: authLoading } = useAuth();
   const { theme: currentTheme, isDarkMode } = useTheme();
-  const { toast } = useToast(); // Initialize toast
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null); // Store user profile for premium status
+  const { toast } = useToast(); 
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null); 
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('30D');
@@ -43,7 +50,6 @@ export default function TrendsPage() {
       setIsLoadingData(true);
       setError(null);
       try {
-        // Fetch user profile to check premium status
         const userDocRef = doc(db, 'users', user.uid);
         const userDocSnap = await getDoc(userDocRef);
         let isPremium = false;
@@ -52,21 +58,19 @@ export default function TrendsPage() {
           setUserProfile(profileData);
           isPremium = profileData.premium || false;
         } else {
-          // Handle case where profile might not exist yet, assume not premium
           setUserProfile({ uid: user.uid, email: user.email, displayName: user.displayName, safeFoods: [], premium: false });
         }
 
         const entriesColRef = collection(db, 'users', user.uid, 'timelineEntries');
         let q;
 
-        if (isPremium) {
+        if (TEMPORARILY_UNLOCK_ALL_FEATURES || isPremium) {
           q = query(entriesColRef, orderBy('timestamp', 'desc'));
         } else {
           const twoDaysAgo = new Date();
           twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
           q = query(entriesColRef, orderBy('timestamp', 'desc'), where('timestamp', '>=', Timestamp.fromDate(twoDaysAgo)));
-          // Toast only if on trends page and free user, not on every data load
-          if (pathname === '/trends') { // Assuming pathname is available or manage this differently
+          if (!TEMPORARILY_UNLOCK_ALL_FEATURES && pathname === '/trends') { 
              toast({ title: "Data Retention Notice", description: "As a free user, your trends are based on the last 2 days of data. Upgrade for full history.", variant: "default", duration: 10000 });
           }
         }
@@ -90,16 +94,14 @@ export default function TrendsPage() {
     };
 
     fetchData();
-  }, [user, authLoading, toast]); // Added toast to dependency array
+  }, [user, authLoading, toast]); 
 
-  // To use pathname, you'd need to import it from next/navigation
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
 
 
   const filteredEntries = useMemo(() => {
     if (timelineEntries.length === 0) return [];
-    // Data is already filtered by 2 days for free users at fetch time.
-    // This filter applies the selectedTimeRange on top of that.
+
     const now = new Date();
     let startDate: Date;
 
@@ -121,7 +123,7 @@ export default function TrendsPage() {
         break;
       case 'ALL':
       default:
-        return timelineEntries; // Already filtered by 2 days for free users if applicable
+        return timelineEntries; 
     }
     
     const endDate = selectedTimeRange === '1D' ? endOfDay(now) : now;
@@ -289,7 +291,7 @@ export default function TrendsPage() {
           <h1 className="text-3xl font-bold mb-2 text-foreground">Trends Dashboard</h1>
           <p className="text-muted-foreground">
             Not enough data yet. Start logging your meals and symptoms to see your trends over time!
-            {!userProfile?.premium && " (Free users: trends based on last 2 days of data)"}
+            {!userProfile?.premium && !TEMPORARILY_UNLOCK_ALL_FEATURES && " (Free users: trends based on last 2 days of data)"}
           </p>
         </div>
       </div>
@@ -306,7 +308,7 @@ export default function TrendsPage() {
           <div className="mb-8">
             <TimeRangeToggle selectedRange={selectedTimeRange} onRangeChange={setSelectedTimeRange} />
           </div>
-           {!userProfile?.premium && (
+           {!userProfile?.premium && !TEMPORARILY_UNLOCK_ALL_FEATURES && (
                 <p className="text-sm text-center text-muted-foreground mb-6">
                 Free users: Trends are based on data from the last 2 days. <Link href="/account/subscription" className="underline text-primary">Upgrade</Link> for full historical data. (Note: Subscription page not implemented)
                 </p>
@@ -374,3 +376,4 @@ const getPathname = () => {
   }
   return "";
 };
+
