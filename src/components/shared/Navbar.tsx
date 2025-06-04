@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom } from 'lucide-react';
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard } from 'lucide-react'; // Added CreditCard
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -112,11 +112,6 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
               <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
             </>
           )}
-           {/* {isGuest && ( 
-             <span className={cn(appNameBaseClasses, 'text-foreground')}>
-                {APP_NAME}
-              </span>
-           )} */}
         </Link>
 
         <div className="flex items-center space-x-1 sm:space-x-1.5">
@@ -203,6 +198,11 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                         </p>
                       </div>
                     </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                     <DropdownMenuItem onClick={() => router.push('/account/subscription')} className="cursor-pointer">
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        <span>Upgrade to Premium</span>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                       <LogOut className="mr-2 h-4 w-4" />
