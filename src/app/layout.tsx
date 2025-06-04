@@ -9,6 +9,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:9002'),
   title: 'GutCheck',
   description: 'Your Ai companion for easy food logging and meaningful insights.',
   openGraph: {
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
     description: 'Your Ai companion for easy food logging and meaningful insights.',
     images: [
       {
-        url: '/Gutcheck_logo.png', 
+        url: '/Gutcheck_logo.png',
         width: 512,
         height: 512,
         alt: 'GutCheck Logo',
@@ -25,9 +26,9 @@ export const metadata: Metadata = {
     type: 'website',
   },
   icons: {
-    icon: '/Gutcheck_logo.png', 
-    shortcut: '/Gutcheck_logo.png', 
-    apple: '/Gutcheck_logo.png', 
+    icon: '/Gutcheck_logo.png',
+    shortcut: '/Gutcheck_logo.png',
+    apple: '/Gutcheck_logo.png',
   },
 };
 
