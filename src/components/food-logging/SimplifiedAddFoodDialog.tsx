@@ -96,7 +96,7 @@ export default function SimplifiedAddFoodDialog({
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const { control, setValue, watch, reset, formState: { errors, isSubmitting, isValid, isSubmitted } } = useForm<SimplifiedFoodLogFormValues>({
+  const form = useForm<SimplifiedFoodLogFormValues>({
     resolver: zodResolver(simplifiedFoodLogSchema),
     defaultValues: {
       mealDescription: '',
@@ -107,6 +107,7 @@ export default function SimplifiedAddFoodDialog({
       ...(initialValues || {}),
     },
   });
+  const { control, setValue, watch, reset, formState: { errors, isSubmitting, isValid, isSubmitted } } = form;
 
   useEffect(() => {
     if (isOpen) {
@@ -184,11 +185,13 @@ export default function SimplifiedAddFoodDialog({
             if (hasOcrText) {
               descriptionText += ` Text from image (first 100 chars): ${trimmedOcrText.substring(0, 100)}${trimmedOcrText.length > 100 ? '...' : ''}`;
             }
-            setValue('mealDescription', descriptionText, { shouldDirty: true, shouldTouch: true });
+            setValue('mealDescription', descriptionText, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+            form.trigger('mealDescription');
             toast({ title: "Food Identified!", description: "Review and confirm the description." });
           } else if (hasOcrText) {
             descriptionText = `Text from image: ${trimmedOcrText}`;
-            setValue('mealDescription', descriptionText, { shouldDirty: true, shouldTouch: true });
+            setValue('mealDescription', descriptionText, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+            form.trigger('mealDescription');
             toast({ title: "Text Extracted", description: "OCR text populated. Please complete the meal description." });
           } else {
             setPhotoError(result.errorMessage || "AI could not extract useful information. Please describe manually.");
@@ -234,14 +237,6 @@ export default function SimplifiedAddFoodDialog({
   const submitButtonText = isLoading
     ? (isEditing ? 'Updating...' : 'Analyzing...')
     : (isGuestView ? 'Check Meal' : (isEditing ? 'Update Meal' : 'Analyze Meal'));
-
-  // For debugging:
-  // useEffect(() => {
-  //   const subscription = watch((value, { name, type }) => {
-  //     if (name === 'mealDescription') console.log('Watched mealDescription:', value.mealDescription);
-  //   });
-  //   return () => subscription.unsubscribe();
-  // }, [watch]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -431,5 +426,7 @@ export default function SimplifiedAddFoodDialog({
     </Dialog>
   );
 }
+
+    
 
     
