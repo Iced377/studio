@@ -35,10 +35,8 @@ export default function AdminFeedbackPage() {
 
         if (userProfileSnap.exists()) {
           const userProfileData = userProfileSnap.data() as UserProfile;
-          // Simplified admin check: only rely on isAdmin
-          if (userProfileData.isAdmin === true) {
+          if (userProfileData.isAdmin === true) { // Simplified admin check
             setIsCurrentUserAdmin(true);
-            // Fetch feedback submissions
             const feedbackQuery = query(collection(db, 'feedbackSubmissions'), orderBy('timestamp', 'desc'));
             const feedbackSnapshot = await getDocs(feedbackQuery);
             const items = feedbackSnapshot.docs.map(docSnap => ({
@@ -105,11 +103,11 @@ export default function AdminFeedbackPage() {
   
   const getStatusVariant = (status?: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status?.toLowerCase()) {
-      case 'new': return 'default'; // Blue-ish in some themes
+      case 'new': return 'default'; 
       case 'viewed': return 'secondary';
-      case 'in-progress': return 'outline'; // Yellow-ish
-      case 'planned': return 'outline'; // Purple-ish if you have a theme for it
-      case 'completed': return 'default'; // Green-ish
+      case 'in-progress': return 'outline'; 
+      case 'planned': return 'outline'; 
+      case 'completed': return 'default'; 
       case 'dismissed': return 'destructive';
       default: return 'secondary';
     }
@@ -132,35 +130,35 @@ export default function AdminFeedbackPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[130px]">Date</TableHead>
-                      <TableHead className="min-w-[150px]">User</TableHead>
-                      <TableHead className="w-[150px]">User Category</TableHead>
-                      <TableHead className="min-w-[250px]">Feedback</TableHead>
-                      <TableHead className="min-w-[180px]">AI Summary</TableHead>
-                      <TableHead className="w-[150px]">AI Category</TableHead>
-                      <TableHead className="w-[100px]">Status</TableHead>
-                       <TableHead className="w-[100px]">Route</TableHead>
+                      <TableHead className="w-[120px] px-2 py-3">Date</TableHead>
+                      <TableHead className="w-[180px] px-2 py-3">User</TableHead>
+                      <TableHead className="w-[120px] px-2 py-3">User Category</TableHead>
+                      <TableHead className="min-w-[200px] max-w-sm px-2 py-3">Feedback</TableHead>
+                      <TableHead className="min-w-[150px] max-w-xs px-2 py-3">AI Summary</TableHead>
+                      <TableHead className="w-[130px] px-2 py-3">AI Category</TableHead>
+                      <TableHead className="w-[100px] px-2 py-3">Status</TableHead>
+                       <TableHead className="w-[120px] px-2 py-3">Route</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {feedbackItems.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell>{format(new Date(item.timestamp), 'MMM d, yyyy HH:mm')}</TableCell>
-                        <TableCell className="break-all">{item.userId === 'anonymous' ? 'Anonymous' : item.userId}</TableCell>
-                        <TableCell>{item.category || 'N/A'}</TableCell>
-                        <TableCell className="whitespace-pre-wrap break-words max-w-xs">
+                        <TableCell className="px-2 py-2">{format(new Date(item.timestamp), 'MMM d, yyyy HH:mm')}</TableCell>
+                        <TableCell className="px-2 py-2 break-all">{item.userId === 'anonymous' ? 'Anonymous' : item.userId}</TableCell>
+                        <TableCell className="px-2 py-2">{item.category || 'N/A'}</TableCell>
+                        <TableCell className="px-2 py-2 whitespace-pre-wrap break-words">
                           {item.feedbackText}
                         </TableCell>
-                        <TableCell>{item.aiAnalysis?.summaryTitle || 'N/A'}</TableCell>
-                        <TableCell>{item.aiAnalysis?.aiSuggestedCategory || 'N/A'}</TableCell>
-                        <TableCell>
+                        <TableCell className="px-2 py-2 whitespace-pre-wrap break-words">{item.aiAnalysis?.summaryTitle || 'N/A'}</TableCell>
+                        <TableCell className="px-2 py-2">{item.aiAnalysis?.aiSuggestedCategory || 'N/A'}</TableCell>
+                        <TableCell className="px-2 py-2">
                           <Badge variant={getStatusVariant(item.status)} className="capitalize">
                             {item.status || 'New'}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="px-2 py-2 break-all">
                           <a href={item.route} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center">
-                            {item.route} <ExternalLink className="ml-1 h-3 w-3" />
+                            {item.route || 'N/A'} <ExternalLink className="ml-1 h-3 w-3" />
                           </a>
                         </TableCell>
                       </TableRow>

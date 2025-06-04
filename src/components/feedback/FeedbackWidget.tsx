@@ -21,6 +21,7 @@ import { addDoc, collection, Timestamp } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import { processFeedback, type ProcessedFeedbackOutput } from '@/ai/flows/process-feedback-flow';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils'; // Import cn utility
 
 export default function FeedbackWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -99,7 +100,11 @@ export default function FeedbackWidget() {
       <Button
         variant="default"
         size="lg"
-        className="fixed bottom-6 right-6 rounded-full shadow-xl h-14 w-14 p-0 z-50 bg-primary text-primary-foreground hover:bg-primary/90"
+        className={cn(
+          "fixed bottom-6 right-6 rounded-full shadow-xl h-14 w-14 p-0 z-50",
+          "bg-primary text-primary-foreground hover:bg-primary/90", // Explicitly use primary colors
+          "animate-bounce" // Add bounce animation
+        )}
         onClick={() => setIsOpen(true)}
         aria-label="Open feedback dialog"
       >

@@ -26,7 +26,7 @@ import { db } from '@/config/firebase'; // Added db import
 import type { UserProfile } from '@/types'; // Added UserProfile import
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.3";
+export const APP_VERSION = "Beta 3.4";
 
 interface NavbarProps {
   isGuest?: boolean;
@@ -53,8 +53,8 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
           const userProfileSnap = await getDoc(userProfileDocRef);
           if (userProfileSnap.exists()) {
             const userProfileData = userProfileSnap.data() as UserProfile;
-            // Ensure premium is also true for admin, as per page logic
-            setIsCurrentUserAdmin(userProfileData.premium === true && userProfileData.isAdmin === true);
+            // Simplified admin check: only rely on isAdmin
+            setIsCurrentUserAdmin(userProfileData.isAdmin === true);
           } else {
             setIsCurrentUserAdmin(false);
           }
