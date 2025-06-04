@@ -9,22 +9,43 @@ import Navbar from "@/components/shared/Navbar"
 import type { TimelineEntry, UserProfile, DailyNutritionSummary, LoggedFoodItem, MicronutrientDetail } from '@/types';
 import TimelineFoodCard from '@/components/food-logging/TimelineFoodCard';
 import TimelineSymptomCard from '@/components/food-logging/TimelineSymptomCard';
-import { Flame, Beef, Wheat, Droplet, Utensils, Check, Atom, Sparkles, Bone, Nut, Citrus, Carrot, Leaf, Milk, Sun, Brain, Activity, Zap as Bolt } from 'lucide-react';
+import { Flame, Beef, Wheat, Droplet, Utensils, Check, Atom, Sparkles, Bone, Nut, Citrus, Carrot, Leaf, Milk, Sun, Brain, Activity, Zap as Bolt, Eye, Wind, Heart, ShieldCheck, ShieldQuestion, Anchor, PersonStanding, Baby, Target, Network, HelpCircle } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { startOfDay, endOfDay } from 'date-fns';
 
-const LucideIconsForSummary: { [key: string]: React.ElementType } = {
-  Atom, Sparkles, Bone, Nut, Citrus, Carrot, BeefIcon: Beef, LeafIcon: Leaf, MilkIcon: Milk, Sun, Brain, Activity, Bolt,
-  Iron: Atom, 
+const RepresentativeLucideIcons: { [key: string]: React.ElementType } = {
+  // General & Fallbacks
+  Atom, Sparkles, HelpCircle,
+  // Specific by Nutrient Name (primary fallback if AI iconName isn't in map)
+  Iron: Wind,
   Calcium: Bone,
-  VitaminC: Citrus,
-  VitaminD: Sun,
+  Phosphorus: Bone,
+  Magnesium: Activity, // Proxy for muscle/nerve function
+  Sodium: Droplet,
+  Potassium: Droplet,
+  Chloride: Droplet,
+  Zinc: PersonStanding, // Proxy for growth
+  Copper: Network,
+  Manganese: Bone,
+  Selenium: ShieldCheck,
+  Iodine: Brain, // Thyroid role in brain
+  Chromium: Target,
+  VitaminA: Eye,
+  VitaminC: ShieldCheck,
+  VitaminD: ShieldCheck, // Also Bone, but ShieldCheck for immune emphasis
+  VitaminE: ShieldQuestion, // Antioxidant/cell protection
+  VitaminK: Heart, // Blood clotting
+  VitaminB1: Brain, // Thiamine - energy, nerve
+  VitaminB2: Activity, // Riboflavin - energy
+  VitaminB3: Activity, // Niacin - energy
+  VitaminB5: Activity, // Pantothenic Acid - energy
+  VitaminB6: Brain, // Pyridoxine - neurotransmitters
   VitaminB12: Brain,
-  Potassium: Activity,
-  Magnesium: Bolt, 
-  Zinc: Sparkles, 
-  Folate: Leaf,
+  Biotin: Activity, // Energy metabolism
+  Folate: Baby, // Development
+  // Common AI-suggested iconNames from the prompt (to ensure they are mapped)
+  Bone: Bone, Nut: Nut, Citrus: Citrus, Carrot: Carrot, Beef: Beef, Leaf: Leaf, Milk: Milk, Sun: Sun, Brain: Brain, Activity: Activity, Bolt: Bolt, Eye: Eye, Wind: Wind, Heart: Heart, ShieldCheck: ShieldCheck, ShieldQuestion: ShieldQuestion, Anchor: Anchor, Droplet: Droplet, PersonStanding: PersonStanding, Baby: Baby, Target: Target, Network: Network
 };
 
 
@@ -135,7 +156,7 @@ export default function PremiumDashboardSheet({
                   <div className="text-sm font-semibold text-foreground mt-1 flex items-center flex-wrap gap-x-2 gap-y-1">
                      <span className="font-medium">Micronutrients Target Met:</span>
                       {achievedMicronutrients.map(micro => {
-                        const IconComponent = micro.iconName && LucideIconsForSummary[micro.iconName] ? LucideIconsForSummary[micro.iconName] : (LucideIconsForSummary[micro.name] || Atom);
+                        const IconComponent = (micro.iconName && RepresentativeLucideIcons[micro.iconName]) || RepresentativeLucideIcons[micro.name] || Atom;
                         return (
                           <Popover key={micro.name}>
                             <PopoverTrigger asChild>

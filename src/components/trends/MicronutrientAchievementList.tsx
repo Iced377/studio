@@ -1,19 +1,46 @@
+
 'use client';
 
 import type { MicronutrientAchievement } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Award, Tally5, Atom, Sparkles, Bone, Nut, Citrus, Carrot, Beef, Leaf, Milk } from 'lucide-react'; // Added specific icons
+import { Award, Tally5, Atom, Sparkles, Bone, Nut, Citrus, Carrot, Beef, Leaf, Milk, Sun, Brain, Activity, Zap as Bolt, Eye, Wind, Heart, ShieldCheck, ShieldQuestion, Anchor, PersonStanding, Baby, Target, Network, HelpCircle } from 'lucide-react'; 
 
-// Mapping for icons, similar to PremiumDashboardSheet
-const LucideIconsForTrends: { [key: string]: React.ElementType } = {
-  Atom, Sparkles, Bone, Nut, Citrus, Carrot, Beef, Leaf, Milk,
-  Iron: Atom, 
+const RepresentativeLucideIcons: { [key: string]: React.ElementType } = {
+  // General & Fallbacks
+  Atom, Sparkles, HelpCircle,
+  // Specific by Nutrient Name (primary fallback if AI iconName isn't in map)
+  Iron: Wind,
   Calcium: Bone,
-  VitaminC: Citrus,
-  // Add more common mappings as needed or rely on AI providing a good iconName
+  Phosphorus: Bone,
+  Magnesium: Activity, // Proxy for muscle/nerve function
+  Sodium: Droplet,
+  Potassium: Droplet,
+  Chloride: Droplet,
+  Zinc: PersonStanding, // Proxy for growth
+  Copper: Network,
+  Manganese: Bone,
+  Selenium: ShieldCheck,
+  Iodine: Brain, // Thyroid role in brain
+  Chromium: Target,
+  VitaminA: Eye,
+  VitaminC: ShieldCheck,
+  VitaminD: ShieldCheck, // Also Bone, but ShieldCheck for immune emphasis
+  VitaminE: ShieldQuestion, // Antioxidant/cell protection
+  VitaminK: Heart, // Blood clotting
+  VitaminB1: Brain, // Thiamine - energy, nerve
+  VitaminB2: Activity, // Riboflavin - energy
+  VitaminB3: Activity, // Niacin - energy
+  VitaminB5: Activity, // Pantothenic Acid - energy
+  VitaminB6: Brain, // Pyridoxine - neurotransmitters
+  VitaminB12: Brain,
+  Biotin: Activity, // Energy metabolism
+  Folate: Baby, // Development
+  // Common AI-suggested iconNames from the prompt (to ensure they are mapped)
+  Bone: Bone, Nut: Nut, Citrus: Citrus, Carrot: Carrot, Beef: Beef, Leaf: Leaf, Milk: Milk, Sun: Sun, Brain: Brain, Activity: Activity, Bolt: Bolt, Eye: Eye, Wind: Wind, Heart: Heart, ShieldCheck: ShieldCheck, ShieldQuestion: ShieldQuestion, Anchor: Anchor, Droplet: Droplet, PersonStanding: PersonStanding, Baby: Baby, Target: Target, Network: Network
 };
+
 
 interface MicronutrientAchievementListProps {
   data: MicronutrientAchievement[];
@@ -34,9 +61,7 @@ export default function MicronutrientAchievementList({ data }: MicronutrientAchi
     <ScrollArea className="h-[300px] pr-3"> {/* Adjust height as needed */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {data.map((item) => {
-          const IconComponent = item.iconName && LucideIconsForTrends[item.iconName] 
-            ? LucideIconsForTrends[item.iconName] 
-            : (LucideIconsForTrends[item.name] || Atom); // Fallback to name mapping or Atom
+          const IconComponent = (item.iconName && RepresentativeLucideIcons[item.iconName]) || RepresentativeLucideIcons[item.name] || Atom;
 
           return (
             <TooltipProvider key={item.name}>

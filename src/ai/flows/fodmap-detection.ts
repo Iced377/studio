@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview This file contains the Genkit flow for FODMAP detection in food items, considering portion sizes,
@@ -58,7 +59,7 @@ const MicronutrientDetailSchema = z.object({
   name: z.string().describe("Name of the micronutrient, e.g., 'Iron', 'Vitamin C', 'Calcium', 'Potassium', 'Magnesium', 'Vitamin B12'."),
   amount: z.string().optional().describe("Estimated amount of the micronutrient in the portion, with units (e.g., '10 mg', '90 mcg')."),
   dailyValuePercent: z.number().optional().describe("Estimated percentage of Daily Value (%DV) for the micronutrient, if applicable and known for an average adult."),
-  iconName: z.string().optional().describe("A suggested relevant lucide-react icon name based on the nutrient's primary function, common food source, or associated body part. Examples: 'Bone' for Calcium, 'Citrus' for Vitamin C, 'Sun' for Vitamin D, 'Brain' for B12, 'Activity' or 'Banana' (if exists) for Potassium, 'Bolt' or 'Leaf' for Magnesium. Be generic like 'Atom' or 'Sparkles' if a specific icon is unavailable or less intuitive."),
+  iconName: z.string().optional().describe("A suggested relevant lucide-react icon name based on the nutrient's primary **supported body part or physiological function**. Examples: 'Bone' for Calcium or Phosphorus, 'Activity' for Magnesium (muscle/nerve function), 'PersonStanding' for Zinc (growth), 'Eye' for Vitamin A, 'ShieldCheck' for Vitamin C & D (immune support), 'Droplet' for Potassium & Sodium (electrolyte balance), 'Wind' for Iron (oxygen transport), 'Brain' for B12 & Iodine, 'Baby' for Folate (development), 'Heart' for Vitamin K (blood clotting). Use generic names like 'Atom' or 'Sparkles' if a specific, intuitive functional icon is not available. If no good icon, omit."),
 }).describe("Details for a specific micronutrient.");
 
 const MicronutrientsInfoSchema = z.object({
@@ -121,7 +122,7 @@ You will receive a food item, its ingredients, and a portion size. Your task is 
 5.  **Micronutrients Overview (Portion-Specific):**
     *   Identify up to 3 notable micronutrients (e.g., Iron, Vitamin C, Calcium, Potassium, B12).
     *   For each, provide estimated amount with units and %DV if readily available.
-    *   Suggest a relevant lucide-react icon name for \`iconName\` field, based on the nutrient's primary function, a common food source, or associated body part. Examples: 'Bone' for Calcium, 'Citrus' for Vitamin C, 'Sun' for Vitamin D, 'Brain' for Vitamin B12, 'Activity' for Potassium, 'Bolt' or 'Leaf' for Magnesium. Use generic names like 'Atom' or 'Sparkles' if a specific, intuitive icon is not available. If no good icon, omit.
+    *   Suggest a relevant lucide-react icon name for \`iconName\` field, based on the nutrient's primary **supported body part or physiological function**. Examples: 'Bone' for Calcium or Phosphorus, 'Activity' for Magnesium (muscle/nerve function), 'PersonStanding' for Zinc (growth), 'Eye' for Vitamin A, 'ShieldCheck' for Vitamin C & D (immune support), 'Droplet' for Potassium & Sodium (electrolyte balance), 'Wind' for Iron (oxygen transport), 'Brain' for B12 & Iodine, 'Baby' for Folate (development), 'Heart' for Vitamin K (blood clotting). Use generic names like 'Atom' or 'Sparkles' if a specific, intuitive functional icon is not available. If no good icon, omit.
 
 6.  **Gut Bacteria Impact (Portion-Specific):**
     *   Estimate the general impact on gut bacteria (Positive, Negative, Neutral, Unknown).
