@@ -26,8 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-// Removed Textarea import, will use plain textarea for Controller
-// import { Textarea } from '@/components/ui/textarea';
+// import { Textarea } from '@/components/ui/textarea'; // Using plain textarea for debugging
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -186,7 +185,11 @@ export default function SimplifiedAddFoodDialog({
             if (hasOcrText) {
               descriptionText += ` Text from image (first 100 chars): ${trimmedOcrText.substring(0, 100)}${trimmedOcrText.length > 100 ? '...' : ''}`;
             }
-            setValue('mealDescription', descriptionText, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+            setValue('mealDescription', descriptionText, {
+              shouldDirty: true,
+              shouldTouch: true,
+              shouldValidate: true,
+            });
             console.log("Set value to:", descriptionText);
             console.log("Watch sees:", watch("mealDescription"));
             console.log("getValues now:", getValues('mealDescription'));
@@ -194,7 +197,11 @@ export default function SimplifiedAddFoodDialog({
             toast({ title: "Food Identified!", description: "Review and confirm the description." });
           } else if (hasOcrText) {
             descriptionText = `Text from image: ${trimmedOcrText}`;
-            setValue('mealDescription', descriptionText, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+            setValue('mealDescription', descriptionText, {
+              shouldDirty: true,
+              shouldTouch: true,
+              shouldValidate: true,
+            });
             console.log("Set value to:", descriptionText);
             console.log("Watch sees:", watch("mealDescription"));
             console.log("getValues now:", getValues('mealDescription'));
@@ -338,31 +345,13 @@ export default function SimplifiedAddFoodDialog({
             </div>
           )}
           
-          {/* Test setValue Button Added Here */}
-          <Button
-            type="button"
-            onClick={() => {
-              const testText = "🍽️ Quick test: Hello world!";
-              setValue('mealDescription', testText, {
-                shouldDirty: true,
-                shouldTouch: true,
-                shouldValidate: true,
-              });
-              console.log("Manually set mealDescription →", testText);
-              console.log("After setValue, getValues:", getValues('mealDescription'));
-            }}
-            className="mb-2 bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-          >
-            Test setValue
-          </Button>
-
           <div>
             <Label htmlFor="mealDescription" className={labelClasses}>Meal Description</Label>
             <Controller
               name="mealDescription"
               control={control}
               render={({ field }) => (
-                <textarea // Using plain textarea for debugging
+                <textarea // Using plain textarea for debugging as per user instruction
                   {...field}
                   id="mealDescription"
                   placeholder={isGuestView
@@ -454,3 +443,5 @@ export default function SimplifiedAddFoodDialog({
     </Dialog>
   );
 }
+
+    
