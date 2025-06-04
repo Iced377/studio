@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon } from 'lucide-react'; // Added AdminIcon
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -20,10 +20,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
-import { useEffect, useState } from 'react'; // Added useEffect, useState
-import { doc, getDoc } from 'firebase/firestore'; // Added Firestore imports
-import { db } from '@/config/firebase'; // Added db import
-import type { UserProfile } from '@/types'; // Added UserProfile import
+import { useEffect, useState } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/config/firebase';
+import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
 export const APP_VERSION = "Beta 3.4";
@@ -38,12 +38,12 @@ interface NavbarProps {
 }
 
 export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
-  const { user: authUser, loading: authLoading } = useAuth(); // Renamed user to authUser
+  const { user: authUser, loading: authLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
   const { isDarkMode, toggleDarkMode } = useTheme();
-  const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState(false); // State for admin status
+  const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState(false);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -53,7 +53,6 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
           const userProfileSnap = await getDoc(userProfileDocRef);
           if (userProfileSnap.exists()) {
             const userProfileData = userProfileSnap.data() as UserProfile;
-            // Simplified admin check: only rely on isAdmin
             setIsCurrentUserAdmin(userProfileData.isAdmin === true);
           } else {
             setIsCurrentUserAdmin(false);
