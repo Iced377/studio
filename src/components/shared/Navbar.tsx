@@ -22,7 +22,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "3.2.8"; // Updated App Version
+export const APP_VERSION = "3.2.8";
 
 interface NavbarProps {
   isGuest?: boolean;
@@ -90,9 +90,9 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
         headerBaseClasses,
         isGuest ? guestHeaderClasses : registeredUserHeaderClasses
     )}>
-      <div className="container flex h-16 max-w-screen-2xl items-center">
-        <Link href="/" className="mr-auto flex items-center space-x-2">
-          {!isGuest && ( /* Conditionally render logo for non-guest view */
+      <div className="container flex h-16 max-w-screen-2xl items-center justify-between"> {/* Added justify-between */}
+        <Link href="/" className="flex items-center space-x-2"> {/* Removed mr-auto */}
+          {!isGuest && ( 
             <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-foreground bg-black p-1">
               <Image
                 src="/Gutcheck_logo.png"
@@ -112,7 +112,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
               <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
             </>
           )}
-           {isGuest && ( /* Show app name for guest if logo is hidden */
+           {isGuest && ( 
              <span className={cn(appNameBaseClasses, 'text-foreground')}>
                 {APP_NAME}
               </span>
@@ -152,7 +152,10 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className={cn("h-8 w-8", pathname === '/trends' && 'bg-accent text-accent-foreground')} 
+                    className={cn(
+                        "h-8 w-8", 
+                        pathname === '/trends' && 'bg-accent text-accent-foreground'
+                    )} 
                     aria-label="Trends" 
                     onClick={trendsLinkHandler}
                   >
@@ -168,7 +171,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                       aria-label="Micronutrients Progress"
                       onClick={micronutrientsLinkHandler}
                     >
-                      <Atom className="h-5 w-5" /> {/* Changed Nut to Atom */}
+                      <Atom className="h-5 w-5" />
                   </Button>
                 </>
               )}
