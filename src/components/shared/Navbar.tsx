@@ -90,7 +90,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   const trendsLinkHandler = (e: React.MouseEvent) => {
     e.preventDefault();
     if (pathname === '/trends') {
-      router.push('/');
+      router.push('/?openDashboard=true'); // Navigate to home and signal to open dashboard
     } else {
       router.push('/trends');
     }
@@ -99,7 +99,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   const micronutrientsLinkHandler = (e: React.MouseEvent) => {
     e.preventDefault();
     if (pathname === '/micronutrients') {
-      router.push('/'); 
+      router.push('/?openDashboard=true'); // Navigate to home and signal to open dashboard
     } else {
       router.push('/micronutrients');
     }

@@ -41,7 +41,7 @@ import IdentifyFoodByPhotoDialog, { type IdentifiedPhotoData } from '@/component
 import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet';
 import Navbar from '@/components/shared/Navbar';
 import GuestHomePage from '@/components/guest/GuestHomePage';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -96,6 +96,8 @@ export default function FoodTimelinePage() {
   const { toast } = useToast();
   const { user: authUser, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentPathname = usePathname();
   const { isDarkMode } = useTheme();
 
   const [userProfile, setUserProfile] = useState<UserProfile>(initialGuestProfile);
@@ -238,6 +240,15 @@ export default function FoodTimelinePage() {
     };
     setupUser();
   }, [authUser, authLoading, toast]);
+
+
+  useEffect(() => {
+    if (searchParams.get('openDashboard') === 'true') {
+      setIsPremiumDashboardOpen(true);
+      // Clean the URL query parameter
+      router.replace(currentPathname, { scroll: false });
+    }
+  }, [searchParams, router, currentPathname]);
 
 
   const addTimelineEntry = (entry: TimelineEntry) => {
