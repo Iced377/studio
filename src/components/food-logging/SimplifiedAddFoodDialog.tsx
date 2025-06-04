@@ -26,7 +26,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Textarea } from '@/components/ui/textarea';
+// Removed Textarea import, will use plain textarea for Controller
+// import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -107,7 +108,7 @@ export default function SimplifiedAddFoodDialog({
       ...(initialValues || {}),
     },
   });
-  const { control, setValue, watch, reset, formState: { errors, isSubmitting, isValid, isSubmitted }, trigger, handleSubmit } = form;
+  const { control, setValue, watch, reset, formState: { errors, isSubmitting, isValid, isSubmitted }, trigger, handleSubmit, getValues } = form;
 
   useEffect(() => {
     if (isOpen) {
@@ -188,6 +189,7 @@ export default function SimplifiedAddFoodDialog({
             setValue('mealDescription', descriptionText, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
             console.log("Set value to:", descriptionText);
             console.log("Watch sees:", watch("mealDescription"));
+            console.log("getValues now:", getValues('mealDescription'));
             trigger('mealDescription');
             toast({ title: "Food Identified!", description: "Review and confirm the description." });
           } else if (hasOcrText) {
@@ -195,6 +197,7 @@ export default function SimplifiedAddFoodDialog({
             setValue('mealDescription', descriptionText, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
             console.log("Set value to:", descriptionText);
             console.log("Watch sees:", watch("mealDescription"));
+            console.log("getValues now:", getValues('mealDescription'));
             trigger('mealDescription');
             toast({ title: "Text Extracted", description: "OCR text populated. Please complete the meal description." });
           } else {
@@ -334,18 +337,34 @@ export default function SimplifiedAddFoodDialog({
                 <p className="text-center text-sm text-muted-foreground my-2">OR</p>
             </div>
           )}
+          
+          {/* Test setValue Button Added Here */}
+          <Button
+            type="button"
+            onClick={() => {
+              const testText = "🍽️ Quick test: Hello world!";
+              setValue('mealDescription', testText, {
+                shouldDirty: true,
+                shouldTouch: true,
+                shouldValidate: true,
+              });
+              console.log("Manually set mealDescription →", testText);
+              console.log("After setValue, getValues:", getValues('mealDescription'));
+            }}
+            className="mb-2 bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+          >
+            Test setValue
+          </Button>
+
           <div>
             <Label htmlFor="mealDescription" className={labelClasses}>Meal Description</Label>
             <Controller
               name="mealDescription"
               control={control}
-              render={({ field, fieldState }) => (
-                <Textarea
+              render={({ field }) => (
+                <textarea // Using plain textarea for debugging
+                  {...field}
                   id="mealDescription"
-                  value={field.value ?? ''} 
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  ref={field.ref}
                   placeholder={isGuestView
                     ? 'e.g., "A small glass of low-fat milk with 50g of Weetabix, and a handful of blueberries"'
                     : 'e.g., "Large bowl of spaghetti bolognese with garlic bread and a side salad."'}
