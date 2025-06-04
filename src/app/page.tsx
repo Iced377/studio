@@ -103,7 +103,12 @@ export default function FoodTimelinePage() {
   const [isLoadingAi, setIsLoadingAi] = useState<Record<string, boolean>>({});
 
   // Dialog states
-  const [isAddFoodDialogOpen, setIsAddFoodDialogOpen] = useState(false);
+  const [isAddFoodDialogOpenState, setIsAddFoodDialogOpenState] = useState(false);
+  const setIsAddFoodDialogOpen = (val: boolean) => {
+    console.log("[Debug] setIsAddFoodDialogOpen called with:", val, "Stack:", new Error().stack?.substring(0, 500));
+    setIsAddFoodDialogOpenState(val);
+  }
+
   const [isSimplifiedAddFoodDialogOpen, setIsSimplifiedAddFoodDialogOpen] = useState(false);
   const [isIdentifyByPhotoDialogOpen, setIsIdentifyByPhotoDialogOpen] = useState(false);
   const [isSymptomLogDialogOpen, setIsSymptomLogDialogOpen] = useState(false);
@@ -767,18 +772,21 @@ export default function FoodTimelinePage() {
   const handleIdentifyByPhotoClick = () => {
     setIsCentralPopoverOpen(false);
     setEditingItem(null);
+    // Defensive state resets
+    setIsAddFoodDialogOpen(false);
+    setIsSimplifiedAddFoodDialogOpen(false);
     setIsIdentifyByPhotoDialogOpen(true);
   };
 
   const handleLogPreviousMealFlow = (logMethod: 'AI' | 'Manual' | 'Photo') => {
-    // selectedLogDateForPreviousMeal is already set by LogPreviousMealDialog
     if (logMethod === 'AI') {
-      setIsSimplifiedAddFoodDialogOpen(true); // This will use selectedLogDateForPreviousMeal if set
+      setIsSimplifiedAddFoodDialogOpen(true);
     } else if (logMethod === 'Manual') {
-      setIsAddFoodDialogOpen(true); // This will use selectedLogDateForPreviousMeal if set
+      setIsAddFoodDialogOpen(true);
     } else if (logMethod === 'Photo') {
-      // IdentifyFoodByPhotoDialog opens, then onFoodIdentified will call
-      // handleProcessAndLogPhotoIdentification, which will use selectedLogDateForPreviousMeal
+      // Defensive state resets
+      setIsAddFoodDialogOpen(false);
+      setIsSimplifiedAddFoodDialogOpen(false);
       setIsIdentifyByPhotoDialogOpen(true);
     }
   };
@@ -787,7 +795,7 @@ export default function FoodTimelinePage() {
   const handleOpenLogPreviousMealDialog = () => {
     setIsCentralPopoverOpen(false);
     setEditingItem(null);
-    setSelectedLogDateForPreviousMeal(new Date()); // Pre-select today, user can change
+    setSelectedLogDateForPreviousMeal(new Date()); 
     setIsLogPreviousMealDialogOpen(true);
   };
 
@@ -955,9 +963,8 @@ export default function FoodTimelinePage() {
         };
 
       } else { 
-        // This branch handles items that were originally manual, or from photo ID
         fodmapAnalysis = await analyzeFoodItem({
-          foodItem: itemToRepeat.originalName || itemToRepeat.name, // Prefer originalName if available
+          foodItem: itemToRepeat.originalName || itemToRepeat.name, 
           ingredients: itemToRepeat.ingredients,
           portionSize: itemToRepeat.portionSize,
           portionUnit: itemToRepeat.portionUnit,
@@ -984,17 +991,15 @@ export default function FoodTimelinePage() {
 
         processedFoodItem = {
           ...baseRepetitionData,
-          name: itemToRepeat.name, // Keep original witty name if it was an AI entry
+          name: itemToRepeat.name, 
           originalName: itemToRepeat.originalName || itemToRepeat.name,
           ingredients: itemToRepeat.ingredients,
           portionSize: itemToRepeat.portionSize,
           portionUnit: itemToRepeat.portionUnit,
-          sourceDescription: itemToRepeat.sourceDescription, // Carry over source, e.g. "Identified by photo"
+          sourceDescription: itemToRepeat.sourceDescription, 
           fodmapData: fodmapAnalysis,
           isSimilarToSafe: similarityOutput?.isSimilar ?? false,
           userFodmapProfile: itemFodmapProfileForSimilarity,
-          // For macros, if it was originally a photo ID, AI would have set them. If manual, user set them.
-          // If macrosOverridden was true, respect that. Otherwise, use new AI analysis.
           calories: itemToRepeat.macrosOverridden ? itemToRepeat.calories : fodmapAnalysis?.calories,
           protein: itemToRepeat.macrosOverridden ? itemToRepeat.protein : fodmapAnalysis?.protein,
           carbs: itemToRepeat.macrosOverridden ? itemToRepeat.carbs : fodmapAnalysis?.carbs,
@@ -1156,7 +1161,7 @@ export default function FoodTimelinePage() {
         onFoodIdentified={(data) => handleProcessAndLogPhotoIdentification(data, selectedLogDateForPreviousMeal)}
       />
       <AddFoodItemDialog
-          isOpen={isAddFoodDialogOpen}
+          isOpen={isAddFoodDialogOpenState}
           onOpenChange={(open) => {
               if (!open) {
                 setEditingItem(null);
