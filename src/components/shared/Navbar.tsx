@@ -70,12 +70,11 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   };
 
   const headerBaseClasses = "sticky top-0 z-50 w-full";
-  const guestHeaderClasses = "bg-background text-foreground"; // No bottom border for guest
+  const guestHeaderClasses = "bg-background text-foreground";
   const registeredUserHeaderClasses = cn(
     !isDarkMode ? "bg-muted text-foreground" : "bg-background text-foreground",
     "border-b border-border/50"
   );
-
 
   const appNameBaseClasses = "font-bold font-headline sm:inline-block text-xl";
 
@@ -86,29 +85,19 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
     )}>
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <Link href="/" className="mr-auto flex items-center space-x-1.5">
-          {!isGuest && !isDarkMode && !user?.photoURL ? ( // Show icon in circle for light mode no photo
-             <div className="rounded-full bg-foreground p-1 flex items-center justify-center mr-0.5">
-                <User className="h-5 w-5 text-background" />
-             </div>
-          ) : !isGuest && !isDarkMode && user?.photoURL ? ( // Show photo in circle for light mode with photo
-            <div className="rounded-full bg-foreground p-0.5 flex items-center justify-center mr-0.5">
-               <Avatar className="h-7 w-7">
-                  <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
-                  <AvatarFallback className="bg-muted text-muted-foreground">
-                    <User className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
-            </div>
-          ) : ( // Default logo for guest, or dark mode, or if structure above doesn't apply.
-            <Image
-              src="/Gutcheck_logo.png"
-              alt="GutCheck Logo"
-              width={28}
-              height={28}
-              className="object-contain filter brightness-0 invert"
-              priority
-            />
-          )}
+          <Image
+            src="/Gutcheck_logo.png"
+            alt="GutCheck Logo"
+            width={28}
+            height={28}
+            className={cn(
+              "object-contain",
+              // Apply invert filter only for logged-in users in dark mode
+              // Assumes original logo is dark/colored and visible on light backgrounds
+              !isGuest && isDarkMode && "filter brightness-0 invert"
+            )}
+            priority
+          />
           {!isGuest && (
             <>
               <span className={cn(appNameBaseClasses, 'text-foreground')}>
@@ -136,7 +125,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                 Sign In / Sign Up
               </Button>
             </div>
-          ) : isGuest ? ( // Fallback if guestButtonScheme is somehow not provided
+          ) : isGuest ? ( 
              <Button
               onClick={() => router.push('/login')}
               variant="default"
