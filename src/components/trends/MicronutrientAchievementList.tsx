@@ -5,7 +5,7 @@ import type { MicronutrientAchievement } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Award, Tally5, Atom, Sparkles, Bone, Nut, Citrus, Carrot, Beef, Leaf, Milk, Sun, Brain, Activity, Zap as Bolt, Eye, Wind, Heart, ShieldCheck, ShieldQuestion, Anchor, PersonStanding, Baby, Target, Network, HelpCircle } from 'lucide-react'; 
+import { Award, Tally5, Atom, Sparkles, Bone, Nut, Citrus, Carrot, Beef, Leaf, Milk, Sun, Brain, Activity, Zap as Bolt, Eye, Wind, Heart, ShieldCheck, ShieldQuestion, Anchor, PersonStanding, Baby, Target, Network, HelpCircle, Droplet } from 'lucide-react'; 
 
 const RepresentativeLucideIcons: { [key: string]: React.ElementType } = {
   // General & Fallbacks
@@ -14,29 +14,29 @@ const RepresentativeLucideIcons: { [key: string]: React.ElementType } = {
   Iron: Wind,
   Calcium: Bone,
   Phosphorus: Bone,
-  Magnesium: Activity, // Proxy for muscle/nerve function
+  Magnesium: Activity, 
   Sodium: Droplet,
   Potassium: Droplet,
   Chloride: Droplet,
-  Zinc: PersonStanding, // Proxy for growth
+  Zinc: PersonStanding, 
   Copper: Network,
   Manganese: Bone,
   Selenium: ShieldCheck,
-  Iodine: Brain, // Thyroid role in brain
+  Iodine: Brain, 
   Chromium: Target,
   VitaminA: Eye,
   VitaminC: ShieldCheck,
-  VitaminD: ShieldCheck, // Also Bone, but ShieldCheck for immune emphasis
-  VitaminE: ShieldQuestion, // Antioxidant/cell protection
-  VitaminK: Heart, // Blood clotting
-  VitaminB1: Brain, // Thiamine - energy, nerve
-  VitaminB2: Activity, // Riboflavin - energy
-  VitaminB3: Activity, // Niacin - energy
-  VitaminB5: Activity, // Pantothenic Acid - energy
-  VitaminB6: Brain, // Pyridoxine - neurotransmitters
+  VitaminD: ShieldCheck,
+  VitaminE: ShieldQuestion,
+  VitaminK: Heart, 
+  VitaminB1: Brain, 
+  VitaminB2: Activity, 
+  VitaminB3: Activity, 
+  VitaminB5: Activity, 
+  VitaminB6: Brain, 
   VitaminB12: Brain,
-  Biotin: Activity, // Energy metabolism
-  Folate: Baby, // Development
+  Biotin: Activity, 
+  Folate: Baby, 
   // Common AI-suggested iconNames from the prompt (to ensure they are mapped)
   Bone: Bone, Nut: Nut, Citrus: Citrus, Carrot: Carrot, Beef: Beef, Leaf: Leaf, Milk: Milk, Sun: Sun, Brain: Brain, Activity: Activity, Bolt: Bolt, Eye: Eye, Wind: Wind, Heart: Heart, ShieldCheck: ShieldCheck, ShieldQuestion: ShieldQuestion, Anchor: Anchor, Droplet: Droplet, PersonStanding: PersonStanding, Baby: Baby, Target: Target, Network: Network
 };
@@ -92,3 +92,4 @@ export default function MicronutrientAchievementList({ data }: MicronutrientAchi
     </ScrollArea>
   );
 }
+
