@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom } from 'lucide-react'; // Changed Nut to Atom
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -90,8 +90,8 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
         headerBaseClasses,
         isGuest ? guestHeaderClasses : registeredUserHeaderClasses
     )}>
-      <div className="container flex h-16 max-w-screen-2xl items-center justify-between"> {/* Added justify-between */}
-        <Link href="/" className="flex items-center space-x-2"> {/* Removed mr-auto */}
+      <div className="flex h-16 w-full max-w-screen-2xl items-center justify-between px-4 mx-auto">
+        <Link href="/" className="flex items-center space-x-2">
           {!isGuest && ( 
             <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-foreground bg-black p-1">
               <Image
@@ -154,7 +154,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                     size="icon" 
                     className={cn(
                         "h-8 w-8", 
-                        pathname === '/trends' && 'bg-accent text-accent-foreground'
+                        pathname === '/trends' && 'text-primary'
                     )} 
                     aria-label="Trends" 
                     onClick={trendsLinkHandler}
@@ -166,7 +166,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                       size="icon" 
                       className={cn(
                         "h-8 w-8",
-                        pathname === '/micronutrients' && 'bg-accent text-accent-foreground'
+                        pathname === '/micronutrients' && 'text-primary'
                       )} 
                       aria-label="Micronutrients Progress"
                       onClick={micronutrientsLinkHandler}
