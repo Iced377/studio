@@ -29,7 +29,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox'; 
+import { Checkbox } from '@/components/ui/checkbox';
 import { Sprout, Loader2, Edit, Info, Camera, Upload, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -64,11 +64,11 @@ export type SimplifiedFoodLogFormValues = z.infer<typeof simplifiedFoodLogSchema
 interface SimplifiedAddFoodDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onSubmitLog: (data: SimplifiedFoodLogFormValues, userDidOverrideMacros: boolean) => Promise<void>; 
-  isGuestView?: boolean; 
+  onSubmitLog: (data: SimplifiedFoodLogFormValues, userDidOverrideMacros: boolean) => Promise<void>;
+  isGuestView?: boolean;
   isEditing?: boolean;
   initialValues?: Partial<SimplifiedFoodLogFormValues>;
-  initialMacrosOverridden?: boolean; 
+  initialMacrosOverridden?: boolean;
 }
 
 export default function SimplifiedAddFoodDialog({
@@ -110,7 +110,7 @@ export default function SimplifiedAddFoodDialog({
   useEffect(() => {
     if (isOpen) {
       if (isEditing && initialValues) {
-        form.reset({ 
+        form.reset({
           mealDescription: initialValues.mealDescription || '',
           calories: initialValues.calories,
           protein: initialValues.protein,
@@ -164,19 +164,27 @@ export default function SimplifiedAddFoodDialog({
       setImagePreview(imageDataUri);
       try {
         const result = await identifyFoodFromImage({ imageDataUri });
-        if (result.recognitionSuccess && result.identifiedFoodName) {
-          let descriptionText = `Identified: ${result.identifiedFoodName}.`;
-          if (result.identifiedIngredients) {
-            descriptionText += ` Ingredients: ${result.identifiedIngredients}.`;
+        if (result.recognitionSuccess) {
+          if (result.identifiedFoodName) {
+            let descriptionText = `Identified: ${result.identifiedFoodName}.`;
+            if (result.identifiedIngredients) {
+              descriptionText += ` Ingredients: ${result.identifiedIngredients}.`;
+            }
+            if (result.estimatedPortionSize && result.estimatedPortionUnit) {
+              descriptionText += ` Portion: ${result.estimatedPortionSize} ${result.estimatedPortionUnit}.`;
+            }
+            if (result.ocrText) {
+               descriptionText += ` Text from image: ${result.ocrText.substring(0,100)}${result.ocrText.length > 100 ? '...' : ''}`;
+            }
+            form.setValue('mealDescription', descriptionText);
+            toast({ title: "Food Identified!", description: "Review and confirm the description." });
+          } else if (result.ocrText) {
+            form.setValue('mealDescription', `Text from image: ${result.ocrText}`);
+            toast({ title: "Text Extracted from Image", description: "OCR text populated. Please complete the meal description." });
+          } else {
+            setPhotoError(result.errorMessage || "AI could not confidently name the food. Please describe manually.");
+            toast({ title: "Partial Identification", description: result.errorMessage || "Please complete the meal description.", variant: "default" });
           }
-          if (result.estimatedPortionSize && result.estimatedPortionUnit) {
-            descriptionText += ` Portion: ${result.estimatedPortionSize} ${result.estimatedPortionUnit}.`;
-          }
-          if (result.ocrText) {
-             descriptionText += ` Text from image: ${result.ocrText.substring(0,100)}${result.ocrText.length > 100 ? '...' : ''}`;
-          }
-          form.setValue('mealDescription', descriptionText);
-          toast({ title: "Food Identified!", description: "Review and confirm the description." });
         } else {
           setPhotoError(result.errorMessage || "Couldn’t recognize this food. Please enter it manually.");
           toast({ title: "Identification Failed", description: result.errorMessage || "Please try another image or enter manually.", variant: "destructive" });
@@ -201,7 +209,7 @@ export default function SimplifiedAddFoodDialog({
   const sproutSubmitIconClasses = cn("mr-2 h-5 w-5");
   const textAreaClasses = cn("mt-1 text-base min-h-[100px]", "bg-input text-foreground placeholder:text-muted-foreground border-input focus:ring-ring focus:border-ring");
   const inputClasses = cn("mt-1", "bg-input text-foreground placeholder:text-muted-foreground");
-  
+
   const currentCancelButtonClasses = (isGuestView || !isDarkMode)
   ? "bg-red-200 border-red-300 text-red-700 hover:bg-red-300 hover:border-red-400"
   : "border-accent text-accent-foreground hover:bg-accent/20";
@@ -238,8 +246,8 @@ export default function SimplifiedAddFoodDialog({
 
         {!isGuestView && (
           <div className="my-4">
-            <BannerAdPlaceholder 
-              adClientId={adSenseClientId} 
+            <BannerAdPlaceholder
+              adClientId={adSenseClientId}
               adSlotId={adSenseSlotIdSimplifiedBanner}
             />
           </div>
@@ -339,7 +347,7 @@ export default function SimplifiedAddFoodDialog({
                   Manually set macronutrients
                 </Label>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                 <div>
                   <Label htmlFor="calories" className={cn(labelClasses, "text-xs", !userWantsToOverrideMacros && "text-muted-foreground/70")}>Calories (kcal)</Label>
@@ -385,3 +393,4 @@ export default function SimplifiedAddFoodDialog({
     </Dialog>
   );
 }
+
