@@ -165,35 +165,37 @@ export default function SimplifiedAddFoodDialog({
       try {
         const result = await identifyFoodFromImage({ imageDataUri });
         
-        if (result.recognitionSuccess) {
-          const trimmedFoodName = result.identifiedFoodName?.trim();
-          const hasOcrText = result.ocrText && result.ocrText.trim().length > 0;
+        let descriptionText = "";
+        const trimmedFoodName = result.identifiedFoodName?.trim();
+        const trimmedOcrText = result.ocrText?.trim();
+        const hasFoodName = !!trimmedFoodName;
+        const hasOcrText = !!trimmedOcrText;
 
-          if (trimmedFoodName) {
-            let descriptionText = `Identified: ${trimmedFoodName}.`;
+        if (result.recognitionSuccess) {
+          if (hasFoodName) {
+            descriptionText = `Identified: ${trimmedFoodName}.`;
             if (result.identifiedIngredients) {
               descriptionText += ` Ingredients: ${result.identifiedIngredients.trim()}.`;
             }
             if (result.estimatedPortionSize && result.estimatedPortionUnit) {
               descriptionText += ` Portion: ${result.estimatedPortionSize.trim()} ${result.estimatedPortionUnit.trim()}.`;
             }
-            // Optionally include OCR text if food name was also found
             if (hasOcrText) {
-              descriptionText += ` Text from image (first 100 chars): ${result.ocrText!.substring(0, 100)}${result.ocrText!.length > 100 ? '...' : ''}`;
+              descriptionText += ` Text from image (first 100 chars): ${trimmedOcrText.substring(0, 100)}${trimmedOcrText.length > 100 ? '...' : ''}`;
             }
             form.setValue('mealDescription', descriptionText, { shouldValidate: true, shouldDirty: true });
+            form.trigger('mealDescription');
             toast({ title: "Food Identified!", description: "Review and confirm the description." });
           } else if (hasOcrText) {
-            // Only OCR text found, no food name
-            form.setValue('mealDescription', `Text from image: ${result.ocrText!.trim()}`, { shouldValidate: true, shouldDirty: true });
+            descriptionText = `Text from image: ${trimmedOcrText}`;
+            form.setValue('mealDescription', descriptionText, { shouldValidate: true, shouldDirty: true });
+            form.trigger('mealDescription');
             toast({ title: "Text Extracted", description: "OCR text populated. Please complete the meal description." });
           } else {
-            // recognitionSuccess true, but no usable food name or OCR text
             setPhotoError(result.errorMessage || "AI could not extract useful information. Please describe manually.");
             toast({ title: "Partial Identification", description: result.errorMessage || "Please complete the meal description.", variant: "default" });
           }
         } else {
-          // recognitionSuccess false
           setPhotoError(result.errorMessage || "Couldn’t recognize this food. Please enter it manually.");
           toast({ title: "Identification Failed", description: result.errorMessage || "Please try another image or enter manually.", variant: "destructive" });
         }
@@ -204,7 +206,7 @@ export default function SimplifiedAddFoodDialog({
         toast({ title: "Analysis Error", description: "Could not analyze image.", variant: "destructive" });
       } finally {
         setIsIdentifyingPhoto(false);
-        if (event.target) event.target.value = ''; // Reset file input
+        if (event.target) event.target.value = ''; 
       }
     };
     reader.readAsDataURL(file);
