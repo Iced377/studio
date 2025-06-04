@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useForm, Controller } from 'react-hook-form'; // Import Controller
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -90,12 +90,13 @@ export default function SimplifiedAddFoodDialog({
   const { isDarkMode } = useTheme();
 
   const adSenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-8897507841347789";
-  const adSenseSlotIdSimplifiedBanner = "YOUR_SIMPLIFIED_LOG_BANNER_AD_ID_HERE";
+  const adSenseSlotIdSimplifiedBanner = process.env.NEXT_PUBLIC_ADSENSE_SIMPLIFIED_LOG_BANNER_AD_ID || "YOUR_SIMPLIFIED_LOG_BANNER_AD_ID_HERE";
+
 
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const form = useForm<SimplifiedFoodLogFormValues>({
+  const { control, setValue, watch, reset, formState: { errors, isSubmitting, isValid, isSubmitted } } = useForm<SimplifiedFoodLogFormValues>({
     resolver: zodResolver(simplifiedFoodLogSchema),
     defaultValues: {
       mealDescription: '',
@@ -110,7 +111,7 @@ export default function SimplifiedAddFoodDialog({
   useEffect(() => {
     if (isOpen) {
       if (isEditing && initialValues) {
-        form.reset({
+        reset({
           mealDescription: initialValues.mealDescription || '',
           calories: initialValues.calories,
           protein: initialValues.protein,
@@ -119,14 +120,14 @@ export default function SimplifiedAddFoodDialog({
         });
         setUserWantsToOverrideMacros(initialMacrosOverridden);
       } else if (!isEditing) {
-        form.reset({ mealDescription: '', calories: undefined, protein: undefined, carbs: undefined, fat: undefined });
+        reset({ mealDescription: '', calories: undefined, protein: undefined, carbs: undefined, fat: undefined });
         setUserWantsToOverrideMacros(false);
       }
       setImagePreview(null);
       setPhotoError(null);
       setIsIdentifyingPhoto(false);
     }
-  }, [isOpen, isEditing, initialValues, initialMacrosOverridden, form]);
+  }, [isOpen, isEditing, initialValues, initialMacrosOverridden, reset]);
 
 
   const handleSubmit = async (data: SimplifiedFoodLogFormValues) => {
@@ -134,7 +135,7 @@ export default function SimplifiedAddFoodDialog({
     try {
       await onSubmitLog(data, userWantsToOverrideMacros);
       if (!isEditing) {
-        form.reset();
+        reset();
         setUserWantsToOverrideMacros(false);
       }
       onOpenChange(false);
@@ -183,13 +184,11 @@ export default function SimplifiedAddFoodDialog({
             if (hasOcrText) {
               descriptionText += ` Text from image (first 100 chars): ${trimmedOcrText.substring(0, 100)}${trimmedOcrText.length > 100 ? '...' : ''}`;
             }
-            form.setValue('mealDescription', descriptionText, { shouldValidate: true, shouldDirty: true });
-            form.trigger('mealDescription');
+            setValue('mealDescription', descriptionText, { shouldDirty: true, shouldTouch: true });
             toast({ title: "Food Identified!", description: "Review and confirm the description." });
           } else if (hasOcrText) {
             descriptionText = `Text from image: ${trimmedOcrText}`;
-            form.setValue('mealDescription', descriptionText, { shouldValidate: true, shouldDirty: true });
-            form.trigger('mealDescription');
+            setValue('mealDescription', descriptionText, { shouldDirty: true, shouldTouch: true });
             toast({ title: "Text Extracted", description: "OCR text populated. Please complete the meal description." });
           } else {
             setPhotoError(result.errorMessage || "AI could not extract useful information. Please describe manually.");
@@ -211,7 +210,6 @@ export default function SimplifiedAddFoodDialog({
     };
     reader.readAsDataURL(file);
   };
-
 
   const dialogContentClasses = cn("sm:max-w-lg", "bg-card text-card-foreground border-border");
   const titleClasses = cn("font-headline text-xl flex items-center", "text-foreground");
@@ -237,6 +235,13 @@ export default function SimplifiedAddFoodDialog({
     ? (isEditing ? 'Updating...' : 'Analyzing...')
     : (isGuestView ? 'Check Meal' : (isEditing ? 'Update Meal' : 'Analyze Meal'));
 
+  // For debugging:
+  // useEffect(() => {
+  //   const subscription = watch((value, { name, type }) => {
+  //     if (name === 'mealDescription') console.log('Watched mealDescription:', value.mealDescription);
+  //   });
+  //   return () => subscription.unsubscribe();
+  // }, [watch]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -264,12 +269,12 @@ export default function SimplifiedAddFoodDialog({
           </div>
         )}
 
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 pt-2 max-h-[calc(60vh-50px)] overflow-y-auto pr-2">
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(watch())} } className="space-y-4 pt-2 max-h-[calc(60vh-50px)] overflow-y-auto pr-2">
          {!isEditing && !isGuestView && (
             <div className="my-3 space-y-2">
                 <AlertDialog open={isPhotoSourceAlertOpen} onOpenChange={setIsPhotoSourceAlertOpen}>
                 <AlertDialogTrigger asChild>
-                    <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10" disabled={isIdentifyingPhoto}>
+                    <Button variant="outline" type="button" className="w-full border-primary text-primary hover:bg-primary/10" disabled={isIdentifyingPhoto}>
                     {isIdentifyingPhoto ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Camera className="mr-2 h-5 w-5" />}
                     {isIdentifyingPhoto ? 'Analyzing Image...' : 'Identify via Photo'}
                     </Button>
@@ -282,11 +287,11 @@ export default function SimplifiedAddFoodDialog({
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-2">
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => cameraInputRef.current?.click()} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    <AlertDialogCancel type="button">Cancel</AlertDialogCancel>
+                    <AlertDialogAction type="button" onClick={() => cameraInputRef.current?.click()} className="bg-primary text-primary-foreground hover:bg-primary/90">
                         <Camera className="mr-2 h-4 w-4" /> Take Photo
                     </AlertDialogAction>
-                    <AlertDialogAction onClick={() => uploadInputRef.current?.click()} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
+                    <AlertDialogAction type="button" onClick={() => uploadInputRef.current?.click()} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
                         <Upload className="mr-2 h-4 w-4" /> Upload Image
                     </AlertDialogAction>
                     </AlertDialogFooter>
@@ -334,7 +339,7 @@ export default function SimplifiedAddFoodDialog({
             <Label htmlFor="mealDescription" className={labelClasses}>Meal Description</Label>
             <Controller
               name="mealDescription"
-              control={form.control}
+              control={control}
               render={({ field }) => (
                 <Textarea
                   {...field}
@@ -345,8 +350,8 @@ export default function SimplifiedAddFoodDialog({
                 />
               )}
             />
-            {form.formState.errors.mealDescription && (
-              <p className={checkboxErrorClasses}>{form.formState.errors.mealDescription.message}</p>
+            {errors.mealDescription && (
+              <p className={checkboxErrorClasses}>{errors.mealDescription.message}</p>
             )}
           </div>
 
@@ -368,23 +373,39 @@ export default function SimplifiedAddFoodDialog({
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                 <div>
                   <Label htmlFor="calories" className={cn(labelClasses, "text-xs", !userWantsToOverrideMacros && "text-muted-foreground/70")}>Calories (kcal)</Label>
-                  <Input id="calories" type="number" step="any" {...form.register('calories')} placeholder="e.g., 500" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />
-                  {form.formState.errors.calories && <p className={cn("text-xs text-destructive mt-1")}>{form.formState.errors.calories.message}</p>}
+                  <Controller
+                    name="calories"
+                    control={control}
+                    render={({ field }) => <Input id="calories" type="number" step="any" {...field} value={field.value ?? ''} placeholder="e.g., 500" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />}
+                  />
+                  {errors.calories && <p className={cn("text-xs text-destructive mt-1")}>{errors.calories.message}</p>}
                 </div>
                 <div>
                   <Label htmlFor="protein" className={cn(labelClasses, "text-xs", !userWantsToOverrideMacros && "text-muted-foreground/70")}>Protein (g)</Label>
-                  <Input id="protein" type="number" step="any" {...form.register('protein')} placeholder="e.g., 30" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />
-                  {form.formState.errors.protein && <p className={cn("text-xs text-destructive mt-1")}>{form.formState.errors.protein.message}</p>}
+                   <Controller
+                    name="protein"
+                    control={control}
+                    render={({ field }) => <Input id="protein" type="number" step="any" {...field} value={field.value ?? ''} placeholder="e.g., 30" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />}
+                  />
+                  {errors.protein && <p className={cn("text-xs text-destructive mt-1")}>{errors.protein.message}</p>}
                 </div>
                 <div>
                   <Label htmlFor="carbs" className={cn(labelClasses, "text-xs", !userWantsToOverrideMacros && "text-muted-foreground/70")}>Carbs (g)</Label>
-                  <Input id="carbs" type="number" step="any" {...form.register('carbs')} placeholder="e.g., 50" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />
-                  {form.formState.errors.carbs && <p className={cn("text-xs text-destructive mt-1")}>{form.formState.errors.carbs.message}</p>}
+                  <Controller
+                    name="carbs"
+                    control={control}
+                    render={({ field }) => <Input id="carbs" type="number" step="any" {...field} value={field.value ?? ''} placeholder="e.g., 50" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />}
+                  />
+                  {errors.carbs && <p className={cn("text-xs text-destructive mt-1")}>{errors.carbs.message}</p>}
                 </div>
                 <div>
                   <Label htmlFor="fat" className={cn(labelClasses, "text-xs", !userWantsToOverrideMacros && "text-muted-foreground/70")}>Fat (g)</Label>
-                  <Input id="fat" type="number" step="any" {...form.register('fat')} placeholder="e.g., 20" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />
-                  {form.formState.errors.fat && <p className={cn("text-xs text-destructive mt-1")}>{form.formState.errors.fat.message}</p>}
+                  <Controller
+                    name="fat"
+                    control={control}
+                    render={({ field }) => <Input id="fat" type="number" step="any" {...field} value={field.value ?? ''} placeholder="e.g., 20" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />}
+                  />
+                  {errors.fat && <p className={cn("text-xs text-destructive mt-1")}>{errors.fat.message}</p>}
                 </div>
               </div>
                <p className={cn("text-xs mt-1 flex items-start gap-1.5", "text-muted-foreground")}>
@@ -400,7 +421,7 @@ export default function SimplifiedAddFoodDialog({
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" className={submitButtonClasses} disabled={isLoading || isIdentifyingPhoto || (form.formState.isSubmitting || !form.formState.isValid && form.formState.isSubmitted) }>
+            <Button type="submit" className={submitButtonClasses} disabled={isLoading || isIdentifyingPhoto || (isSubmitting || !isValid && isSubmitted) }>
               {isLoading ? <Loader2 className={cn("animate-spin h-5 w-5 mr-2", isGuestView ? "text-primary" : "text-primary-foreground" )} /> : <Sprout className={sproutSubmitIconClasses} />}
               {submitButtonText}
             </Button>
@@ -410,3 +431,5 @@ export default function SimplifiedAddFoodDialog({
     </Dialog>
   );
 }
+
+    
