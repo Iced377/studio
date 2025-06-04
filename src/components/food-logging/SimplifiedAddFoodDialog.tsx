@@ -166,6 +166,7 @@ export default function SimplifiedAddFoodDialog({
       setImagePreview(imageDataUri);
       try {
         const result = await identifyFoodFromImage({ imageDataUri });
+        console.log('AI Image Identification Result:', result); // Added console.log for the full AI result
         
         let descriptionText = "";
         const trimmedFoodName = result.identifiedFoodName?.trim();
@@ -279,6 +280,7 @@ export default function SimplifiedAddFoodDialog({
         )}
 
         <form onSubmit={handleSubmit(handleDialogSubmit)} className="space-y-4 pt-2 max-h-[calc(60vh-50px)] overflow-y-auto pr-2">
+         {/* Test button removed as per previous step, keeping focus on image handler */}
          {!isEditing && !isGuestView && (
             <div className="my-3 space-y-2">
                 <AlertDialog open={isPhotoSourceAlertOpen} onOpenChange={setIsPhotoSourceAlertOpen}>
@@ -347,16 +349,19 @@ export default function SimplifiedAddFoodDialog({
           
           <div>
             <Label htmlFor="mealDescription" className={labelClasses}>Meal Description</Label>
+            {/* Using plain textarea for debugging as per user instruction */}
             <Controller
               name="mealDescription"
               control={control}
               render={({ field }) => (
-                <textarea // Using plain textarea for debugging as per user instruction
+                <textarea
                   {...field}
                   id="mealDescription"
-                  placeholder={isGuestView
-                    ? 'e.g., "A small glass of low-fat milk with 50g of Weetabix, and a handful of blueberries"'
-                    : 'e.g., "Large bowl of spaghetti bolognese with garlic bread and a side salad."'}
+                  placeholder={
+                    isGuestView
+                      ? 'e.g., "A small glass of low-fat milk…"'
+                      : 'e.g., "Large bowl of spaghetti bolognese…"'
+                  }
                   className={textAreaClasses}
                   rows={isEditing ? 3 : 4}
                 />
