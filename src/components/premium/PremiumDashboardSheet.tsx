@@ -155,7 +155,7 @@ export default function PremiumDashboardSheet({
             </div>
         </div>
 
-        <ScrollArea className="flex-grow px-2 py-4">
+        <ScrollArea className="flex-grow px-4 py-4">
           {timelineEntries.length === 0 && !Object.values(isLoadingAi).some(Boolean) && (
             <div className="text-center py-12">
               <Utensils className="mx-auto h-16 w-16 text-muted-foreground mb-4" />

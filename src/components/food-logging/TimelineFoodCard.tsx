@@ -73,7 +73,7 @@ export default function TimelineFoodCard({
       <CardHeader className="pb-2 pt-4 px-4">
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className={cn("text-lg font-semibold font-headline", primaryTextClass)}>{item.name}</CardTitle>
+            <CardTitle className={cn("text-md sm:text-lg font-semibold font-headline break-words", primaryTextClass)}>{item.name}</CardTitle>
             {item.originalName && item.originalName !== item.name && !isManualMacroEntry && (
               <p className={cn("text-sm italic", mutedTextClass)}>(Analyzed as: {item.originalName})</p>
             )}
@@ -81,7 +81,7 @@ export default function TimelineFoodCard({
           </div>
         </div>
          {item.sourceDescription && !isManualMacroEntry ? (
-           <p className={cn("text-sm italic pt-1 truncate", mutedTextClass, "text-muted-foreground/70")}>Original: "{item.sourceDescription}"</p>
+           <p className={cn("text-sm italic pt-1", mutedTextClass, "text-muted-foreground/70")}>{item.sourceDescription}</p>
          ) : !isManualMacroEntry && (
            <p className={cn("text-sm break-words pt-1", mutedTextClass)}>Ingredients: {item.ingredients || 'Not specified'}</p>
          )}
@@ -132,7 +132,7 @@ export default function TimelineFoodCard({
                   entry.score === 'Green' ? 'text-green-500' : entry.score === 'Yellow' ? 'text-yellow-500' : 'text-red-500'
                 }`}>
                   {entry.ingredient}: <span className="font-medium">{entry.score}</span>
-                  {entry.reason && <span className={cn("italic text-xs", mutedTextClass)}> ({entry.reason})</span>}
+                  {entry.reason && <span className={cn("italic text-xs break-words", mutedTextClass)}> ({entry.reason})</span>}
                 </li>
               ))}
             </ul>
