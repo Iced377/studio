@@ -12,19 +12,8 @@ import {
   DialogTitle,
   DialogClose,
 } from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Label } from '@/components/ui/label';
-import { Camera, Upload, Loader2, AlertTriangle, CheckCircle, PackageCheck } from 'lucide-react';
+import { Camera, Upload, Loader2, AlertTriangle, CheckCircle, PackageCheck, Library, ImageUp } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -52,7 +41,6 @@ export default function IdentifyFoodByPhotoDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
-  const [isPhotoSourceAlertOpen, setIsPhotoSourceAlertOpen] = useState(false);
   const [identifiedData, setIdentifiedData] = useState<IdentifyFoodFromImageOutput | null>(null);
   const { toast } = useToast();
   const { isDarkMode } = useTheme();
@@ -91,6 +79,7 @@ export default function IdentifyFoodByPhotoDialog({
       setImagePreview(imageDataUri);
       try {
         const result = await identifyFoodFromImage({ imageDataUri });
+        console.log('AI Image Identification Result:', result); // Keep for debugging
         if (result.recognitionSuccess) {
           setIdentifiedData(result);
           toast({ title: "Food Identified!", description: "Review the details below and confirm." });
@@ -133,38 +122,23 @@ export default function IdentifyFoodByPhotoDialog({
           <DialogTitle className="font-headline text-xl flex items-center text-foreground">
             <Camera className="mr-2 h-6 w-6 text-gray-400" /> Identify Food by Photo
           </DialogTitle>
-          <DialogDescription className="text-muted-foreground">
-            Upload or take a picture of your food. We&apos;ll try to identify it for you.
-          </DialogDescription>
+          {!imagePreview && !identifiedData && !photoError && (
+            <DialogDescription className="text-muted-foreground">
+              Choose a photo of your food item.
+            </DialogDescription>
+          )}
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {!identifiedData && (
-            <AlertDialog open={isPhotoSourceAlertOpen} onOpenChange={setIsPhotoSourceAlertOpen}>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" type="button" className="w-full border-primary text-primary hover:bg-primary/10" disabled={isLoading}>
-                  {isLoading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Camera className="mr-2 h-5 w-5" />}
-                  {isLoading ? 'Analyzing...' : (imagePreview ? 'Change Photo' : 'Select Photo')}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Select Photo Source</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Choose how you want to provide the image of your food.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-2">
-                  <AlertDialogCancel type="button">Cancel</AlertDialogCancel>
-                  <AlertDialogAction type="button" onClick={() => cameraInputRef.current?.click()} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Camera className="mr-2 h-4 w-4" /> Take Photo
-                  </AlertDialogAction>
-                  <AlertDialogAction type="button" onClick={() => uploadInputRef.current?.click()} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
-                    <Upload className="mr-2 h-4 w-4" /> Upload Image
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+          {!imagePreview && !identifiedData && !isLoading && !photoError && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Button variant="outline" type="button" className="w-full border-primary text-primary hover:bg-primary/10 py-6 text-base" onClick={() => cameraInputRef.current?.click()} disabled={isLoading}>
+                <Camera className="mr-2 h-5 w-5" /> Take Photo
+              </Button>
+              <Button variant="outline" type="button" className="w-full border-primary text-primary hover:bg-primary/10 py-6 text-base" onClick={() => uploadInputRef.current?.click()} disabled={isLoading}>
+                <Library className="mr-2 h-5 w-5" /> From Library
+              </Button>
+            </div>
           )}
 
           <input
@@ -190,23 +164,21 @@ export default function IdentifyFoodByPhotoDialog({
               <Image src={imagePreview} alt="Food preview" width={180} height={180} style={{ objectFit: 'contain' }} className="rounded-md" />
             </div>
           )}
-
-          {isLoading && !imagePreview && (
-            <div className="mt-2 text-center text-muted-foreground">
-              <Loader2 className="animate-spin h-5 w-5 inline mr-2" /> Please wait...
+           {isLoading && (
+            <div className="mt-2 text-center text-muted-foreground flex items-center justify-center">
+              <Loader2 className="animate-spin h-5 w-5 inline mr-2" /> {imagePreview ? "Analyzing..." : "Processing..."}
             </div>
           )}
 
+
           {photoError && !isLoading && (
-            <div className="mt-2 p-3 bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-md flex items-start">
-              <AlertTriangle className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
+            <div className="mt-2 p-3 bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-md flex flex-col items-center text-center">
+              <AlertTriangle className="h-6 w-6 mb-2 shrink-0" />
               <div>
                 <p className="font-semibold">Identification Failed</p>
-                <p>{photoError}</p>
-                 <Button variant="link" className="p-0 h-auto text-xs mt-1 text-destructive hover:underline" onClick={() => {
+                <p className="mb-2">{photoError}</p>
+                 <Button variant="outline" className="text-xs mt-1 text-destructive hover:underline" onClick={() => {
                     resetDialogState();
-                    // Potentially re-trigger the source selection or allow direct upload
-                    setIsPhotoSourceAlertOpen(true); 
                 }}>Try a different photo</Button>
               </div>
             </div>

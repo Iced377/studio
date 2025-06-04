@@ -22,7 +22,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "3.2.10";
+export const APP_VERSION = "Beta 3.3";
 
 interface NavbarProps {
   isGuest?: boolean;
@@ -149,7 +149,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                     size="icon" 
                     className={cn(
                         "h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", 
-                        pathname === '/trends' ? 'text-primary' : 'text-foreground'
+                        pathname === '/trends' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                     )} 
                     aria-label="Trends" 
                     onClick={trendsLinkHandler}
@@ -161,7 +161,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                       size="icon" 
                       className={cn(
                         "h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0",
-                        pathname === '/micronutrients' ? 'text-primary' : 'text-foreground'
+                        pathname === '/micronutrients' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                       )} 
                       aria-label="Micronutrients Progress"
                       onClick={micronutrientsLinkHandler}
