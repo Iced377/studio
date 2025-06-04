@@ -10,7 +10,7 @@ import DietaryFiberIndicator from '@/components/shared/DietaryFiberIndicator';
 import MicronutrientsIndicator from '@/components/shared/MicronutrientsIndicator';
 import GutBacteriaIndicator from '@/components/shared/GutBacteriaIndicator';
 import { Badge } from '@/components/ui/badge';
-import { ThumbsUp, ThumbsDown, Trash2, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3, CheckCheck, PencilLine, Sparkles, Leaf, Users, Activity } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Trash2, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3, CheckCheck, PencilLine, Sparkles, Leaf, Users, Activity, Repeat } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -21,6 +21,7 @@ interface TimelineFoodCardProps {
   onLogSymptoms?: (foodItemId?: string) => void;
   isLoadingAi: boolean;
   onEditIngredients?: (item: LoggedFoodItem) => void;
+  onRepeatMeal?: (item: LoggedFoodItem) => void;
   isGuestView?: boolean;
 }
 
@@ -31,6 +32,7 @@ export default function TimelineFoodCard({
     onLogSymptoms,
     isLoadingAi,
     onEditIngredients,
+    onRepeatMeal,
     isGuestView = false,
 }: TimelineFoodCardProps) {
 
@@ -81,7 +83,7 @@ export default function TimelineFoodCard({
           </div>
         </div>
          {item.sourceDescription && !isManualMacroEntry ? (
-           <p className={cn("text-sm italic pt-1", mutedTextClass, "text-muted-foreground/70")}>{item.sourceDescription}</p>
+           <p className={cn("text-sm italic pt-1 break-words", mutedTextClass, "text-muted-foreground/70")}>{item.sourceDescription}</p>
          ) : !isManualMacroEntry && (
            <p className={cn("text-sm break-words pt-1", mutedTextClass)}>Ingredients: {item.ingredients || 'Not specified'}</p>
          )}
@@ -165,6 +167,18 @@ export default function TimelineFoodCard({
                   >
                       <Edit3 className="mr-1.5 h-4 w-4" /> Edit
                   </Button>
+              )}
+              {onRepeatMeal && item.entryType === 'food' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onRepeatMeal(item)}
+                  disabled={isLoadingAi}
+                  className={cn("border-accent hover:bg-accent hover:text-accent-foreground text-sm px-2.5 py-1.5 h-auto", buttonTextClass)}
+                  aria-label="Repeat this meal"
+                >
+                  <Repeat className="mr-1.5 h-4 w-4" /> Repeat
+                </Button>
               )}
           </div>
           <div className="flex gap-1 items-center">

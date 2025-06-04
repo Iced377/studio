@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, PlusCircle, ListChecks, Pencil, CalendarDays, Edit3, ChevronUp } from 'lucide-react';
+import { Loader2, PlusCircle, ListChecks, Pencil, CalendarDays, Edit3, ChevronUp, Repeat } from 'lucide-react';
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
 // import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow'; // Symptom correlation might be less effective with 2-day data for free users. Consider implications.
@@ -768,6 +768,136 @@ export default function FoodTimelinePage() {
      }
   };
 
+  const handleRepeatMeal = async (itemToRepeat: LoggedFoodItem) => {
+    const newItemId = `food-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    setIsLoadingAi(prev => ({ ...prev, [newItemId]: true }));
+    const newTimestamp = new Date();
+    let processedFoodItem: LoggedFoodItem;
+
+    try {
+      let fodmapAnalysis: AnalyzeFoodItemOutput | undefined;
+      let similarityOutput: FoodSimilarityOutput | undefined;
+      let mealDescriptionOutput: ProcessMealDescriptionOutput | undefined;
+
+      const baseRepetitionData = {
+        id: newItemId,
+        timestamp: newTimestamp,
+        isSimilarToSafe: false, 
+        userFodmapProfile: undefined, 
+        calories: undefined, 
+        protein: undefined, 
+        carbs: undefined, 
+        fat: undefined, 
+        entryType: 'food' as 'food',
+        userFeedback: null, 
+        macrosOverridden: itemToRepeat.macrosOverridden || false,
+      };
+
+      if (itemToRepeat.sourceDescription) { 
+        mealDescriptionOutput = await processMealDescription({ mealDescription: itemToRepeat.sourceDescription });
+        fodmapAnalysis = await analyzeFoodItem({
+          foodItem: mealDescriptionOutput.primaryFoodItemForAnalysis,
+          ingredients: mealDescriptionOutput.consolidatedIngredients,
+          portionSize: mealDescriptionOutput.estimatedPortionSize,
+          portionUnit: mealDescriptionOutput.estimatedPortionUnit,
+        });
+
+        const itemFodmapProfileForSimilarity: FoodFODMAPProfile = fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(mealDescriptionOutput.primaryFoodItemForAnalysis);
+        if (userProfile.safeFoods && userProfile.safeFoods.length > 0) {
+          const safeFoodItemsForSimilarity = userProfile.safeFoods.map(sf => ({
+            name: sf.name,
+            portionSize: sf.portionSize,
+            portionUnit: sf.portionUnit,
+            fodmapProfile: sf.fodmapProfile,
+          }));
+          similarityOutput = await isSimilarToSafeFoods({
+            currentFoodItem: {
+              name: mealDescriptionOutput.primaryFoodItemForAnalysis,
+              portionSize: mealDescriptionOutput.estimatedPortionSize,
+              portionUnit: mealDescriptionOutput.estimatedPortionUnit,
+              fodmapProfile: itemFodmapProfileForSimilarity
+            },
+            userSafeFoodItems: safeFoodItemsForSimilarity,
+          });
+        }
+
+        processedFoodItem = {
+          ...baseRepetitionData,
+          name: mealDescriptionOutput.wittyName,
+          originalName: mealDescriptionOutput.primaryFoodItemForAnalysis,
+          ingredients: mealDescriptionOutput.consolidatedIngredients,
+          portionSize: mealDescriptionOutput.estimatedPortionSize,
+          portionUnit: mealDescriptionOutput.estimatedPortionUnit,
+          sourceDescription: itemToRepeat.sourceDescription,
+          fodmapData: fodmapAnalysis,
+          isSimilarToSafe: similarityOutput?.isSimilar ?? false,
+          userFodmapProfile: itemFodmapProfileForSimilarity,
+          calories: itemToRepeat.macrosOverridden ? itemToRepeat.calories : fodmapAnalysis?.calories,
+          protein: itemToRepeat.macrosOverridden ? itemToRepeat.protein : fodmapAnalysis?.protein,
+          carbs: itemToRepeat.macrosOverridden ? itemToRepeat.carbs : fodmapAnalysis?.carbs,
+          fat: itemToRepeat.macrosOverridden ? itemToRepeat.fat : fodmapAnalysis?.fat,
+        };
+
+      } else { 
+        fodmapAnalysis = await analyzeFoodItem({
+          foodItem: itemToRepeat.name,
+          ingredients: itemToRepeat.ingredients,
+          portionSize: itemToRepeat.portionSize,
+          portionUnit: itemToRepeat.portionUnit,
+        });
+
+        const itemFodmapProfileForSimilarity: FoodFODMAPProfile = fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(itemToRepeat.name);
+        if (userProfile.safeFoods && userProfile.safeFoods.length > 0) {
+           const safeFoodItemsForSimilarity = userProfile.safeFoods.map(sf => ({
+              name: sf.name,
+              portionSize: sf.portionSize,
+              portionUnit: sf.portionUnit,
+              fodmapProfile: sf.fodmapProfile,
+          }));
+          similarityOutput = await isSimilarToSafeFoods({
+            currentFoodItem: {
+              name: itemToRepeat.name,
+              portionSize: itemToRepeat.portionSize,
+              portionUnit: itemToRepeat.portionUnit,
+              fodmapProfile: itemFodmapProfileForSimilarity
+            },
+            userSafeFoodItems: safeFoodItemsForSimilarity,
+          });
+        }
+
+        processedFoodItem = {
+          ...baseRepetitionData,
+          name: itemToRepeat.name, 
+          ingredients: itemToRepeat.ingredients,
+          portionSize: itemToRepeat.portionSize,
+          portionUnit: itemToRepeat.portionUnit,
+          fodmapData: fodmapAnalysis,
+          isSimilarToSafe: similarityOutput?.isSimilar ?? false,
+          userFodmapProfile: itemFodmapProfileForSimilarity,
+          calories: fodmapAnalysis?.calories,
+          protein: fodmapAnalysis?.protein,
+          carbs: fodmapAnalysis?.carbs,
+          fat: fodmapAnalysis?.fat,
+        };
+      }
+
+      if (authUser && authUser.uid !== 'guest-user') {
+        const { id, ...itemToSave } = processedFoodItem;
+        const docRefPath = doc(db, 'users', authUser.uid, 'timelineEntries', newItemId);
+        await setDoc(docRefPath, { ...itemToSave, timestamp: Timestamp.fromDate(processedFoodItem.timestamp as Date) });
+        toast({ title: "Meal Repeated & Saved", description: `"${processedFoodItem.name}" added with fresh AI analysis.` });
+      } else {
+        toast({ title: "Meal Repeated (Locally)", description: `"${processedFoodItem.name}" added. Login to save.` });
+      }
+      addTimelineEntry(processedFoodItem);
+    } catch (error: any) {
+      console.error('Error repeating meal:', error);
+      toast({ title: 'Error Repeating Meal', description: `Could not repeat the meal. AI analysis might have failed.`, variant: 'destructive' });
+    } finally {
+      setIsLoadingAi(prev => ({ ...prev, [newItemId]: false }));
+    }
+  };
+
 
   if (authLoading || (isDataLoading && authUser)) {
      return (
@@ -857,6 +987,7 @@ export default function FoodTimelinePage() {
           onRemoveTimelineEntry={handleRemoveTimelineEntry}
           onLogSymptomsForFood={openSymptomDialog}
           onEditIngredients={handleEditTimelineEntry}
+          onRepeatMeal={handleRepeatMeal}
       >
        <div></div>
       </PremiumDashboardSheet>

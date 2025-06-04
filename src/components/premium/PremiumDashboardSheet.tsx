@@ -45,7 +45,7 @@ const RepresentativeLucideIcons: { [key: string]: React.ElementType } = {
   Biotin: Activity, 
   Folate: Baby, 
   // Common AI-suggested iconNames from the prompt (to ensure they are mapped)
-  Bone: Bone, Nut: Nut, Citrus: Citrus, Carrot: Carrot, Beef: Beef, Leaf: Leaf, Milk: Milk, Sun: Sun, Brain: Brain, Activity: Activity, Bolt: Bolt, Eye: Eye, Wind: Wind, Heart: Heart, ShieldCheck: ShieldCheck, ShieldQuestion: ShieldQuestion, Anchor: Anchor, Droplet: Droplet, PersonStanding: PersonStanding, Baby: Baby, Target: Target, Network: Network
+  Bone: Bone, Nut: Nut, Activity: Activity, PersonStanding: PersonStanding, Eye: Eye, ShieldCheck: ShieldCheck, Droplet: Droplet, Wind: Wind, Brain: Brain, Baby: Baby, Heart: Heart, ShieldQuestion: ShieldQuestion, Network: Network, Target: Target
 };
 
 
@@ -61,6 +61,7 @@ interface PremiumDashboardSheetProps {
   onRemoveTimelineEntry: (entryId: string) => void;
   onLogSymptomsForFood: (foodItemId?: string) => void;
   onEditIngredients?: (item: LoggedFoodItem) => void;
+  onRepeatMeal?: (item: LoggedFoodItem) => void;
 }
 
 interface AchievedMicronutrient {
@@ -80,7 +81,8 @@ export default function PremiumDashboardSheet({
   onSetFeedback,
   onRemoveTimelineEntry,
   onLogSymptomsForFood,
-  onEditIngredients
+  onEditIngredients,
+  onRepeatMeal,
 }: PremiumDashboardSheetProps) {
 
   const achievedMicronutrients = useMemo<AchievedMicronutrient[]>(() => {
@@ -197,6 +199,7 @@ export default function PremiumDashboardSheet({
                     onLogSymptoms={() => onLogSymptomsForFood(entry.id)}
                     isLoadingAi={!!isLoadingAi[entry.id]}
                     onEditIngredients={onEditIngredients}
+                    onRepeatMeal={onRepeatMeal}
                   />
                 );
               }
