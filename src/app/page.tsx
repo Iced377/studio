@@ -993,29 +993,13 @@ export default function FoodTimelinePage() {
       </PremiumDashboardSheet>
 
       {!isPremiumDashboardOpen && (
-          <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4">
-              <Button
-                  variant="ghost"
-                  className="text-xs text-muted-foreground/70 hover:text-muted-foreground hover:bg-muted/30 py-1 px-3 rounded-full flex items-center"
-                  onClick={() => setIsPremiumDashboardOpen(true)}
-                  aria-label="Open Dashboard"
-              >
-                 <div className="flex flex-col items-center mr-2">
-                    <ChevronUp
-                      className="h-3 w-3 text-primary animate-neon-chevron-pulse"
-                      style={{ animationDelay: '0s' }}
-                    />
-                    <ChevronUp
-                      className="h-3 w-3 text-primary animate-neon-chevron-pulse -mt-1"
-                      style={{ animationDelay: '0.2s' }}
-                    />
-                    <ChevronUp
-                      className="h-3 w-3 text-primary animate-neon-chevron-pulse -mt-1"
-                      style={{ animationDelay: '0.4s' }}
-                    />
-                  </div>
-                  Swipe Up or Tap to View Dashboard
-              </Button>
+          <div
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center cursor-pointer animate-bounce z-10 pb-2"
+            onClick={() => setIsPremiumDashboardOpen(true)}
+            aria-label="Open Dashboard"
+          >
+            <ChevronUp className="h-6 w-6 text-muted-foreground/70" />
+            <span className="text-xs text-muted-foreground/70">Swipe Up or Tap to View Dashboard</span>
           </div>
       )}
 

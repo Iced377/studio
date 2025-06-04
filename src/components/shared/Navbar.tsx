@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Nut } from 'lucide-react'; 
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom } from 'lucide-react'; // Changed Nut to Atom
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -20,10 +20,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
-// MicronutrientProgressDisplay and Popover imports removed
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "3.2.7";
+export const APP_VERSION = "3.2.8"; // Updated App Version
 
 interface NavbarProps {
   isGuest?: boolean;
@@ -40,7 +39,6 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   const pathname = usePathname();
   const { toast } = useToast();
   const { isDarkMode, toggleDarkMode } = useTheme();
-  // isMicronutrientsPopoverOpen state removed
 
   const handleSignOut = async () => {
     const error = await signOutUser();
@@ -60,8 +58,8 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   };
 
   const trendsLinkHandler = (e: React.MouseEvent) => {
+    e.preventDefault();
     if (pathname === '/trends') {
-      e.preventDefault();
       router.push('/');
     } else {
       router.push('/trends');
@@ -71,7 +69,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   const micronutrientsLinkHandler = (e: React.MouseEvent) => {
     e.preventDefault();
     if (pathname === '/micronutrients') {
-      router.push('/'); // Navigate home if already on micronutrients page
+      router.push('/'); 
     } else {
       router.push('/micronutrients');
     }
@@ -94,16 +92,18 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
     )}>
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <Link href="/" className="mr-auto flex items-center space-x-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-foreground bg-black p-1">
-            <Image
-              src="/Gutcheck_logo.png"
-              alt="GutCheck Logo"
-              width={28}
-              height={28}
-              className={cn("object-contain", "filter brightness-0 invert")}
-              priority
-            />
-          </div>
+          {!isGuest && ( /* Conditionally render logo for non-guest view */
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-foreground bg-black p-1">
+              <Image
+                src="/Gutcheck_logo.png"
+                alt="GutCheck Logo"
+                width={28}
+                height={28}
+                className={cn("object-contain", "filter brightness-0 invert")}
+                priority
+              />
+            </div>
+          )}
           {!isGuest && (
             <>
               <span className={cn(appNameBaseClasses, 'text-foreground')}>
@@ -112,12 +112,17 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
               <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
             </>
           )}
+           {isGuest && ( /* Show app name for guest if logo is hidden */
+             <span className={cn(appNameBaseClasses, 'text-foreground')}>
+                {APP_NAME}
+              </span>
+           )}
         </Link>
 
         <div className="flex items-center space-x-1 sm:space-x-1.5">
           {isGuest && guestButtonScheme ? (
             <div className="flex items-center space-x-2 sm:space-x-3">
-              <span className="hidden sm:inline text-sm text-foreground font-medium">Unlock your gut's secrets! ✨</span>
+              <span className="hidden sm:inline text-sm text-foreground font-medium animate-pulse">Unlock your gut's secrets! ✨</span>
               <Button
                 onClick={() => router.push('/login')}
                 className={cn(
@@ -144,7 +149,13 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
             <>
               {!loading && user && (
                 <>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Trends" onClick={trendsLinkHandler}>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className={cn("h-8 w-8", pathname === '/trends' && 'bg-accent text-accent-foreground')} 
+                    aria-label="Trends" 
+                    onClick={trendsLinkHandler}
+                  >
                     <BarChart3 className="h-5 w-5" />
                   </Button>
                   <Button 
@@ -157,7 +168,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                       aria-label="Micronutrients Progress"
                       onClick={micronutrientsLinkHandler}
                     >
-                      <Nut className="h-5 w-5" />
+                      <Atom className="h-5 w-5" /> {/* Changed Nut to Atom */}
                   </Button>
                 </>
               )}
