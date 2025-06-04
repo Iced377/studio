@@ -85,19 +85,13 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
     )}>
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <Link href="/" className="mr-auto flex items-center space-x-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-foreground p-1">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-foreground bg-black p-1">
             <Image
               src="/Gutcheck_logo.png"
               alt="GutCheck Logo"
               width={28}
               height={28}
-              className={cn(
-                "object-contain",
-                // If the original logo is dark/colored, it needs to be inverted for dark mode to be visible against a dark background
-                // and against a white circular border in dark mode.
-                // In light mode, the circle border is dark gray/black, so a dark logo is fine.
-                isGuest || !isDarkMode ? "" : "filter brightness-0 invert"
-              )}
+              className="object-contain filter brightness-0 invert"
               priority
             />
           </div>
