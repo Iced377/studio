@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Nut, Repeat } from 'lucide-react'; 
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Nut } from 'lucide-react'; 
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -18,25 +18,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; 
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
-import { useState } from 'react'; 
-import MicronutrientProgressDisplay from './MicronutrientProgressDisplay'; 
+// MicronutrientProgressDisplay and Popover imports removed
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "3.2.7"; // Version will be updated if other changes are requested
-
-interface GuestButtonScheme {
-  base: string;
-  border: string;
-  hover: string;
-  focusRing?: string;
-}
+export const APP_VERSION = "3.2.7";
 
 interface NavbarProps {
   isGuest?: boolean;
-  guestButtonScheme?: GuestButtonScheme;
+  guestButtonScheme?: {
+    base: string;
+    border: string;
+    hover: string;
+  };
 }
 
 export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
@@ -45,8 +40,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   const pathname = usePathname();
   const { toast } = useToast();
   const { isDarkMode, toggleDarkMode } = useTheme();
-  const [isMicronutrientsPopoverOpen, setIsMicronutrientsPopoverOpen] = useState(false);
-
+  // isMicronutrientsPopoverOpen state removed
 
   const handleSignOut = async () => {
     const error = await signOutUser();
@@ -73,6 +67,16 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
       router.push('/trends');
     }
   };
+  
+  const micronutrientsLinkHandler = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (pathname === '/micronutrients') {
+      router.push('/'); // Navigate home if already on micronutrients page
+    } else {
+      router.push('/micronutrients');
+    }
+  };
+
 
   const headerBaseClasses = "sticky top-0 z-50 w-full";
   const guestHeaderClasses = "bg-background text-foreground";
@@ -143,28 +147,18 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                   <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Trends" onClick={trendsLinkHandler}>
                     <BarChart3 className="h-5 w-5" />
                   </Button>
-                  <Popover open={isMicronutrientsPopoverOpen} onOpenChange={setIsMicronutrientsPopoverOpen}>
-                    <PopoverTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className={cn(
-                          "h-8 w-8",
-                          isMicronutrientsPopoverOpen && 'bg-accent text-accent-foreground'
-                        )} 
-                        aria-label="Micronutrients Progress"
-                      >
-                        <Nut className="h-5 w-5" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent 
-                      align="center"
-                      className="w-[calc(100vw-3rem)] max-w-sm p-4" // Removed max-h, flex, overflow-hidden
-                      side="bottom" 
+                  <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className={cn(
+                        "h-8 w-8",
+                        pathname === '/micronutrients' && 'bg-accent text-accent-foreground'
+                      )} 
+                      aria-label="Micronutrients Progress"
+                      onClick={micronutrientsLinkHandler}
                     >
-                      <MicronutrientProgressDisplay userId={user.uid} />
-                    </PopoverContent>
-                  </Popover>
+                      <Nut className="h-5 w-5" />
+                  </Button>
                 </>
               )}
 

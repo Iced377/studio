@@ -1,12 +1,11 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { db } from '@/config/firebase';
 import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
-import type { TimelineEntry, LoggedFoodItem, MicronutrientDetail, SingleMicronutrientProgress, UserMicronutrientProgress } from '@/types';
+import type { TimelineEntry, LoggedFoodItem, MicronutrientDetail, UserMicronutrientProgress } from '@/types';
 import { Progress } from '@/components/ui/progress';
-// ScrollArea import removed
 import { Loader2 } from 'lucide-react';
 import {
   Atom, Sparkles, Bone, Activity, PersonStanding, Eye, ShieldCheck, Droplet, Wind, Brain, Baby, Heart, ShieldQuestion, Network, Target, HelpCircle, Nut
@@ -20,39 +19,87 @@ interface MicronutrientProgressDisplayProps {
 
 const RepresentativeLucideIcons: { [key: string]: React.ElementType } = {
   // Functional Icons based on nutrient name
-  Iron: Wind, Calcium: Bone, Phosphorus: Bone, Magnesium: Activity, Sodium: Droplet, Potassium: Droplet,
-  Chloride: Droplet, Zinc: PersonStanding, Copper: Network, Manganese: Bone, Selenium: ShieldCheck,
-  Iodine: Brain, Chromium: Target, VitaminA: Eye, VitaminC: ShieldCheck, VitaminD: ShieldCheck,
-  VitaminE: ShieldQuestion, VitaminK: Heart, VitaminB1: Brain, VitaminB2: Activity, VitaminB3: Activity,
-  VitaminB5: Activity, VitaminB6: Brain, VitaminB12: Brain, Biotin: Activity, Folate: Baby,
+  VitaminA: Eye,
+  VitaminC: ShieldCheck,
+  VitaminD: ShieldCheck, // Often associated with immunity/bone health with Calcium
+  VitaminE: ShieldCheck, // Antioxidant function
+  VitaminK: Heart,
+  Thiamin: Brain, // B1
+  Riboflavin: Activity, // B2
+  Niacin: Activity, // B3
+  PantothenicAcid: Activity, // B5
+  VitaminB6: Brain,
+  Biotin: Activity, // B7
+  Folate: Baby, // B9
+  VitaminB12: Brain,
+  Choline: Brain,
+
+  Calcium: Bone,
+  Phosphorus: Bone,
+  Magnesium: Activity,
+  Iron: Wind,
+  Zinc: PersonStanding,
+  Copper: Network,
+  Manganese: Bone,
+  Selenium: ShieldCheck,
+  Iodine: Brain,
+  Chromium: Target,
+  Molybdenum: Atom, // Generic as specific function icon is less common
+  Potassium: Droplet,
+  Sodium: Droplet,
+  Chloride: Droplet,
+
   // AI-suggested functional icon names (ensure these are mapped if AI uses them)
   Bone: Bone, Activity: Activity, PersonStanding: PersonStanding, Eye: Eye, ShieldCheck: ShieldCheck,
   Droplet: Droplet, Wind: Wind, Brain: Brain, Baby: Baby, Heart: Heart, ShieldQuestion: ShieldQuestion,
-  Network: Network, Target: Target,
+  Network: Network, Target: Target, Nut: Nut, // Added Nut for completeness if AI suggests it
   // Fallback / General Icons
-  Atom, Sparkles, HelpCircle, Nut, 
+  Atom, Sparkles, HelpCircle,
 };
 
-const KEY_MICRONUTRIENTS_CONFIG: Array<{ name: string; targetDV?: number }> = [
-  { name: 'Vitamin A', targetDV: 100 }, { name: 'Vitamin C', targetDV: 100 }, { name: 'Vitamin D', targetDV: 100 },
-  { name: 'Vitamin E', targetDV: 100 }, { name: 'Vitamin K', targetDV: 100 }, { name: 'VitaminB1', targetDV: 100 }, 
-  { name: 'VitaminB2', targetDV: 100 }, 
-  { name: 'VitaminB3', targetDV: 100 }, 
-  { name: 'VitaminB6', targetDV: 100 }, { name: 'Folate', targetDV: 100 }, { name: 'VitaminB12', targetDV: 100 },
-  { name: 'Calcium', targetDV: 100 }, { name: 'Iron', targetDV: 100 }, { name: 'Magnesium', targetDV: 100 },
-  { name: 'Zinc', targetDV: 100 }, { name: 'Potassium', targetDV: 100 }, { name: 'Selenium', targetDV: 100 },
-  { name: 'Iodine', targetDV: 100 }, { name: 'Phosphorus', targetDV: 100}, { name: 'Sodium', targetDV: 2300 } 
+const KEY_MICRONUTRIENTS_CONFIG: Array<{ name: string; displayName?: string; targetDV?: number; unit?: 'mg' | '%' }> = [
+  // Vitamins
+  { name: 'VitaminA', displayName: 'Vitamin A', targetDV: 100, unit: '%' },
+  { name: 'VitaminC', displayName: 'Vitamin C', targetDV: 100, unit: '%' },
+  { name: 'VitaminD', displayName: 'Vitamin D', targetDV: 100, unit: '%' },
+  { name: 'VitaminE', displayName: 'Vitamin E', targetDV: 100, unit: '%' },
+  { name: 'VitaminK', displayName: 'Vitamin K', targetDV: 100, unit: '%' },
+  { name: 'Thiamin', displayName: 'Thiamin (B1)', targetDV: 100, unit: '%' },
+  { name: 'Riboflavin', displayName: 'Riboflavin (B2)', targetDV: 100, unit: '%' },
+  { name: 'Niacin', displayName: 'Niacin (B3)', targetDV: 100, unit: '%' },
+  { name: 'PantothenicAcid', displayName: 'Pantothenic Acid (B5)', targetDV: 100, unit: '%' },
+  { name: 'VitaminB6', displayName: 'Vitamin B6', targetDV: 100, unit: '%' },
+  { name: 'Biotin', displayName: 'Biotin (B7)', targetDV: 100, unit: '%' },
+  { name: 'Folate', displayName: 'Folate (B9)', targetDV: 100, unit: '%' },
+  { name: 'VitaminB12', displayName: 'Vitamin B12', targetDV: 100, unit: '%' },
+  { name: 'Choline', displayName: 'Choline', targetDV: 550, unit: 'mg' }, // Choline has an AI in mg usually
+  // Minerals
+  { name: 'Calcium', displayName: 'Calcium', targetDV: 100, unit: '%' },
+  { name: 'Phosphorus', displayName: 'Phosphorus', targetDV: 100, unit: '%' },
+  { name: 'Magnesium', displayName: 'Magnesium', targetDV: 100, unit: '%' },
+  { name: 'Iron', displayName: 'Iron', targetDV: 100, unit: '%' },
+  { name: 'Zinc', displayName: 'Zinc', targetDV: 100, unit: '%' },
+  { name: 'Copper', displayName: 'Copper', targetDV: 100, unit: '%' },
+  { name: 'Manganese', displayName: 'Manganese', targetDV: 100, unit: '%' },
+  { name: 'Selenium', displayName: 'Selenium', targetDV: 100, unit: '%' },
+  { name: 'Iodine', displayName: 'Iodine', targetDV: 100, unit: '%' },
+  { name: 'Chromium', displayName: 'Chromium', targetDV: 100, unit: '%' },
+  { name: 'Molybdenum', displayName: 'Molybdenum', targetDV: 100, unit: '%' },
+  { name: 'Potassium', displayName: 'Potassium', targetDV: 100, unit: '%' }, // Often underconsumed, DV usually in mg, but AI gives %
+  { name: 'Sodium', displayName: 'Sodium', targetDV: 2300, unit: 'mg' }, // Target is upper limit
+  { name: 'Chloride', displayName: 'Chloride', targetDV: 100, unit: '%' },
 ];
 
 
 export default function MicronutrientProgressDisplay({ userId }: MicronutrientProgressDisplayProps) {
   const [progressData, setProgressData] = useState<UserMicronutrientProgress | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start loading true
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) {
       setProgressData(null);
+      setIsLoading(false);
       return;
     }
 
@@ -88,10 +135,12 @@ export default function MicronutrientProgressDisplay({ userId }: MicronutrientPr
 
         KEY_MICRONUTRIENTS_CONFIG.forEach(keyMicro => {
           dailyTotals[keyMicro.name] = {
-            name: keyMicro.name,
-            achievedDV: 0,
-            icon: RepresentativeLucideIcons[keyMicro.name] || Atom, 
-            targetDV: keyMicro.targetDV || 100,
+            name: keyMicro.displayName || keyMicro.name,
+            achievedValue: 0, // Use achievedValue to store raw amount if unit is 'mg'
+            achievedDV: 0,    // Use achievedDV for percentage if unit is '%'
+            icon: RepresentativeLucideIcons[keyMicro.name] || Atom,
+            targetDV: keyMicro.targetDV || (keyMicro.unit === 'mg' ? 0 : 100), // Target for % or mg
+            unit: keyMicro.unit || '%',
           };
         });
         
@@ -104,16 +153,30 @@ export default function MicronutrientProgressDisplay({ userId }: MicronutrientPr
             ];
             
             allMicrosFromItem.forEach(microDetail => {
-              if (dailyTotals[microDetail.name] && microDetail.dailyValuePercent !== undefined) {
-                dailyTotals[microDetail.name].achievedDV += microDetail.dailyValuePercent;
+              // Find the config entry that matches the AI's nutrient name
+              const configEntry = KEY_MICRONUTRIENTS_CONFIG.find(km => 
+                km.name.toLowerCase() === microDetail.name.toLowerCase() || 
+                (km.displayName && km.displayName.toLowerCase() === microDetail.name.toLowerCase())
+              );
+
+              if (configEntry && dailyTotals[configEntry.name]) {
+                const targetEntry = dailyTotals[configEntry.name];
+                if (targetEntry.unit === 'mg' && microDetail.amount) {
+                  const amountValue = parseFloat(microDetail.amount); // Assumes AI returns amount like "10 mg"
+                  if (!isNaN(amountValue)) {
+                    targetEntry.achievedValue = (targetEntry.achievedValue || 0) + amountValue;
+                  }
+                } else if (targetEntry.unit === '%' && microDetail.dailyValuePercent !== undefined) {
+                  targetEntry.achievedDV += microDetail.dailyValuePercent;
+                }
                 
                 const iconFromAIName = microDetail.iconName ? RepresentativeLucideIcons[microDetail.iconName] : undefined;
-                const iconFromNutrientName = RepresentativeLucideIcons[microDetail.name];
+                const iconFromNutrientNameKey = RepresentativeLucideIcons[configEntry.name]; // Use config key
                 
                 if (iconFromAIName) {
-                   dailyTotals[microDetail.name].icon = iconFromAIName;
-                } else if (iconFromNutrientName) {
-                   dailyTotals[microDetail.name].icon = iconFromNutrientName;
+                   targetEntry.icon = iconFromAIName;
+                } else if (iconFromNutrientNameKey) {
+                   targetEntry.icon = iconFromNutrientNameKey;
                 }
               }
             });
@@ -122,7 +185,7 @@ export default function MicronutrientProgressDisplay({ userId }: MicronutrientPr
         setProgressData(dailyTotals);
       } catch (err) {
         console.error("Error fetching micronutrient data:", err);
-        setError("Could not load micronutrient progress.");
+        setError("Could not load micronutrient progress. Please try again later.");
       } finally {
         setIsLoading(false);
       }
@@ -133,9 +196,9 @@ export default function MicronutrientProgressDisplay({ userId }: MicronutrientPr
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="ml-2 text-muted-foreground">Loading progress...</p>
+      <div className="flex flex-col items-center justify-center p-8 min-h-[300px]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="ml-2 text-muted-foreground mt-4">Loading micronutrient progress...</p>
       </div>
     );
   }
@@ -153,40 +216,49 @@ export default function MicronutrientProgressDisplay({ userId }: MicronutrientPr
   });
 
   return (
-    <div className=""> {/* Removed flex, flex-1, overflow-hidden */}
-      <h3 className="text-lg font-semibold mb-3 text-foreground px-0 sm:px-1">Today's Micronutrient Goals</h3>
-      {/* ScrollArea removed */}
-      <div className="space-y-3"> {/* This div was previously inside ScrollArea */}
+    <div className="w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
         {sortedMicronutrients.map((micro) => {
           const IconComponent = micro.icon || Atom;
-          const target = micro.name === 'Sodium' ? (micro.targetDV || 2300) : (micro.targetDV || 100);
-          const isSodium = micro.name === 'Sodium';
-          const percentage = target ? Math.min(100, (micro.achievedDV / target) * 100) : Math.min(100, micro.achievedDV);
+          const target = micro.targetDV;
+          const isSodium = micro.name.toLowerCase() === 'sodium';
+          
+          let percentage: number;
+          let displayAchieved: string;
+          let displayTarget: string;
+
+          if (micro.unit === 'mg') {
+            percentage = target > 0 ? Math.min(100, ((micro.achievedValue || 0) / target) * 100) : 0;
+            displayAchieved = `${Math.round(micro.achievedValue || 0)}mg`;
+            displayTarget = `${Math.round(target)}mg`;
+          } else { // unit is '%'
+            percentage = Math.min(100, micro.achievedDV);
+            displayAchieved = `${Math.round(micro.achievedDV)}%`;
+            displayTarget = `${Math.round(target)}% DV`;
+          }
           
           const progressValue = isNaN(percentage) ? 0 : percentage;
-          const displayDV = Math.round(micro.achievedDV);
-          const displayTarget = Math.round(target);
-
-          const isAchieved = isSodium ? micro.achievedDV <= target : micro.achievedDV >= target; 
+          const isAchieved = isSodium ? (micro.achievedValue || 0) <= target : progressValue >= 100;
 
           return (
             <div key={micro.name} className="break-words">
               <div className="flex items-center justify-between mb-0.5">
                 <div className="flex items-center text-sm text-foreground min-w-0 mr-2">
                   <IconComponent className={cn("h-4 w-4 mr-2 shrink-0", isAchieved ? 'text-green-500' : 'text-muted-foreground')} />
-                  <span className="truncate">{micro.name}</span>
+                  <span className="truncate font-medium">{micro.name}</span>
                 </div>
                 <span className={cn("text-xs font-medium text-right shrink-0", isAchieved ? 'text-green-500' : 'text-muted-foreground')}>
-                  {displayDV}{isSodium ? 'mg' : '%'} 
-                  <span className="text-xs text-muted-foreground/80"> of {displayTarget}{isSodium ? 'mg' : '% DV'}</span>
+                  {displayAchieved}
+                  <span className="text-xs text-muted-foreground/80"> / {displayTarget}</span>
                 </span>
               </div>
-              <Progress 
-                  value={isSodium ? (target > 0 ? Math.min(100, (micro.achievedDV / target) * 100) : 0) : progressValue} 
-                  className={cn("h-2", 
-                      isSodium ? (micro.achievedDV > target ? "[&>div]:bg-red-500" : (micro.achievedDV >= target*0.8 ? "[&>div]:bg-yellow-500" : "[&>div]:bg-green-500")) 
-                               : (progressValue >= 100 ? "[&>div]:bg-green-500" : "")
-                  )} 
+              <Progress
+                  value={isSodium ? (target > 0 ? Math.min(100, ((micro.achievedValue || 0) / target) * 100) : 0) : progressValue}
+                  className={cn("h-2.5",
+                      isSodium 
+                        ? ((micro.achievedValue || 0) > target ? "[&>div]:bg-red-500" : ((micro.achievedValue || 0) >= target * 0.8 ? "[&>div]:bg-yellow-500" : "[&>div]:bg-green-500"))
+                        : (progressValue >= 100 ? "[&>div]:bg-green-500" : (progressValue >=75 ? "[&>div]:bg-yellow-500" : ""))
+                  )}
               />
             </div>
           );
