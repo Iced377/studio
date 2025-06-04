@@ -24,6 +24,7 @@ import { ListChecks } from 'lucide-react';
 import { Input } from '@/components/ui/input'; 
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
+import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder';
 
 const symptomLogSchema = z.object({
   selectedSymptoms: z.array(z.string()).min(1, { message: 'Please select at least one symptom.' }),
@@ -120,6 +121,11 @@ export default function SymptomLoggingDialog({
             Select symptoms, severity, and any notes.
           </DialogDescription>
         </DialogHeader>
+
+        <div className="my-4">
+          <BannerAdPlaceholder adUnitId="YOUR_SYMPTOM_LOG_BANNER_AD_ID" />
+        </div>
+
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 pt-2">
           <div>
             <Label className="text-sm font-medium text-foreground">Symptoms Experienced</Label>

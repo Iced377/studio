@@ -23,6 +23,7 @@ import { Sprout, Loader2, Edit, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/contexts/ThemeContext';
+import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder';
 
 const simplifiedFoodLogSchema = z.object({
   mealDescription: z.string().min(10, { message: 'Please describe your meal in more detail (at least 10 characters).' }),
@@ -165,7 +166,13 @@ export default function SimplifiedAddFoodDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 pt-2 max-h-[60vh] overflow-y-auto pr-2">
+        {!isGuestView && (
+          <div className="my-4">
+            <BannerAdPlaceholder adUnitId="YOUR_SIMPLIFIED_LOG_BANNER_AD_ID" />
+          </div>
+        )}
+
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 pt-2 max-h-[calc(60vh-50px)] overflow-y-auto pr-2"> {/* Adjusted max-h for ad space */}
           <div>
             <Label htmlFor="mealDescription" className={labelClasses}>Meal Description</Label>
             <Textarea

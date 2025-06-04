@@ -111,7 +111,7 @@ export default function AddFoodItemDialog({
         </DialogHeader>
         
         <div className="my-4">
-          <BannerAdPlaceholder />
+          <BannerAdPlaceholder adUnitId="YOUR_BANNER_AD_UNIT_ID_HERE" />
         </div>
         
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 pt-2">

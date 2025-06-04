@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     description: 'Your Ai companion for easy food logging and meaningful insights.',
     images: [
       {
-        url: '/Gutcheck_logo.png', // Assuming Gutcheck_logo.png is in the public folder
+        url: '/Gutcheck_logo.png', 
         width: 512,
         height: 512,
         alt: 'GutCheck Logo',
@@ -25,9 +25,9 @@ export const metadata: Metadata = {
     type: 'website',
   },
   icons: {
-    icon: '/Gutcheck_logo.png', // Default favicon
-    shortcut: '/Gutcheck_logo.png', // For older browsers
-    apple: '/Gutcheck_logo.png', // For Apple touch icon
+    icon: '/Gutcheck_logo.png', 
+    shortcut: '/Gutcheck_logo.png', 
+    apple: '/Gutcheck_logo.png', 
   },
 };
 
@@ -42,6 +42,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        {/* 
+          TODO: Add your Google AdSense script here.
+          It usually looks like:
+          <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_PUBLISHER_ID"
+               crossOrigin="anonymous"></script>
+          Replace ca-pub-YOUR_PUBLISHER_ID with your actual AdSense publisher ID.
+        */}
       </head>
       <body className={`${inter.variable} font-body antialiased min-h-screen flex flex-col bg-background text-foreground`}>
         <AuthProvider>
