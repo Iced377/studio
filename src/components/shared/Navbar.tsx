@@ -112,11 +112,11 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
               <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
             </>
           )}
-           {isGuest && ( 
+           {/* {isGuest && ( 
              <span className={cn(appNameBaseClasses, 'text-foreground')}>
                 {APP_NAME}
               </span>
-           )}
+           )} */}
         </Link>
 
         <div className="flex items-center space-x-1 sm:space-x-1.5">
@@ -153,7 +153,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                     variant="ghost" 
                     size="icon" 
                     className={cn(
-                        "h-8 w-8", 
+                        "h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", 
                         pathname === '/trends' && 'text-primary'
                     )} 
                     aria-label="Trends" 
@@ -165,7 +165,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                       variant="ghost" 
                       size="icon" 
                       className={cn(
-                        "h-8 w-8",
+                        "h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0",
                         pathname === '/micronutrients' && 'text-primary'
                       )} 
                       aria-label="Micronutrients Progress"
