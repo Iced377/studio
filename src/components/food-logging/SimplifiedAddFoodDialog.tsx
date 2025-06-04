@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form'; // Import Controller
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -332,12 +332,18 @@ export default function SimplifiedAddFoodDialog({
           )}
           <div>
             <Label htmlFor="mealDescription" className={labelClasses}>Meal Description</Label>
-            <Textarea
-              id="mealDescription"
-              {...form.register('mealDescription')}
-              placeholder={isGuestView ? 'e.g., "A small glass of low-fat milk with 50g of Weetabix, and a handful of blueberries"' : 'e.g., "Large bowl of spaghetti bolognese with garlic bread and a side salad."'}
-              className={textAreaClasses}
-              rows={isEditing ? 3 : 4}
+            <Controller
+              name="mealDescription"
+              control={form.control}
+              render={({ field }) => (
+                <Textarea
+                  {...field}
+                  id="mealDescription"
+                  placeholder={isGuestView ? 'e.g., "A small glass of low-fat milk with 50g of Weetabix, and a handful of blueberries"' : 'e.g., "Large bowl of spaghetti bolognese with garlic bread and a side salad."'}
+                  className={textAreaClasses}
+                  rows={isEditing ? 3 : 4}
+                />
+              )}
             />
             {form.formState.errors.mealDescription && (
               <p className={checkboxErrorClasses}>{form.formState.errors.mealDescription.message}</p>
@@ -404,4 +410,3 @@ export default function SimplifiedAddFoodDialog({
     </Dialog>
   );
 }
-
