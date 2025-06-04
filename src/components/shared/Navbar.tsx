@@ -22,7 +22,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "3.2.9";
+export const APP_VERSION = "3.2.10";
 
 interface NavbarProps {
   isGuest?: boolean;
