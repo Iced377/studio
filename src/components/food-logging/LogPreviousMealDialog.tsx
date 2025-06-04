@@ -13,7 +13,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Calendar } from '@/components/ui/calendar';
-import { Brain, Pencil, CalendarDays } from 'lucide-react';
+import { Brain, Pencil, CalendarDays, Camera } from 'lucide-react'; // Added Camera
 import { format } from 'date-fns';
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
@@ -22,7 +22,7 @@ interface LogPreviousMealDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onDateSelect: (date?: Date) => void;
-  onLogMethodSelect: (method: 'AI' | 'Manual') => void;
+  onLogMethodSelect: (method: 'AI' | 'Manual' | 'Photo') => void; // Added 'Photo'
   currentSelectedDate?: Date;
 }
 
@@ -56,6 +56,15 @@ export default function LogPreviousMealDialog({
         return;
     }
     onLogMethodSelect('Manual');
+    onOpenChange(false); 
+  };
+
+  const handleLogWithPhoto = () => {
+    if (!selectedDate) {
+        alert("Please select a date first.");
+        return;
+    }
+    onLogMethodSelect('Photo');
     onOpenChange(false); 
   };
   
@@ -97,18 +106,21 @@ export default function LogPreviousMealDialog({
           )}
         </div>
 
-        <DialogFooter className="pt-2 sm:justify-between">
+        <DialogFooter className="pt-2 flex-col sm:flex-row sm:justify-between gap-2">
           <DialogClose asChild>
-            <Button type="button" variant="outline" className={cancelClasses}>
+            <Button type="button" variant="outline" className={cn(cancelClasses, "order-last sm:order-first")}>
               Cancel
             </Button>
           </DialogClose>
-          <div className="flex flex-col sm:flex-row gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button onClick={handleLogWithAI} className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/80" disabled={!selectedDate}>
-              <Brain className="mr-2 h-5 w-5" /> Log with AI
+              <Brain className="mr-2 h-5 w-5" /> AI (Text)
+            </Button>
+             <Button onClick={handleLogWithPhoto} className="w-full sm:w-auto bg-primary/80 text-primary-foreground hover:bg-primary/70" disabled={!selectedDate}>
+              <Camera className="mr-2 h-5 w-5" /> AI (Photo)
             </Button>
             <Button onClick={handleLogManually} className="w-full sm:w-auto bg-secondary text-secondary-foreground hover:bg-secondary/80" disabled={!selectedDate}>
-              <Pencil className="mr-2 h-5 w-5" /> Log Manually
+              <Pencil className="mr-2 h-5 w-5" /> Manual
             </Button>
           </div>
         </DialogFooter>
@@ -116,3 +128,4 @@ export default function LogPreviousMealDialog({
     </Dialog>
   );
 }
+

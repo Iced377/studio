@@ -5,10 +5,10 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, PlusCircle, ListChecks, Pencil, CalendarDays, Edit3, ChevronUp, Repeat } from 'lucide-react';
+import { Loader2, PlusCircle, ListChecks, Pencil, CalendarDays, Edit3, ChevronUp, Repeat, Camera } from 'lucide-react'; // Added Camera
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
-// import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow'; // Symptom correlation might be less effective with 2-day data for free users. Consider implications.
+// import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow';
 import { processMealDescription, type ProcessMealDescriptionOutput } from '@/ai/flows/process-meal-description-flow';
 
 
@@ -37,6 +37,7 @@ import SimplifiedAddFoodDialog, { type SimplifiedFoodLogFormValues } from '@/com
 import SymptomLoggingDialog from '@/components/food-logging/SymptomLoggingDialog';
 import AddManualMacroEntryDialog, { type ManualMacroFormValues } from '@/components/food-logging/AddManualMacroEntryDialog';
 import LogPreviousMealDialog from '@/components/food-logging/LogPreviousMealDialog';
+import IdentifyFoodByPhotoDialog, { type IdentifiedPhotoData } from '@/components/food-logging/IdentifyFoodByPhotoDialog'; // New Dialog
 import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet';
 import Navbar from '@/components/shared/Navbar';
 import GuestHomePage from '@/components/guest/GuestHomePage';
@@ -102,13 +103,15 @@ export default function FoodTimelinePage() {
   const [isLoadingAi, setIsLoadingAi] = useState<Record<string, boolean>>({});
 
   // Dialog states
-  const [isAddFoodDialogOpen, setIsAddFoodDialogOpen] = useState(false);
-  const [isSimplifiedAddFoodDialogOpen, setIsSimplifiedAddFoodDialogOpen] = useState(false);
+  const [isAddFoodDialogOpen, setIsAddFoodDialogOpen] = useState(false); // For manual entry / photo result
+  const [isSimplifiedAddFoodDialogOpen, setIsSimplifiedAddFoodDialogOpen] = useState(false); // For text-based AI
+  const [isIdentifyByPhotoDialogOpen, setIsIdentifyByPhotoDialogOpen] = useState(false); // New dialog
   const [isSymptomLogDialogOpen, setIsSymptomLogDialogOpen] = useState(false);
   const [isAddManualMacroDialogOpen, setIsAddManualMacroDialogOpen] = useState(false);
   const [isLogPreviousMealDialogOpen, setIsLogPreviousMealDialogOpen] = useState(false);
   const [selectedLogDateForPreviousMeal, setSelectedLogDateForPreviousMeal] = useState<Date | undefined>(undefined);
   const [activeLightModeColorScheme, setActiveLightModeColorScheme] = useState<ButtonColorScheme>(lightModeButtonColors[0]);
+  const [prefilledFoodData, setPrefilledFoodData] = useState<Partial<ManualEntryFormValues> | undefined>(undefined);
 
 
   const [symptomDialogContext, setSymptomDialogContext] = useState<{ foodItemIds?: string[] }>({});
@@ -129,8 +132,7 @@ export default function FoodTimelinePage() {
       setActiveLightModeColorScheme(selectedScheme);
       document.documentElement.style.setProperty('--glow-color-rgb', selectedScheme.glowRgb);
     } else {
-      // For dark mode, you might want a default glow or no dynamic glow setting
-      document.documentElement.style.setProperty('--glow-color-rgb', '57, 255, 20'); // Default green glow for dark mode or remove property
+      document.documentElement.style.setProperty('--glow-color-rgb', '57, 255, 20'); 
     }
   }, [isDarkMode]);
 
@@ -278,7 +280,7 @@ export default function FoodTimelinePage() {
     }
   };
 
-
+  // Handles submission from AddFoodItemDialog (manual or photo-identified)
   const handleSubmitFoodItem = async (
     foodItemData: Omit<LoggedFoodItem, 'id' | 'timestamp' | 'entryType' | 'calories' | 'protein' | 'carbs' | 'fat' | 'sourceDescription' | 'userFeedback' | 'macrosOverridden'>,
     customTimestamp?: Date
@@ -334,7 +336,7 @@ export default function FoodTimelinePage() {
         fat: fodmapAnalysis?.fat,
         entryType: 'food',
         userFeedback: editingItem ? editingItem.userFeedback : null,
-        macrosOverridden: false,
+        macrosOverridden: false, // Manual entries from this dialog don't override macros initially
       };
 
       if (authUser && authUser.uid !== 'guest-user') {
@@ -356,7 +358,8 @@ export default function FoodTimelinePage() {
       } else {
         addTimelineEntry(processedFoodItem);
       }
-       if (customTimestamp) setSelectedLogDateForPreviousMeal(undefined);
+      if (customTimestamp) setSelectedLogDateForPreviousMeal(undefined);
+      setPrefilledFoodData(undefined); // Clear prefilled data after use
 
 
     } catch (error: any) {
@@ -389,7 +392,7 @@ export default function FoodTimelinePage() {
     }
   };
 
-
+  // Handles submission from SimplifiedAddFoodDialog (text-based AI)
   const handleSubmitMealDescription = async (
     formData: SimplifiedFoodLogFormValues,
     userDidOverrideMacros: boolean,
@@ -581,9 +584,15 @@ export default function FoodTimelinePage() {
     if (itemToEdit.entryType === 'manual_macro') {
       setIsAddManualMacroDialogOpen(true);
     } else if (itemToEdit.entryType === 'food') {
-      if (itemToEdit.sourceDescription) {
+      if (itemToEdit.sourceDescription) { // Indicates it was logged via Simplified (AI text)
         setIsSimplifiedAddFoodDialogOpen(true);
-      } else {
+      } else { // Logged via Manual or potentially photo-to-manual
+        setPrefilledFoodData({
+            name: itemToEdit.name,
+            ingredients: itemToEdit.ingredients,
+            portionSize: itemToEdit.portionSize,
+            portionUnit: itemToEdit.portionUnit,
+        });
         setIsAddFoodDialogOpen(true);
       }
     }
@@ -656,14 +665,35 @@ export default function FoodTimelinePage() {
   const handleSimplifiedLogFoodClick = () => {
     setIsCentralPopoverOpen(false);
     setEditingItem(null);
+    setPrefilledFoodData(undefined);
     setIsSimplifiedAddFoodDialogOpen(true);
   };
 
-  const handleLogPreviousMealFlow = (logMethod: 'AI' | 'Manual') => {
+  const handleIdentifyByPhotoClick = () => {
+    setIsCentralPopoverOpen(false);
+    setEditingItem(null);
+    setPrefilledFoodData(undefined);
+    setIsIdentifyByPhotoDialogOpen(true);
+  };
+
+  const handleFoodIdentifiedByPhoto = (data: IdentifiedPhotoData) => {
+    setPrefilledFoodData({
+      name: data.name,
+      ingredients: data.ingredients,
+      portionSize: data.portionSize,
+      portionUnit: data.portionUnit,
+    });
+    setIsIdentifyByPhotoDialogOpen(false); // Close photo dialog
+    setIsAddFoodDialogOpen(true); // Open manual log dialog
+  };
+
+  const handleLogPreviousMealFlow = (logMethod: 'AI' | 'Manual' | 'Photo') => {
     if (logMethod === 'AI') {
       setIsSimplifiedAddFoodDialogOpen(true);
-    } else {
+    } else if (logMethod === 'Manual') {
       setIsAddFoodDialogOpen(true);
+    } else if (logMethod === 'Photo') {
+      setIsIdentifyByPhotoDialogOpen(true);
     }
   };
 
@@ -671,6 +701,7 @@ export default function FoodTimelinePage() {
   const handleOpenLogPreviousMealDialog = () => {
     setIsCentralPopoverOpen(false);
     setEditingItem(null);
+    setPrefilledFoodData(undefined);
     setSelectedLogDateForPreviousMeal(new Date());
     setIsLogPreviousMealDialogOpen(true);
   };
@@ -922,7 +953,7 @@ export default function FoodTimelinePage() {
           onRemoveItem={handleGuestRemoveFoodItem}
           isLoadingAiForItem={lastGuestFoodItem ? !!isLoadingAi[lastGuestFoodItem.id] : false}
         />
-        <SimplifiedAddFoodDialog
+        <SimplifiedAddFoodDialog // Guest still uses simplified for text entry
             isOpen={isGuestLogFoodDialogOpen}
             onOpenChange={setIsGuestLogFoodDialogOpen}
             onSubmitLog={(data, userDidOverrideMacros) => handleGuestProcessMealDescription(data)}
@@ -963,7 +994,10 @@ export default function FoodTimelinePage() {
           >
               <div className="flex flex-col gap-1 p-2">
                     <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleSimplifiedLogFoodClick}>
-                      <PlusCircle className="mr-3 h-5 w-5" /> Log Food (AI)
+                      <PlusCircle className="mr-3 h-5 w-5" /> Log Food (AI Text)
+                  </Button>
+                  <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleIdentifyByPhotoClick}>
+                      <Camera className="mr-3 h-5 w-5" /> Identify by Photo
                   </Button>
                   <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => openSymptomDialog()}>
                       <ListChecks className="mr-3 h-5 w-5" /> Log Symptoms
@@ -1006,7 +1040,10 @@ export default function FoodTimelinePage() {
       <SimplifiedAddFoodDialog
         isOpen={isSimplifiedAddFoodDialogOpen}
         onOpenChange={(open) => {
-          if (!open) setEditingItem(null);
+          if (!open) {
+            setEditingItem(null);
+            setPrefilledFoodData(undefined);
+          }
           setIsSimplifiedAddFoodDialogOpen(open);
         }}
         onSubmitLog={(data, userDidOverrideMacros) => handleSubmitMealDescription(data, userDidOverrideMacros, selectedLogDateForPreviousMeal)}
@@ -1024,19 +1061,26 @@ export default function FoodTimelinePage() {
         isGuestView={false}
         key={editingItem?.id ? `edit-simplified-${editingItem.id}` : 'new-simplified'}
       />
+      <IdentifyFoodByPhotoDialog
+        isOpen={isIdentifyByPhotoDialogOpen}
+        onOpenChange={setIsIdentifyByPhotoDialogOpen}
+        onFoodIdentified={handleFoodIdentifiedByPhoto}
+      />
       <AddFoodItemDialog
           isOpen={isAddFoodDialogOpen}
           onOpenChange={(open) => {
-              if (!open) setEditingItem(null);
+              if (!open) {
+                setEditingItem(null);
+                setPrefilledFoodData(undefined); // Clear prefilled data when dialog closes
+              }
               setIsAddFoodDialogOpen(open);
           }}
           onSubmitFoodItem={(data) => handleSubmitFoodItem(data, selectedLogDateForPreviousMeal)}
           isEditing={!!editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription}
-          initialValues={editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription ?
-            { name: editingItem.name, ingredients: editingItem.ingredients, portionSize: editingItem.portionSize, portionUnit: editingItem.portionUnit }
-            : undefined
-          }
-          key={editingItem?.id ? `edit-manual-${editingItem.id}` : 'new-manual'}
+          initialValues={editingItem && editingItem.entryType === 'food' && !editingItem.sourceDescription 
+                          ? { name: editingItem.name, ingredients: editingItem.ingredients, portionSize: editingItem.portionSize, portionUnit: editingItem.portionUnit }
+                          : prefilledFoodData} // Use prefilledData if available for new entries
+          key={editingItem?.id ? `edit-manual-${editingItem.id}` : (prefilledFoodData ? `new-manual-prefill-${Date.now()}` : 'new-manual')}
       />
       <SymptomLoggingDialog
           isOpen={isSymptomLogDialogOpen}
@@ -1075,3 +1119,4 @@ export default function FoodTimelinePage() {
     </div>
   );
 }
+
