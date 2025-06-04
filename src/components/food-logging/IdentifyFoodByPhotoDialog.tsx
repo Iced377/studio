@@ -13,7 +13,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Camera, Upload, Loader2, AlertTriangle, CheckCircle, PackageCheck, Library, ImageUp } from 'lucide-react';
+import { Camera, Upload, Loader2, AlertTriangle, CheckCircle, PackageCheck, Library, ImageUp, Info } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -79,7 +79,7 @@ export default function IdentifyFoodByPhotoDialog({
       setImagePreview(imageDataUri);
       try {
         const result = await identifyFoodFromImage({ imageDataUri });
-        console.log('AI Image Identification Result:', result); // Keep for debugging
+        console.log('AI Image Identification Result:', result);
         if (result.recognitionSuccess) {
           setIdentifiedData(result);
           toast({ title: "Food Identified!", description: "Review the details below and confirm." });
@@ -193,6 +193,10 @@ export default function IdentifyFoodByPhotoDialog({
               {identifiedData.ocrText && (
                 <p className="text-xs"><strong className="text-foreground">OCR Text (partial):</strong> {identifiedData.ocrText.substring(0, 100)}{identifiedData.ocrText.length > 100 ? '...' : ''}</p>
               )}
+              <p className={cn("text-xs pt-2 flex items-start gap-1.5", "text-muted-foreground")}>
+                <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 text-primary" />
+                <span>If details aren't perfect, you can edit them from the meal card on your dashboard after logging.</span>
+              </p>
             </div>
           )}
         </div>
@@ -213,3 +217,4 @@ export default function IdentifyFoodByPhotoDialog({
     </Dialog>
   );
 }
+
