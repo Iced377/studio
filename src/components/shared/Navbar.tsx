@@ -22,7 +22,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "v3.2.4";
+export const APP_VERSION = "3.2.4";
 
 interface GuestButtonScheme {
   base: string;
@@ -84,20 +84,23 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
         isGuest ? guestHeaderClasses : registeredUserHeaderClasses
     )}>
       <div className="container flex h-16 max-w-screen-2xl items-center">
-        <Link href="/" className="mr-auto flex items-center space-x-1.5">
-          <Image
-            src="/Gutcheck_logo.png"
-            alt="GutCheck Logo"
-            width={28}
-            height={28}
-            className={cn(
-              "object-contain",
-              // Apply invert filter only for logged-in users in dark mode
-              // Assumes original logo is dark/colored and visible on light backgrounds
-              !isGuest && isDarkMode && "filter brightness-0 invert"
-            )}
-            priority
-          />
+        <Link href="/" className="mr-auto flex items-center space-x-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-foreground p-1">
+            <Image
+              src="/Gutcheck_logo.png"
+              alt="GutCheck Logo"
+              width={28}
+              height={28}
+              className={cn(
+                "object-contain",
+                // If the original logo is dark/colored, it needs to be inverted for dark mode to be visible against a dark background
+                // and against a white circular border in dark mode.
+                // In light mode, the circle border is dark gray/black, so a dark logo is fine.
+                isGuest || !isDarkMode ? "" : "filter brightness-0 invert"
+              )}
+              priority
+            />
+          </div>
           {!isGuest && (
             <>
               <span className={cn(appNameBaseClasses, 'text-foreground')}>
@@ -149,7 +152,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
               {!loading && user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-9 w-9 rounded-full border-2 border-black dark:border-white p-0">
+                    <Button variant="ghost" className="relative h-9 w-9 rounded-full border-2 border-foreground p-0">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
                         <AvatarFallback className="bg-muted text-muted-foreground">
