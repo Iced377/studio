@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -15,15 +15,29 @@ import {
   DialogTitle,
   DialogClose,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox'; 
-import { Sprout, Loader2, Edit, Info } from 'lucide-react';
+import { Sprout, Loader2, Edit, Info, Camera, Upload, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/contexts/ThemeContext';
 import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder';
+import { identifyFoodFromImage, type IdentifyFoodFromImageOutput } from '@/ai/flows/identify-food-from-image-flow';
+import Image from 'next/image';
+
 
 const simplifiedFoodLogSchema = z.object({
   mealDescription: z.string().min(10, { message: 'Please describe your meal in more detail (at least 10 characters).' }),
@@ -67,13 +81,19 @@ export default function SimplifiedAddFoodDialog({
   initialMacrosOverridden = false,
 }: SimplifiedAddFoodDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isIdentifyingPhoto, setIsIdentifyingPhoto] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [isPhotoSourceAlertOpen, setIsPhotoSourceAlertOpen] = useState(false);
   const { toast } = useToast();
   const [userWantsToOverrideMacros, setUserWantsToOverrideMacros] = useState(initialMacrosOverridden);
   const { isDarkMode } = useTheme();
 
   const adSenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-8897507841347789";
-  const adSenseSlotIdSimplifiedBanner = "YOUR_SIMPLIFIED_LOG_BANNER_AD_ID_HERE"; // REPLACE with actual slot ID
+  const adSenseSlotIdSimplifiedBanner = "YOUR_SIMPLIFIED_LOG_BANNER_AD_ID_HERE";
 
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<SimplifiedFoodLogFormValues>({
     resolver: zodResolver(simplifiedFoodLogSchema),
@@ -102,6 +122,9 @@ export default function SimplifiedAddFoodDialog({
         form.reset({ mealDescription: '', calories: undefined, protein: undefined, carbs: undefined, fat: undefined });
         setUserWantsToOverrideMacros(false);
       }
+      setImagePreview(null);
+      setPhotoError(null);
+      setIsIdentifyingPhoto(false);
     }
   }, [isOpen, isEditing, initialValues, initialMacrosOverridden, form]);
 
@@ -126,6 +149,50 @@ export default function SimplifiedAddFoodDialog({
       setIsLoading(false);
     }
   };
+
+  const handleImageFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setImagePreview(null);
+    setPhotoError(null);
+    setIsIdentifyingPhoto(true);
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const imageDataUri = reader.result as string;
+      setImagePreview(imageDataUri);
+      try {
+        const result = await identifyFoodFromImage({ imageDataUri });
+        if (result.recognitionSuccess && result.identifiedFoodName) {
+          let descriptionText = `Identified: ${result.identifiedFoodName}.`;
+          if (result.identifiedIngredients) {
+            descriptionText += ` Ingredients: ${result.identifiedIngredients}.`;
+          }
+          if (result.estimatedPortionSize && result.estimatedPortionUnit) {
+            descriptionText += ` Portion: ${result.estimatedPortionSize} ${result.estimatedPortionUnit}.`;
+          }
+          if (result.ocrText) {
+             descriptionText += ` Text from image: ${result.ocrText.substring(0,100)}${result.ocrText.length > 100 ? '...' : ''}`;
+          }
+          form.setValue('mealDescription', descriptionText);
+          toast({ title: "Food Identified!", description: "Review and confirm the description." });
+        } else {
+          setPhotoError(result.errorMessage || "Couldn’t recognize this food. Please enter it manually.");
+          toast({ title: "Identification Failed", description: result.errorMessage || "Please try another image or enter manually.", variant: "destructive" });
+        }
+      } catch (err) {
+        console.error("Error identifying food from image:", err);
+        setPhotoError("An error occurred during image analysis. Please try again.");
+        toast({ title: "Analysis Error", description: "Could not analyze image.", variant: "destructive" });
+      } finally {
+        setIsIdentifyingPhoto(false);
+        if (event.target) event.target.value = '';
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
 
   const dialogContentClasses = cn("sm:max-w-lg", "bg-card text-card-foreground border-border");
   const titleClasses = cn("font-headline text-xl flex items-center", "text-foreground");
@@ -164,7 +231,7 @@ export default function SimplifiedAddFoodDialog({
               ? "Tell us what you ate, including ingredients and their approximate portion sizes."
               : (isEditing
                   ? "Update the description. You can also manually adjust nutritional info below."
-                  : "Describe your meal in natural language. Our AI will estimate nutritional info.")
+                  : "Describe your meal in natural language, or use a photo. Our AI will estimate nutritional info.")
             }
           </DialogDescription>
         </DialogHeader>
@@ -178,7 +245,72 @@ export default function SimplifiedAddFoodDialog({
           </div>
         )}
 
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 pt-2 max-h-[calc(60vh-50px)] overflow-y-auto pr-2"> {/* Adjusted max-h for ad space */}
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 pt-2 max-h-[calc(60vh-50px)] overflow-y-auto pr-2">
+         {!isEditing && !isGuestView && (
+            <div className="my-3 space-y-2">
+                <AlertDialog open={isPhotoSourceAlertOpen} onOpenChange={setIsPhotoSourceAlertOpen}>
+                <AlertDialogTrigger asChild>
+                    <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10" disabled={isIdentifyingPhoto}>
+                    {isIdentifyingPhoto ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Camera className="mr-2 h-5 w-5" />}
+                    {isIdentifyingPhoto ? 'Analyzing Image...' : 'Identify via Photo'}
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Identify Food via Photo</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Choose how you want to provide the image of your food.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-2">
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => cameraInputRef.current?.click()} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                        <Camera className="mr-2 h-4 w-4" /> Take Photo
+                    </AlertDialogAction>
+                    <AlertDialogAction onClick={() => uploadInputRef.current?.click()} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
+                        <Upload className="mr-2 h-4 w-4" /> Upload Image
+                    </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+                </AlertDialog>
+
+                <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                ref={cameraInputRef}
+                onChange={handleImageFileChange}
+                className="hidden"
+                disabled={isIdentifyingPhoto}
+                />
+                <input
+                type="file"
+                accept="image/*"
+                ref={uploadInputRef}
+                onChange={handleImageFileChange}
+                className="hidden"
+                disabled={isIdentifyingPhoto}
+                />
+
+                {imagePreview && (
+                <div className="mt-3 border border-input rounded-md p-2 flex justify-center max-h-48 overflow-hidden">
+                    <Image src={imagePreview} alt="Food preview" width={180} height={180} style={{ objectFit: 'contain' }} className="rounded-md" />
+                </div>
+                )}
+                {photoError && (
+                <div className="mt-2 p-2 bg-destructive/10 border border-destructive/30 text-destructive text-xs rounded-md flex items-center">
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    {photoError}
+                </div>
+                )}
+                {isIdentifyingPhoto && !imagePreview && (
+                <div className="mt-2 text-center text-muted-foreground">
+                    <Loader2 className="animate-spin h-5 w-5 inline mr-2" /> Processing...
+                </div>
+                )}
+                <p className="text-center text-sm text-muted-foreground my-2">OR</p>
+            </div>
+          )}
           <div>
             <Label htmlFor="mealDescription" className={labelClasses}>Meal Description</Label>
             <Textarea
@@ -239,11 +371,11 @@ export default function SimplifiedAddFoodDialog({
 
           <DialogFooter className="pt-4 sticky bottom-0 bg-inherit">
             <DialogClose asChild>
-              <Button type="button" variant="outline" className={currentCancelButtonClasses} disabled={isLoading}>
+              <Button type="button" variant="outline" className={currentCancelButtonClasses} disabled={isLoading || isIdentifyingPhoto}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" className={submitButtonClasses} disabled={isLoading || (form.formState.isSubmitting || !form.formState.isValid && form.formState.isSubmitted) }>
+            <Button type="submit" className={submitButtonClasses} disabled={isLoading || isIdentifyingPhoto || (form.formState.isSubmitting || !form.formState.isValid && form.formState.isSubmitted) }>
               {isLoading ? <Loader2 className={cn("animate-spin h-5 w-5 mr-2", isGuestView ? "text-primary" : "text-primary-foreground" )} /> : <Sprout className={sproutSubmitIconClasses} />}
               {submitButtonText}
             </Button>

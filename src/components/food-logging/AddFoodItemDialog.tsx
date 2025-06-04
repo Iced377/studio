@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -13,30 +13,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogClose, // Added DialogClose
+  DialogClose,
 } from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { LoggedFoodItem } from '@/types';
-import { Sprout, Loader2, Camera, Upload, AlertTriangle } from 'lucide-react';
+import { Sprout, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder';
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
-import { identifyFoodFromImage, type IdentifyFoodFromImageOutput } from '@/ai/flows/identify-food-from-image-flow';
-import Image from 'next/image';
 
 const manualEntrySchema = z.object({
   name: z.string().min(1, { message: 'Food name is required' }),
@@ -63,19 +50,11 @@ export default function AddFoodItemDialog({
   initialValues
 }: AddFoodItemDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [isIdentifyingPhoto, setIsIdentifyingPhoto] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [photoError, setPhotoError] = useState<string | null>(null);
-  const [isPhotoSourceAlertOpen, setIsPhotoSourceAlertOpen] = useState(false);
-
   const { toast } = useToast();
   const { isDarkMode } = useTheme();
 
   const adSenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-8897507841347789";
-  const adSenseSlotIdBanner = "YOUR_BANNER_AD_SLOT_ID_HERE";
-
-  const uploadInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const adSenseSlotIdBanner = "YOUR_BANNER_AD_SLOT_ID_HERE"; // Ensure this is updated in your .env or directly
 
   const form = useForm<ManualEntryFormValues>({
     resolver: zodResolver(manualEntrySchema),
@@ -94,10 +73,6 @@ export default function AddFoodItemDialog({
       } else if (!isEditing) {
         form.reset({ name: '', ingredients: '', portionSize: '', portionUnit: '' });
       }
-      // Reset photo-related states when dialog opens/closes or mode changes
-      setImagePreview(null);
-      setPhotoError(null);
-      setIsIdentifyingPhoto(false);
     }
   }, [isOpen, isEditing, initialValues, form]);
 
@@ -120,44 +95,7 @@ export default function AddFoodItemDialog({
     }
   };
 
-  const handleImageFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setImagePreview(null);
-    setPhotoError(null);
-    setIsIdentifyingPhoto(true);
-
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const imageDataUri = reader.result as string;
-      setImagePreview(imageDataUri);
-      try {
-        const result = await identifyFoodFromImage({ imageDataUri });
-        if (result.recognitionSuccess && result.identifiedFoodName) {
-          form.setValue('name', result.identifiedFoodName);
-          if (result.identifiedIngredients) form.setValue('ingredients', result.identifiedIngredients);
-          if (result.estimatedPortionSize) form.setValue('portionSize', result.estimatedPortionSize);
-          if (result.estimatedPortionUnit) form.setValue('portionUnit', result.estimatedPortionUnit);
-          toast({ title: "Food Identified!", description: "Review and confirm the details below." });
-        } else {
-          setPhotoError(result.errorMessage || "Couldn’t recognize this food. Please enter it manually.");
-          toast({ title: "Identification Failed", description: result.errorMessage || "Please try another image or enter manually.", variant: "destructive" });
-        }
-      } catch (err) {
-        console.error("Error identifying food from image:", err);
-        setPhotoError("An error occurred during image analysis. Please try again.");
-        toast({ title: "Analysis Error", description: "Could not analyze image.", variant: "destructive" });
-      } finally {
-        setIsIdentifyingPhoto(false);
-        // Reset file input value to allow selecting the same file again
-        if (event.target) event.target.value = '';
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const dialogTitleText = isEditing ? "Edit Food Item" : "Log Food Item";
+  const dialogTitleText = isEditing ? "Edit Food Item" : "Log Food Item (Manual)";
   const submitButtonText = isLoading
     ? (isEditing ? 'Updating...' : 'Adding...')
     : (isEditing ? 'Update Food Item' : 'Add to Timeline');
@@ -174,7 +112,7 @@ export default function AddFoodItemDialog({
             <Sprout className="mr-2 h-6 w-6 text-gray-400" /> {dialogTitleText}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            {isEditing ? "Update the details of this food item." : "Manually add a new food item, or identify it using a photo."}
+            {isEditing ? "Update the details of this food item." : "Manually enter the details of your food item below."}
           </DialogDescription>
         </DialogHeader>
 
@@ -184,71 +122,6 @@ export default function AddFoodItemDialog({
             adSlotId={adSenseSlotIdBanner}
           />
         </div>
-
-        {!isEditing && (
-          <div className="my-4 space-y-2">
-            <AlertDialog open={isPhotoSourceAlertOpen} onOpenChange={setIsPhotoSourceAlertOpen}>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10" disabled={isIdentifyingPhoto}>
-                  {isIdentifyingPhoto ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Camera className="mr-2 h-5 w-5" />}
-                  {isIdentifyingPhoto ? 'Analyzing Image...' : 'Identify via Photo'}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Identify Food via Photo</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Choose how you want to provide the image of your food.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-2">
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => cameraInputRef.current?.click()} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Camera className="mr-2 h-4 w-4" /> Take Photo
-                  </AlertDialogAction>
-                  <AlertDialogAction onClick={() => uploadInputRef.current?.click()} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
-                    <Upload className="mr-2 h-4 w-4" /> Upload Image
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              ref={cameraInputRef}
-              onChange={handleImageFileChange}
-              className="hidden"
-              disabled={isIdentifyingPhoto}
-            />
-            <input
-              type="file"
-              accept="image/*"
-              ref={uploadInputRef}
-              onChange={handleImageFileChange}
-              className="hidden"
-              disabled={isIdentifyingPhoto}
-            />
-
-            {imagePreview && (
-              <div className="mt-3 border border-input rounded-md p-2 flex justify-center max-h-48 overflow-hidden">
-                <Image src={imagePreview} alt="Food preview" width={180} height={180} style={{ objectFit: 'contain' }} className="rounded-md" />
-              </div>
-            )}
-            {photoError && (
-              <div className="mt-2 p-2 bg-destructive/10 border border-destructive/30 text-destructive text-xs rounded-md flex items-center">
-                <AlertTriangle className="h-4 w-4 mr-2" />
-                {photoError}
-              </div>
-            )}
-             {isIdentifyingPhoto && !imagePreview && (
-              <div className="mt-2 text-center text-muted-foreground">
-                <Loader2 className="animate-spin h-5 w-5 inline mr-2" /> Processing...
-              </div>
-            )}
-          </div>
-        )}
 
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 pt-2">
           <div>
@@ -291,11 +164,11 @@ export default function AddFoodItemDialog({
           </div>
           <DialogFooter className="pt-2">
              <DialogClose asChild>
-              <Button type="button" variant="outline" className={cancelClasses} onClick={() => onOpenChange(false)} disabled={isLoading || isIdentifyingPhoto}>
+              <Button type="button" variant="outline" className={cancelClasses} onClick={() => onOpenChange(false)} disabled={isLoading}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/80" disabled={isLoading || isIdentifyingPhoto}>
+            <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/80" disabled={isLoading}>
               {isLoading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : null}
               {submitButtonText}
             </Button>
