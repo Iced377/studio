@@ -107,7 +107,7 @@ export default function SimplifiedAddFoodDialog({
       ...(initialValues || {}),
     },
   });
-  const { control, setValue, watch, reset, formState: { errors, isSubmitting, isValid, isSubmitted }, trigger, handleSubmit: formHandleSubmit } = form;
+  const { control, setValue, watch, reset, formState: { errors, isSubmitting, isValid, isSubmitted }, trigger, handleSubmit } = form;
 
   useEffect(() => {
     if (isOpen) {
@@ -186,11 +186,15 @@ export default function SimplifiedAddFoodDialog({
               descriptionText += ` Text from image (first 100 chars): ${trimmedOcrText.substring(0, 100)}${trimmedOcrText.length > 100 ? '...' : ''}`;
             }
             setValue('mealDescription', descriptionText, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+            console.log("Set value to:", descriptionText);
+            console.log("Watch sees:", watch("mealDescription"));
             trigger('mealDescription');
             toast({ title: "Food Identified!", description: "Review and confirm the description." });
           } else if (hasOcrText) {
             descriptionText = `Text from image: ${trimmedOcrText}`;
             setValue('mealDescription', descriptionText, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+            console.log("Set value to:", descriptionText);
+            console.log("Watch sees:", watch("mealDescription"));
             trigger('mealDescription');
             toast({ title: "Text Extracted", description: "OCR text populated. Please complete the meal description." });
           } else {
@@ -264,7 +268,7 @@ export default function SimplifiedAddFoodDialog({
           </div>
         )}
 
-        <form onSubmit={formHandleSubmit(handleDialogSubmit)} className="space-y-4 pt-2 max-h-[calc(60vh-50px)] overflow-y-auto pr-2">
+        <form onSubmit={handleSubmit(handleDialogSubmit)} className="space-y-4 pt-2 max-h-[calc(60vh-50px)] overflow-y-auto pr-2">
          {!isEditing && !isGuestView && (
             <div className="my-3 space-y-2">
                 <AlertDialog open={isPhotoSourceAlertOpen} onOpenChange={setIsPhotoSourceAlertOpen}>
@@ -376,7 +380,7 @@ export default function SimplifiedAddFoodDialog({
                   <Controller
                     name="calories"
                     control={control}
-                    render={({ field }) => <Input id="calories" type="number" step="any" {...field} value={field.value ?? ''} placeholder="e.g., 500" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />}
+                    render={({ field }) => <Input id="calories" type="number" step="any" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} placeholder="e.g., 500" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />}
                   />
                   {errors.calories && <p className={cn("text-xs text-destructive mt-1")}>{errors.calories.message}</p>}
                 </div>
@@ -385,7 +389,7 @@ export default function SimplifiedAddFoodDialog({
                    <Controller
                     name="protein"
                     control={control}
-                    render={({ field }) => <Input id="protein" type="number" step="any" {...field} value={field.value ?? ''} placeholder="e.g., 30" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />}
+                    render={({ field }) => <Input id="protein" type="number" step="any" {...field} value={field.value ?? ''}  onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} placeholder="e.g., 30" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />}
                   />
                   {errors.protein && <p className={cn("text-xs text-destructive mt-1")}>{errors.protein.message}</p>}
                 </div>
@@ -394,7 +398,7 @@ export default function SimplifiedAddFoodDialog({
                   <Controller
                     name="carbs"
                     control={control}
-                    render={({ field }) => <Input id="carbs" type="number" step="any" {...field} value={field.value ?? ''} placeholder="e.g., 50" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />}
+                    render={({ field }) => <Input id="carbs" type="number" step="any" {...field} value={field.value ?? ''}  onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} placeholder="e.g., 50" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />}
                   />
                   {errors.carbs && <p className={cn("text-xs text-destructive mt-1")}>{errors.carbs.message}</p>}
                 </div>
@@ -403,7 +407,7 @@ export default function SimplifiedAddFoodDialog({
                   <Controller
                     name="fat"
                     control={control}
-                    render={({ field }) => <Input id="fat" type="number" step="any" {...field} value={field.value ?? ''} placeholder="e.g., 20" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />}
+                    render={({ field }) => <Input id="fat" type="number" step="any" {...field} value={field.value ?? ''}  onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} placeholder="e.g., 20" className={cn(inputClasses, "h-9 text-sm")} disabled={!userWantsToOverrideMacros} />}
                   />
                   {errors.fat && <p className={cn("text-xs text-destructive mt-1")}>{errors.fat.message}</p>}
                 </div>
