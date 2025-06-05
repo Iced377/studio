@@ -54,7 +54,7 @@ const UserProfileSchemaForAI = z.object({
 }).optional();
 
 
-export const PersonalizedDietitianInputSchema = z.object({
+const PersonalizedDietitianInputSchema = z.object({
   userQuestion: z.string().describe("The user's specific question about their diet, health, or well-being."),
   foodLog: z.array(FoodItemSchemaForAI).describe("A chronological list of the user's logged food items (e.g., last 30-90 days)."),
   symptomLog: z.array(SymptomLogEntrySchemaForAI).describe("A chronological list of the user's logged symptoms (e.g., last 30-90 days)."),
@@ -62,7 +62,7 @@ export const PersonalizedDietitianInputSchema = z.object({
 });
 export type PersonalizedDietitianInput = z.infer<typeof PersonalizedDietitianInputSchema>;
 
-export const PersonalizedDietitianOutputSchema = z.object({
+const PersonalizedDietitianOutputSchema = z.object({
   aiResponse: z.string().describe("The AI dietitian's comprehensive and personalized response to the user's question, based on the provided data. This should be insightful and actionable, formatted clearly (e.g., using markdown for lists or emphasis if appropriate, but will be rendered as a string)."),
 });
 export type PersonalizedDietitianOutput = z.infer<typeof PersonalizedDietitianOutputSchema>;
