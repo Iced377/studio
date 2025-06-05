@@ -131,7 +131,7 @@ export default function IdentifyFoodByPhotoDialog({
         </DialogHeader>
 
         <ScrollArea className="flex-1 min-h-0">
-          <div className="space-y-4 py-4 px-4">
+          <div className="h-full space-y-4 py-4 px-4"> {/* Added h-full here */}
             {!imagePreview && !identifiedData && !isLoading && !photoError && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button variant="outline" type="button" className="w-full border-primary text-primary hover:bg-primary/10 py-6 text-base" onClick={() => cameraInputRef.current?.click()} disabled={isLoading}>
@@ -177,7 +177,7 @@ export default function IdentifyFoodByPhotoDialog({
               <div className="mt-2 p-3 bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-md flex flex-col items-center text-center">
                 <AlertTriangle className="h-6 w-6 mb-2 shrink-0" />
                 <div>
-                  <p className="font-semibold">Identification Failed</p>
+                  <p className="font-semibold break-words whitespace-normal">Identification Failed</p>
                   <p className="mb-2 break-words whitespace-normal">{photoError}</p>
                   <Button variant="outline" className="text-xs mt-1 text-destructive hover:underline" onClick={() => {
                       resetDialogState();
