@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -9,14 +10,13 @@ import { format } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, AlertTriangle, ShieldAlert, ExternalLink, Users } from 'lucide-react'; // Added Users icon
+import { Loader2, AlertTriangle, ShieldAlert, ExternalLink, Users } from 'lucide-react';
 import Navbar from '@/components/shared/Navbar';
 
 export default function AdminFeedbackPage() {
   const { user: authUser, loading: authLoading } = useAuth();
   const [feedbackItems, setFeedbackItems] = useState<FeedbackSubmission[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [userCountError, setUserCountError] = useState<string | null>(null);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
@@ -37,10 +37,10 @@ export default function AdminFeedbackPage() {
       setProfileError(null);
       setUserCountError(null);
       setFeedbackError(null);
-      setError(null); // Clear general error too
 
       let adminStatus = false;
       try {
+        console.log('[Admin Page] Checking admin status for UID:', authUser.uid);
         const userProfileDocRef = doc(db, 'users', authUser.uid);
         const userProfileSnap = await getDoc(userProfileDocRef);
 
@@ -49,24 +49,30 @@ export default function AdminFeedbackPage() {
           if (userProfileData.isAdmin === true) {
             adminStatus = true;
             setIsCurrentUserAdmin(true);
+            console.log('[Admin Page] User is admin.');
           } else {
             setProfileError("Your user profile does not have administrator privileges.");
             setIsCurrentUserAdmin(false);
+            console.log('[Admin Page] User is not admin.');
           }
         } else {
           setProfileError(`User profile not found for your account (UID: ${authUser.uid}). Ensure a user document exists in Firestore at 'users/${authUser.uid}' with the field 'isAdmin' set to true (boolean).`);
           setIsCurrentUserAdmin(false);
+          console.log('[Admin Page] User profile not found.');
         }
       } catch (err: any) {
-        console.error("Error checking admin status:", err);
-        setProfileError(`Error accessing user profile: ${err.message}.`);
+        console.error("[Admin Page] Error checking admin status (raw error):", JSON.stringify(err, Object.getOwnPropertyNames(err)));
+        console.error("[Admin Page] Error checking admin status (err.code):", err.code);
+        console.error("[Admin Page] Error checking admin status (err.message):", err.message);
+        setProfileError(`Error accessing user profile: ${err.message}. Code: ${err.code}. Please try again or check Firestore permissions.`);
         setIsCurrentUserAdmin(false);
-        adminStatus = false; // Ensure admin status is false on error
+        adminStatus = false; 
       }
 
       if (adminStatus) {
         // Fetch feedback submissions
         try {
+          console.log('[Admin Page] Fetching feedback submissions.');
           const feedbackQuery = query(collection(db, 'feedbackSubmissions'), orderBy('timestamp', 'desc'));
           const feedbackSnapshot = await getDocs(feedbackQuery);
           const items = feedbackSnapshot.docs.map(docSnap => ({
@@ -75,19 +81,26 @@ export default function AdminFeedbackPage() {
             timestamp: (docSnap.data().timestamp as Timestamp).toDate(),
           })) as FeedbackSubmission[];
           setFeedbackItems(items);
+          console.log('[Admin Page] Successfully fetched feedback submissions:', items.length);
         } catch (err: any) {
-          console.error("Error fetching feedback submissions:", err);
-          setFeedbackError(`Failed to load feedback: ${err.message}`);
+          console.error("[Admin Page] Error fetching feedback submissions (raw error):", JSON.stringify(err, Object.getOwnPropertyNames(err)));
+          console.error("[Admin Page] Error fetching feedback submissions (err.code):", err.code);
+          console.error("[Admin Page] Error fetching feedback submissions (err.message):", err.message);
+          setFeedbackError(`Failed to load feedback: ${err.message}. Code: ${err.code}.`);
         }
 
         // Fetch user count
+        console.log('[Admin Page] Attempting to fetch user count. Current adminStatus:', adminStatus, 'authUser.uid:', authUser?.uid);
         try {
           const usersCollectionRef = collection(db, 'users');
           const usersSnapshot = await getDocs(usersCollectionRef);
+          console.log('[Admin Page] Successfully fetched user count snapshot. Size:', usersSnapshot.size);
           setTotalUsers(usersSnapshot.size);
         } catch (err: any) {
-          console.error("Error fetching user count:", err);
-          setUserCountError(`Failed to load user count: ${err.message}. This often indicates missing 'list' permission for the 'users' collection in Firestore rules.`);
+          console.error("[Admin Page] Error fetching user count (raw error):", JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
+          console.error("[Admin Page] Error fetching user count (err.code):", err.code);
+          console.error("[Admin Page] Error fetching user count (err.message):", err.message);
+          setUserCountError(`Failed to load user count: ${err.message}. Error Code: ${err.code || 'N/A'}. This often indicates missing 'list' permission for the 'users' collection in Firestore rules.`);
         }
       }
       setIsLoadingData(false);
@@ -121,9 +134,6 @@ export default function AdminFeedbackPage() {
     );
   }
   
-  // If admin, but there were errors fetching specific data, show them but still render the page structure.
-  const generalError = feedbackError || userCountError || profileError; // Combine errors for a general display if needed for layout
-
   const getStatusVariant = (status?: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status?.toLowerCase()) {
       case 'new': return 'default';
@@ -157,7 +167,6 @@ export default function AdminFeedbackPage() {
               <div>
                 <p className="text-4xl font-bold text-foreground">{totalUsers}</p>
                 <p className="text-sm text-muted-foreground">Total Registered Users</p>
-                <p className="text-xs text-muted-foreground mt-2">Note: This count is based on documents in the 'users' collection. Requires Firestore 'list' permission for admins on this collection.</p>
               </div>
             ) : (
               <p className="text-muted-foreground">Loading user count...</p>
@@ -176,7 +185,7 @@ export default function AdminFeedbackPage() {
                     {feedbackError}
                 </div>
             )}
-            {feedbackItems.length === 0 && !feedbackError ? (
+            {feedbackItems.length === 0 && !feedbackError && !isLoadingData ? (
               <p className="text-muted-foreground text-center py-6">No feedback submissions yet.</p>
             ) : feedbackItems.length > 0 ? (
               <div className="overflow-x-auto">
@@ -222,6 +231,11 @@ export default function AdminFeedbackPage() {
                   </TableBody>
                 </Table>
               </div>
+            ) : isLoadingData ? (
+               <div className="flex items-center justify-center py-6">
+                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                 <p className="ml-3 text-muted-foreground">Loading feedback...</p>
+               </div>
             ) : null}
           </CardContent>
         </Card>
@@ -229,3 +243,4 @@ export default function AdminFeedbackPage() {
     </div>
   );
 }
+    
