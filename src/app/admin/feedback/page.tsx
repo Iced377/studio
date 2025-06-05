@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, AlertTriangle, ShieldAlert, ExternalLink, Users } from 'lucide-react';
+import { Loader2, AlertTriangle, ShieldAlert, ExternalLink } from 'lucide-react'; // Removed Users icon
 import Navbar from '@/components/shared/Navbar'; 
 
 export default function AdminFeedbackPage() {
@@ -19,7 +19,8 @@ export default function AdminFeedbackPage() {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState<boolean | null>(null);
-  const [totalUsers, setTotalUsers] = useState<number | null>(null);
+  // Removed totalUsers state:
+  // const [totalUsers, setTotalUsers] = useState<number | null>(null);
 
   useEffect(() => {
     const checkAdminAndFetchData = async () => {
@@ -31,7 +32,7 @@ export default function AdminFeedbackPage() {
         return;
       }
 
-      setError(null); // Clear previous errors
+      setError(null); 
       try {
         const userProfileDocRef = doc(db, 'users', authUser.uid);
         const userProfileSnap = await getDoc(userProfileDocRef);
@@ -51,18 +52,16 @@ export default function AdminFeedbackPage() {
             })) as FeedbackSubmission[];
             setFeedbackItems(items);
 
-            // Fetch all users to count them
-            const usersCollectionRef = collection(db, 'users');
-            const usersSnapshot = await getDocs(usersCollectionRef);
-            setTotalUsers(usersSnapshot.size);
+            // User count logic removed
+            // const usersCollectionRef = collection(db, 'users');
+            // const usersSnapshot = await getDocs(usersCollectionRef);
+            // setTotalUsers(usersSnapshot.size);
 
           } else {
-            // User profile exists, but isAdmin is not true or missing
             setError("Your user profile does not have administrator privileges. Please contact support if you believe this is an error.");
             setIsCurrentUserAdmin(false);
           }
         } else {
-          // User profile document does not exist
           setError(`User profile not found for your account (UID: ${authUser.uid}). Ensure a user document exists in Firestore at 'users/${authUser.uid}' with the field 'isAdmin' set to true (boolean).`);
           setIsCurrentUserAdmin(false); 
         }
@@ -90,7 +89,6 @@ export default function AdminFeedbackPage() {
     );
   }
 
-  // Display specific error message if one was set during admin check
   if (error && isCurrentUserAdmin === false) {
     return (
       <>
@@ -104,7 +102,6 @@ export default function AdminFeedbackPage() {
     );
   }
   
-  // Fallback "Access Denied" if no specific error but still not admin
   if (!isCurrentUserAdmin) {
     return (
       <>
@@ -118,8 +115,7 @@ export default function AdminFeedbackPage() {
     );
   }
 
-  // General error for data loading after admin confirmed (e.g., feedback list fails)
-  if (error) {
+  if (error) { // General error after admin confirmed (e.g., feedback list fails)
     return (
       <>
         <Navbar />
@@ -148,6 +144,8 @@ export default function AdminFeedbackPage() {
     <div className="flex flex-col min-h-screen bg-background">
       <Navbar />
       <main className="flex-grow container mx-auto px-2 sm:px-4 py-8 space-y-8">
+        {/* User Statistics Card Removed */}
+        {/*
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-foreground flex items-center">
@@ -167,6 +165,7 @@ export default function AdminFeedbackPage() {
             )}
           </CardContent>
         </Card>
+        */}
 
         <Card>
           <CardHeader>
@@ -226,3 +225,4 @@ export default function AdminFeedbackPage() {
     </div>
   );
 }
+
