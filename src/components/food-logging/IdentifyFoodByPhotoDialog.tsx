@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { identifyFoodFromImage, type IdentifyFoodFromImageOutput } from '@/ai/flows/identify-food-from-image-flow';
 import { useTheme } from '@/contexts/ThemeContext';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+// ScrollArea and ScrollBar are no longer explicitly used here, relying on native overflow.
 
 export interface IdentifiedPhotoData {
   name: string;
@@ -119,7 +119,7 @@ export default function IdentifyFoodByPhotoDialog({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChangeWithReset}>
       <DialogContent className="sm:max-w-md bg-card text-card-foreground border-border max-h-[90vh] flex flex-col overflow-hidden">
-        <DialogHeader>
+        <DialogHeader className="shrink-0">
           <DialogTitle className="font-headline text-xl flex items-center text-foreground">
             <Camera className="mr-2 h-6 w-6 text-gray-400" /> Identify Food by Photo
           </DialogTitle>
@@ -130,10 +130,10 @@ export default function IdentifyFoodByPhotoDialog({
           )}
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0">
-          <div className="h-full space-y-4 py-4 px-4"> {/* Added h-full here */}
+        {/* This div will now handle scrolling for its content */}
+        <div className="flex-1 overflow-y-auto min-h-0 pr-2 py-4 space-y-4"> {/* Added pr-2 for scrollbar space */}
             {!imagePreview && !identifiedData && !isLoading && !photoError && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 px-4"> {/* Added px-4 here */}
                 <Button variant="outline" type="button" className="w-full border-primary text-primary hover:bg-primary/10 py-6 text-base" onClick={() => cameraInputRef.current?.click()} disabled={isLoading}>
                   <Camera className="mr-2 h-5 w-5" /> Take Photo
                 </Button>
@@ -162,19 +162,19 @@ export default function IdentifyFoodByPhotoDialog({
             />
 
             {imagePreview && (
-              <div className="mt-3 border border-input rounded-md p-2 flex justify-center max-h-48 overflow-hidden">
+              <div className="mt-3 border border-input rounded-md p-2 flex justify-center max-h-48 overflow-hidden px-4"> {/* Added px-4 here */}
                 <Image src={imagePreview} alt="Food preview" width={180} height={180} style={{ objectFit: 'contain' }} className="rounded-md" />
               </div>
             )}
             {isLoading && (
-              <div className="mt-2 text-center text-muted-foreground flex items-center justify-center">
+              <div className="mt-2 text-center text-muted-foreground flex items-center justify-center px-4"> {/* Added px-4 here */}
                 <Loader2 className="animate-spin h-5 w-5 inline mr-2" /> {imagePreview ? "Analyzing..." : "Processing..."}
               </div>
             )}
 
 
             {photoError && !isLoading && (
-              <div className="mt-2 p-3 bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-md flex flex-col items-center text-center">
+              <div className="mt-2 p-3 bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-md flex flex-col items-center text-center mx-4"> {/* Added mx-4 here */}
                 <AlertTriangle className="h-6 w-6 mb-2 shrink-0" />
                 <div>
                   <p className="font-semibold break-words whitespace-normal">Identification Failed</p>
@@ -187,7 +187,7 @@ export default function IdentifyFoodByPhotoDialog({
             )}
 
             {identifiedData && !isLoading && (
-              <div className="mt-3 p-4 bg-muted/50 border border-input rounded-md space-y-2 text-sm">
+              <div className="mt-3 p-4 bg-muted/50 border border-input rounded-md space-y-2 text-sm mx-4"> {/* Added mx-4 here */}
                 <h3 className="text-base font-semibold text-foreground flex items-center"><CheckCircle className="h-5 w-5 mr-2 text-green-500"/> Identified Details:</h3>
                 <p className="break-words whitespace-normal"><strong className="text-foreground">Food:</strong> {identifiedData.identifiedFoodName || "N/A"}</p>
                 <p className="break-words whitespace-normal"><strong className="text-foreground">Ingredients:</strong> {identifiedData.identifiedIngredients || "N/A"}</p>
@@ -201,9 +201,8 @@ export default function IdentifyFoodByPhotoDialog({
                 </p>
               </div>
             )}
-          </div>
-          <ScrollBar orientation="vertical" />
-        </ScrollArea>
+        </div> {/* End of scrollable content div */}
+
 
         <DialogFooter className="pt-2 shrink-0">
           <DialogClose asChild>
@@ -213,7 +212,7 @@ export default function IdentifyFoodByPhotoDialog({
           </DialogClose>
           {identifiedData && !isLoading && (
             <Button onClick={handleConfirmAndLog} className="bg-primary text-primary-foreground hover:bg-primary/80" disabled={isLoading}>
-              <PackageCheck className="mr-2 h-5 w-5" /> Confirm & Log Details
+              <PackageCheck className="mr-2 h-5 w-5" /> Confirm &amp; Log Details
             </Button>
           )}
         </DialogFooter>
@@ -221,3 +220,5 @@ export default function IdentifyFoodByPhotoDialog({
     </Dialog>
   );
 }
+
+    
