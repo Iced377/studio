@@ -26,7 +26,7 @@ import { db } from '@/config/firebase';
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.4";
+export const APP_VERSION = "Beta 3.5";
 
 interface NavbarProps {
   isGuest?: boolean;
