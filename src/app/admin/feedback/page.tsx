@@ -100,7 +100,12 @@ export default function AdminFeedbackPage() {
           console.error("[Admin Page] Error fetching user count (raw error):", JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
           console.error("[Admin Page] Error fetching user count (err.code):", err.code);
           console.error("[Admin Page] Error fetching user count (err.message):", err.message);
-          setUserCountError(`Failed to load user count: ${err.message}. Error Code: ${err.code || 'N/A'}. This often indicates missing 'list' permission for the 'users' collection in Firestore rules.`);
+          setUserCountError(
+            `Failed to load user count: ${err.message} (Code: ${err.code || 'N/A'}). ` +
+            `This indicates a Firestore security rule is denying the 'list' permission for the '/users' collection path, even for admins. ` +
+            `Please use the Firestore Rules Simulator to test a 'list' operation on '/users' with your admin UID. ` +
+            `Ensure your rule 'match /users { allow list: if request.auth != null && exists(...) && get(...).data.isAdmin == true; }' is correctly defined and published.`
+          );
         }
       }
       setIsLoadingData(false);
@@ -244,3 +249,5 @@ export default function AdminFeedbackPage() {
   );
 }
     
+
+      
