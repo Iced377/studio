@@ -23,7 +23,7 @@ import { Sprout, Loader2, Edit, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/contexts/ThemeContext';
-import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder';
+// import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder'; // Ad placeholder removed
 // Image identification logic and related imports are removed
 
 const simplifiedFoodLogSchema = z.object({
@@ -73,8 +73,8 @@ export default function SimplifiedAddFoodDialog({
   const [userWantsToOverrideMacros, setUserWantsToOverrideMacros] = useState(initialMacrosOverridden);
   const { isDarkMode } = useTheme();
 
-  const adSenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-8897507841347789";
-  const adSenseSlotIdSimplifiedBanner = process.env.NEXT_PUBLIC_ADSENSE_SIMPLIFIED_LOG_BANNER_AD_ID || "YOUR_SIMPLIFIED_LOG_BANNER_AD_ID_HERE";
+  // const adSenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-8897507841347789";
+  // const adSenseSlotIdSimplifiedBanner = process.env.NEXT_PUBLIC_ADSENSE_SIMPLIFIED_LOG_BANNER_AD_ID || "YOUR_SIMPLIFIED_LOG_BANNER_AD_ID_HERE";
 
   // Refs for file inputs are removed
 
@@ -175,6 +175,7 @@ export default function SimplifiedAddFoodDialog({
           </DialogDescription>
         </DialogHeader>
 
+        {/* Ad placeholder removed from here
         {!isGuestView && (
           <div className="my-4">
             <BannerAdPlaceholder
@@ -183,6 +184,7 @@ export default function SimplifiedAddFoodDialog({
             />
           </div>
         )}
+        */}
 
         <form onSubmit={form.handleSubmit(handleDialogSubmit)} className="space-y-4 pt-2 max-h-[calc(60vh-50px)] overflow-y-auto pr-2">
          {/* Photo identification UI and logic removed */}
