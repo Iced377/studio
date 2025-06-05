@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X, ScrollText } from 'lucide-react'; // Added ScrollText for release notes
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X, ScrollText } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -192,7 +192,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
               <DialogTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="text-xs text-muted-foreground hover:text-foreground hover:bg-accent/50 p-1 h-auto ml-0 mt-1 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="text-xs text-muted-foreground hover:text-primary hover:underline underline-offset-2 p-1 h-auto ml-0 mt-1 rounded-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1"
                   aria-label={`App Version ${APP_VERSION}, click for release notes`}
                 >
                   {APP_VERSION}
@@ -310,12 +310,6 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                         <span>Admin Dashboard</span>
                       </DropdownMenuItem>
                      )}
-                     {/* Upgrade to Premium link removed for now
-                     <DropdownMenuItem onClick={() => router.push('/account/subscription')} className="cursor-pointer">
-                        <CreditCard className="mr-2 h-4 w-4" />
-                        <span>Upgrade to Premium</span>
-                    </DropdownMenuItem>
-                    */}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                       <LogOut className="mr-2 h-4 w-4" />
@@ -332,3 +326,4 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   );
 }
 
+    
