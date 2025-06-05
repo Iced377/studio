@@ -82,7 +82,7 @@ User's Question:
 
 User's Profile Information (if available):
 {{#if userProfile}}
-Display Name: {{userProfile.displayName}}
+Display Name: {{#if userProfile.displayName}}{{userProfile.displayName}}{{else}}N/A{{/if}}
 Premium User: {{#if userProfile.premium}}Yes{{else}}No{{/if}}
 Marked Safe Foods (name, portion):
 {{#each userProfile.safeFoods}}
@@ -99,9 +99,9 @@ User's Recent Food Log (chronological):
 - Meal: {{this.name}} (Portion: {{this.portionSize}} {{this.portionUnit}}, Ingredients: {{this.ingredients}})
   Logged: {{this.timestamp}}
   {{#if this.sourceDescription}}Original Description: "{{this.sourceDescription}}"{{/if}}
-  FODMAP Risk: {{this.overallFodmapRisk | "N/A"}}
-  Nutrition (Approx.): Calories: {{this.calories | "N/A"}}, Protein: {{this.protein | "N/A"}}g, Carbs: {{this.carbs | "N/A"}}g, Fat: {{this.fat | "N/A"}}g
-  User Feedback: {{this.userFeedback | "None"}}
+  FODMAP Risk: {{#if this.overallFodmapRisk}}{{this.overallFodmapRisk}}{{else}}N/A{{/if}}
+  Nutrition (Approx.): Calories: {{#if this.calories}}{{this.calories}}{{else}}N/A{{/if}}, Protein: {{#if this.protein}}{{this.protein}}{{else}}N/A{{/if}}g, Carbs: {{#if this.carbs}}{{this.carbs}}{{else}}N/A{{/if}}g, Fat: {{#if this.fat}}{{this.fat}}{{else}}N/A{{/if}}g
+  User Feedback: {{#if this.userFeedback}}{{this.userFeedback}}{{else}}None{{/if}}
 {{else}}
 (No food items logged recently or provided for analysis)
 {{/each}}
@@ -110,7 +110,7 @@ User's Recent Symptom Log (chronological):
 {{#each symptomLog}}
 - Symptoms: {{#each this.symptoms}}{{this.name}}{{#unless @last}}, {{/unless}}{{/each}}
   Logged: {{this.timestamp}}
-  Severity: {{this.severity | "N/A"}}
+  Severity: {{#if this.severity}}{{this.severity}}{{else}}N/A{{/if}}
   {{#if this.notes}}Notes: "{{this.notes}}"{{/if}}
   {{#if this.linkedFoodItemIds}}Linked to {{this.linkedFoodItemIds.length}} food(s).{{/if}}
 {{else}}
@@ -127,10 +127,13 @@ INSTRUCTIONS:
 7.  Structure your response clearly. Use paragraphs. If suggesting multiple points, consider using bullet points (markdown-style like * or -) for readability.
 8.  Be highly personalized. Refer to specific foods they've eaten or symptoms they've logged if relevant.
 9.  Maintain a supportive and encouraging tone. Avoid making definitive medical diagnoses; frame suggestions as possibilities to explore or discuss with a healthcare professional if appropriate.
-10. Do NOT just repeat the input data. Synthesize it to form new insights. **Your response should be formatted in plain text or simple Markdown suitable for direct display to the user. Do NOT include any \`{{...}}\` templating syntax, or any other code-like structures, in your final \`aiResponse\` string, even if you are referencing data that was presented to you in that format.**
-11. Ensure the output is a single string for the 'aiResponse' field.
+10. Do NOT just repeat the input data. Synthesize it to form new insights.
+11. Your response text (the value for 'aiResponse') should be formatted in plain text or simple Markdown suitable for direct display to the user. Do NOT include any \`{{...}}\` templating syntax, or any other code-like structures, in the 'aiResponse' string itself.
 
-Provide your detailed, personalized insight below:
+Your final output MUST be a JSON object with a single key "aiResponse". The value of "aiResponse" should be your detailed, personalized insight as a string. For example:
+{
+  "aiResponse": "Your detailed insight here..."
+}
 `,
 });
 
@@ -142,8 +145,6 @@ const personalizedDietitianFlow = ai.defineFlow(
   },
   async (input) => {
     // Data transformation: Convert Date objects to ISO strings if they are not already.
-    // This is mostly a safeguard; Firestore retrieval should give serializable data,
-    // but direct Date objects might come from client-side construction.
     const transformedInput = {
         ...input,
         foodLog: input.foodLog.map(item => ({
@@ -163,4 +164,3 @@ const personalizedDietitianFlow = ai.defineFlow(
     return output;
   }
 );
-
