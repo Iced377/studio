@@ -4,8 +4,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { db } from '@/config/firebase';
-import { collection, query, where, orderBy, getDocs, Timestamp, doc, getDoc } from 'firebase/firestore'; // Added doc, getDoc
-import type { TimelineEntry, LoggedFoodItem, SymptomLog, TimeRange, MacroPoint, CaloriePoint, SafetyPoint, GIPoint, SymptomFrequency, MicronutrientDetail, MicronutrientAchievement, UserProfile } from '@/types'; // Added GIPoint
+import { collection, query, where, orderBy, getDocs, Timestamp, doc, getDoc } from 'firebase/firestore'; 
+import type { TimelineEntry, LoggedFoodItem, SymptomLog, TimeRange, MacroPoint, CaloriePoint, SafetyPoint, GIPoint, SymptomFrequency, MicronutrientDetail, MicronutrientAchievement, UserProfile } from '@/types'; 
 import { COMMON_SYMPTOMS } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/hooks/use-toast'; 
@@ -17,17 +17,15 @@ import DailyMacrosTrendChart from '@/components/trends/DailyMacrosTrendChart';
 import DailyCaloriesTrendChart from '@/components/trends/DailyCaloriesTrendChart';
 import LoggedSafetyTrendChart from '@/components/trends/LoggedSafetyTrendChart';
 import SymptomOccurrenceChart from '@/components/trends/SymptomOccurrenceChart';
-import GITrendChart from '@/components/trends/GITrendChart'; // Import the new chart
+import GITrendChart from '@/components/trends/GITrendChart'; 
 import MicronutrientAchievementList from '@/components/trends/MicronutrientAchievementList'; 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, AlertTriangle, BarChart3, Award } from 'lucide-react'; 
-import { subDays, subMonths, subYears, formatISO, startOfDay, endOfDay, parseISO, getHours, format } from 'date-fns'; // Added getHours, format
+import { subDays, subMonths, subYears, formatISO, startOfDay, endOfDay, parseISO, getHours, format } from 'date-fns'; 
 
 // --- TEMPORARY FEATURE UNLOCK FLAG ---
-// Set to true to give all users full feature access (e.g., no data retention limits for trends).
-// Set to false to revert to normal premium/free tier logic.
-const TEMPORARILY_UNLOCK_ALL_FEATURES = true;
+const TEMPORARILY_UNLOCK_ALL_FEATURES = true; // Kept true as per previous state
 // --- END TEMPORARY FEATURE UNLOCK FLAG ---
 
 export default function TrendsPage() {
@@ -71,9 +69,7 @@ export default function TrendsPage() {
           const twoDaysAgo = new Date();
           twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
           q = query(entriesColRef, orderBy('timestamp', 'desc'), where('timestamp', '>=', Timestamp.fromDate(twoDaysAgo)));
-          if (!TEMPORARILY_UNLOCK_ALL_FEATURES && pathname === '/trends') { 
-             toast({ title: "Data Retention Notice", description: "As a free user, your trends are based on the last 2 days of data. Upgrade for full history.", variant: "default", duration: 10000 });
-          }
+          // Removed the upgrade prompt toast
         }
         
         const querySnapshot = await getDocs(q);
@@ -202,8 +198,8 @@ export default function TrendsPage() {
     for (let i = 0; i < 24; i++) {
       const data = hourlyGiTotals[i];
       result.push({
-        hour: format(new Date(0, 0, 0, i), 'HH:mm'), // Format as "00:00", "01:00", etc.
-        gi: data ? data.sum / data.count : 0, // Calculate average GI, or 0 if no data
+        hour: format(new Date(0, 0, 0, i), 'HH:mm'), 
+        gi: data ? data.sum / data.count : 0, 
       });
     }
     return result;
@@ -318,7 +314,7 @@ export default function TrendsPage() {
           <h1 className="text-3xl font-bold mb-2 text-foreground">Trends Dashboard</h1>
           <p className="text-muted-foreground">
             Not enough data yet. Start logging your meals and symptoms to see your trends over time!
-            {!userProfile?.premium && !TEMPORARILY_UNLOCK_ALL_FEATURES && " (Free users: trends based on last 2 days of data)"}
+            {!TEMPORARILY_UNLOCK_ALL_FEATURES && !userProfile?.premium && " (Free users: trends based on last 2 days of data)"}
           </p>
         </div>
       </div>
@@ -335,11 +331,7 @@ export default function TrendsPage() {
           <div className="mb-8">
             <TimeRangeToggle selectedRange={selectedTimeRange} onRangeChange={setSelectedTimeRange} />
           </div>
-           {!userProfile?.premium && !TEMPORARILY_UNLOCK_ALL_FEATURES && (
-                <p className="text-sm text-center text-muted-foreground mb-6">
-                Free users: Trends are based on data from the last 2 days. <Link href="/account/subscription" className="underline text-primary">Upgrade</Link> for full historical data. (Note: Subscription page not implemented)
-                </p>
-            )}
+           {/* Removed upgrade prompt */}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="bg-card shadow-lg border-border">
@@ -405,7 +397,6 @@ export default function TrendsPage() {
   );
 }
 
-// Helper to get pathname for toast display logic, ensure it's only client-side
 const getPathname = () => {
   if (typeof window !== "undefined") {
     return window.location.pathname;

@@ -50,7 +50,7 @@ import {
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.5.1"; // Updated version
+export const APP_VERSION = "Beta 3.5.1"; 
 
 interface ReleaseNote {
   version: string;
@@ -63,10 +63,11 @@ const releaseNotesData: ReleaseNote[] = [
   {
     version: "Beta 3.5.1",
     date: "July 30, 2024",
-    title: "Release Notes Feature",
+    title: "Release Notes Feature & Admin Button",
     description: [
       "Made the app version in the navbar clickable.",
       "Clicking the version now displays this release notes dialog.",
+      "Added 'Return to Dashboard' button on Admin page.",
       "Updated various UI elements and fixed minor bugs.",
     ],
   },
@@ -74,13 +75,13 @@ const releaseNotesData: ReleaseNote[] = [
     version: "Beta 3.5.0",
     date: "July 29, 2024",
     title: "Admin Panel & UI Enhancements",
-    description: "Iterative fixes for admin panel permissions and user statistics. General UI polish.",
+    description: "Iterative fixes for admin panel permissions. General UI polish.",
   },
   {
     version: "Beta 3.4.0",
     date: "July 28, 2024",
-    title: "User Statistics & Rule Refinements",
-    description: "Added user statistics card to admin page. Refined Firestore security rules for better access control.",
+    title: "Rule Refinements",
+    description: "Refined Firestore security rules for better access control.",
   },
 ];
 
@@ -173,7 +174,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   return (
     <header className={cn(headerBaseClasses, isGuest ? guestHeaderClasses : registeredUserHeaderClasses)}>
       <div className="flex h-16 w-full max-w-screen-2xl items-center justify-between px-4 mx-auto">
-        <div className="flex items-center space-x-2"> {/* Wrapper for logo and version */}
+        <div className="flex items-center space-x-2"> 
           <Link href="/" className="flex items-center space-x-2">
             {!isGuest && (
               <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-foreground bg-black p-1">
@@ -309,10 +310,12 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                         <span>Admin Dashboard</span>
                       </DropdownMenuItem>
                      )}
+                     {/* Upgrade to Premium link removed for now
                      <DropdownMenuItem onClick={() => router.push('/account/subscription')} className="cursor-pointer">
                         <CreditCard className="mr-2 h-4 w-4" />
                         <span>Upgrade to Premium</span>
                     </DropdownMenuItem>
+                    */}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                       <LogOut className="mr-2 h-4 w-4" />
@@ -328,3 +331,4 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
     </header>
   );
 }
+
