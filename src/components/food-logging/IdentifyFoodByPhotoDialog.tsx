@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { identifyFoodFromImage, type IdentifyFoodFromImageOutput } from '@/ai/flows/identify-food-from-image-flow';
 import { useTheme } from '@/contexts/ThemeContext';
-import { ScrollArea } from '@/components/ui/scroll-area'; // Added ScrollArea import
+import { ScrollArea } from '@/components/ui/scroll-area'; 
 
 export interface IdentifiedPhotoData {
   name: string;
@@ -118,7 +118,7 @@ export default function IdentifyFoodByPhotoDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChangeWithReset}>
-      <DialogContent className="sm:max-w-md bg-card text-card-foreground border-border max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-md bg-card text-card-foreground border-border max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle className="font-headline text-xl flex items-center text-foreground">
             <Camera className="mr-2 h-6 w-6 text-gray-400" /> Identify Food by Photo
