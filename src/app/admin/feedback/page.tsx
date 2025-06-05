@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,17 +9,20 @@ import { format } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, AlertTriangle, ShieldAlert, ExternalLink } from 'lucide-react'; // Removed Users icon
-import Navbar from '@/components/shared/Navbar'; 
+import { Loader2, AlertTriangle, ShieldAlert, ExternalLink, Users } from 'lucide-react'; // Added Users icon
+import Navbar from '@/components/shared/Navbar';
 
 export default function AdminFeedbackPage() {
   const { user: authUser, loading: authLoading } = useAuth();
   const [feedbackItems, setFeedbackItems] = useState<FeedbackSubmission[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [userCountError, setUserCountError] = useState<string | null>(null);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
+
   const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState<boolean | null>(null);
-  // Removed totalUsers state:
-  // const [totalUsers, setTotalUsers] = useState<number | null>(null);
+  const [totalUsers, setTotalUsers] = useState<number | null>(null);
 
   useEffect(() => {
     const checkAdminAndFetchData = async () => {
@@ -28,11 +30,16 @@ export default function AdminFeedbackPage() {
       if (!authUser || !authUser.uid) {
         setIsCurrentUserAdmin(false);
         setIsLoadingData(false);
-        setError("Authentication not found. Please log in.");
+        setProfileError("Authentication not found. Please log in.");
         return;
       }
 
-      setError(null); 
+      setProfileError(null);
+      setUserCountError(null);
+      setFeedbackError(null);
+      setError(null); // Clear general error too
+
+      let adminStatus = false;
       try {
         const userProfileDocRef = doc(db, 'users', authUser.uid);
         const userProfileSnap = await getDoc(userProfileDocRef);
@@ -40,38 +47,50 @@ export default function AdminFeedbackPage() {
         if (userProfileSnap.exists()) {
           const userProfileData = userProfileSnap.data() as UserProfile;
           if (userProfileData.isAdmin === true) {
+            adminStatus = true;
             setIsCurrentUserAdmin(true);
-
-            // Fetch feedback submissions
-            const feedbackQuery = query(collection(db, 'feedbackSubmissions'), orderBy('timestamp', 'desc'));
-            const feedbackSnapshot = await getDocs(feedbackQuery);
-            const items = feedbackSnapshot.docs.map(docSnap => ({
-              id: docSnap.id,
-              ...docSnap.data(),
-              timestamp: (docSnap.data().timestamp as Timestamp).toDate(),
-            })) as FeedbackSubmission[];
-            setFeedbackItems(items);
-
-            // User count logic removed
-            // const usersCollectionRef = collection(db, 'users');
-            // const usersSnapshot = await getDocs(usersCollectionRef);
-            // setTotalUsers(usersSnapshot.size);
-
           } else {
-            setError("Your user profile does not have administrator privileges. Please contact support if you believe this is an error.");
+            setProfileError("Your user profile does not have administrator privileges.");
             setIsCurrentUserAdmin(false);
           }
         } else {
-          setError(`User profile not found for your account (UID: ${authUser.uid}). Ensure a user document exists in Firestore at 'users/${authUser.uid}' with the field 'isAdmin' set to true (boolean).`);
-          setIsCurrentUserAdmin(false); 
+          setProfileError(`User profile not found for your account (UID: ${authUser.uid}). Ensure a user document exists in Firestore at 'users/${authUser.uid}' with the field 'isAdmin' set to true (boolean).`);
+          setIsCurrentUserAdmin(false);
         }
       } catch (err: any) {
-        console.error("Error checking admin status or fetching data:", err);
-        setError(`Error accessing user profile: ${err.message}. Please try again or check Firestore permissions.`);
+        console.error("Error checking admin status:", err);
+        setProfileError(`Error accessing user profile: ${err.message}.`);
         setIsCurrentUserAdmin(false);
-      } finally {
-        setIsLoadingData(false);
+        adminStatus = false; // Ensure admin status is false on error
       }
+
+      if (adminStatus) {
+        // Fetch feedback submissions
+        try {
+          const feedbackQuery = query(collection(db, 'feedbackSubmissions'), orderBy('timestamp', 'desc'));
+          const feedbackSnapshot = await getDocs(feedbackQuery);
+          const items = feedbackSnapshot.docs.map(docSnap => ({
+            id: docSnap.id,
+            ...docSnap.data(),
+            timestamp: (docSnap.data().timestamp as Timestamp).toDate(),
+          })) as FeedbackSubmission[];
+          setFeedbackItems(items);
+        } catch (err: any) {
+          console.error("Error fetching feedback submissions:", err);
+          setFeedbackError(`Failed to load feedback: ${err.message}`);
+        }
+
+        // Fetch user count
+        try {
+          const usersCollectionRef = collection(db, 'users');
+          const usersSnapshot = await getDocs(usersCollectionRef);
+          setTotalUsers(usersSnapshot.size);
+        } catch (err: any) {
+          console.error("Error fetching user count:", err);
+          setUserCountError(`Failed to load user count: ${err.message}. This often indicates missing 'list' permission for the 'users' collection in Firestore rules.`);
+        }
+      }
+      setIsLoadingData(false);
     };
 
     checkAdminAndFetchData();
@@ -89,19 +108,6 @@ export default function AdminFeedbackPage() {
     );
   }
 
-  if (error && isCurrentUserAdmin === false) {
-    return (
-      <>
-        <Navbar />
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] text-center p-6">
-          <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
-          <h1 className="text-3xl font-bold text-foreground mb-2">Access Denied</h1>
-          <p className="text-muted-foreground max-w-xl">{error}</p>
-        </div>
-      </>
-    );
-  }
-  
   if (!isCurrentUserAdmin) {
     return (
       <>
@@ -109,32 +115,22 @@ export default function AdminFeedbackPage() {
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] text-center p-6">
           <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
           <h1 className="text-3xl font-bold text-foreground mb-2">Access Denied</h1>
-          <p className="text-muted-foreground">You do not have permission to view this page.</p>
-        </div>
-      </>
-    );
-  }
-
-  if (error) { // General error after admin confirmed (e.g., feedback list fails)
-    return (
-      <>
-        <Navbar />
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] text-center p-6">
-          <AlertTriangle className="h-16 w-16 text-destructive mb-4" />
-          <h1 className="text-3xl font-bold text-foreground mb-2">Error Loading Data</h1>
-          <p className="text-muted-foreground">{error}</p>
+          <p className="text-muted-foreground max-w-xl">{profileError || "You do not have permission to view this page."}</p>
         </div>
       </>
     );
   }
   
+  // If admin, but there were errors fetching specific data, show them but still render the page structure.
+  const generalError = feedbackError || userCountError || profileError; // Combine errors for a general display if needed for layout
+
   const getStatusVariant = (status?: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status?.toLowerCase()) {
-      case 'new': return 'default'; 
+      case 'new': return 'default';
       case 'viewed': return 'secondary';
-      case 'in-progress': return 'outline'; 
-      case 'planned': return 'outline'; 
-      case 'completed': return 'default'; 
+      case 'in-progress': return 'outline';
+      case 'planned': return 'outline';
+      case 'completed': return 'default';
       case 'dismissed': return 'destructive';
       default: return 'secondary';
     }
@@ -144,8 +140,6 @@ export default function AdminFeedbackPage() {
     <div className="flex flex-col min-h-screen bg-background">
       <Navbar />
       <main className="flex-grow container mx-auto px-2 sm:px-4 py-8 space-y-8">
-        {/* User Statistics Card Removed */}
-        {/*
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-foreground flex items-center">
@@ -154,27 +148,37 @@ export default function AdminFeedbackPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {totalUsers !== null ? (
+            {userCountError ? (
+              <div className="text-destructive">
+                <AlertTriangle className="inline-block mr-2 h-5 w-5" />
+                {userCountError}
+              </div>
+            ) : totalUsers !== null ? (
               <div>
                 <p className="text-4xl font-bold text-foreground">{totalUsers}</p>
                 <p className="text-sm text-muted-foreground">Total Registered Users</p>
-                <p className="text-xs text-muted-foreground mt-2">Note: This count is based on documents in the 'users' collection. For very large user bases, a more scalable server-side counter is recommended.</p>
+                <p className="text-xs text-muted-foreground mt-2">Note: This count is based on documents in the 'users' collection. Requires Firestore 'list' permission for admins on this collection.</p>
               </div>
             ) : (
               <p className="text-muted-foreground">Loading user count...</p>
             )}
           </CardContent>
         </Card>
-        */}
 
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-foreground">Feedback Submissions</CardTitle>
           </CardHeader>
           <CardContent>
-            {feedbackItems.length === 0 ? (
+            {feedbackError && (
+                <div className="text-destructive mb-4">
+                    <AlertTriangle className="inline-block mr-2 h-5 w-5" />
+                    {feedbackError}
+                </div>
+            )}
+            {feedbackItems.length === 0 && !feedbackError ? (
               <p className="text-muted-foreground text-center py-6">No feedback submissions yet.</p>
-            ) : (
+            ) : feedbackItems.length > 0 ? (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -218,11 +222,10 @@ export default function AdminFeedbackPage() {
                   </TableBody>
                 </Table>
               </div>
-            )}
+            ) : null}
           </CardContent>
         </Card>
       </main>
     </div>
   );
 }
-
