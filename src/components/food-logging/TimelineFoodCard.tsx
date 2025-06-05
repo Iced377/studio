@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { ThumbsUp, ThumbsDown, Trash2, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3, CheckCheck, PencilLine, Sparkles, Leaf, Users, Activity, Repeat, MessageSquareText, Info } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'; // Added Tooltip imports
 
 interface TimelineFoodCardProps {
   item: LoggedFoodItem;
@@ -129,10 +130,21 @@ export default function TimelineFoodCard({
             </div>
         )}
         
-        {/* New AI Commentary Section */}
+        {/* AI Notes Section - displays FODMAP reason and Gut Impact reasoning */}
         {!isManualMacroEntry && (fodmapReason || gutImpactReasoning) && (
           <div className={cn("text-xs border-t pt-2 mt-2 space-y-1.5", "border-border/50", mutedTextClass)}>
-            <h4 className="text-xs font-semibold text-foreground/80 flex items-center"><MessageSquareText className="h-3.5 w-3.5 mr-1.5 text-primary/70"/>AI Notes:</h4>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <h4 className="text-xs font-semibold text-foreground/80 flex items-center cursor-default">
+                    <MessageSquareText className="h-3.5 w-3.5 mr-1.5 text-primary/70"/>AI Notes:
+                  </h4>
+                </TooltipTrigger>
+                <TooltipContent className="bg-popover text-popover-foreground border-border">
+                  <p>AI-generated summary for FODMAP and Gut Impact.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             {fodmapReason && (
               <p><strong className="text-foreground/70">FODMAP:</strong> {fodmapReason}</p>
             )}
@@ -240,4 +252,3 @@ export default function TimelineFoodCard({
     </Card>
   );
 }
-
