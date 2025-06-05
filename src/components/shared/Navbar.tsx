@@ -36,17 +36,23 @@ import {
   serverTimestamp,
   Timestamp
 } from 'firebase/firestore';
-import type { UserProfile, AIInsight, UserRecommendationInput } from '@/types'; 
-import { getUserRecommendation } from '@/ai/flows/user-recommendations';
-import AISpeechBubble from '@/components/ai/AISpeechBubble';
+import type { UserProfile } from '@/types'; 
+// AISpeechBubble and related types/functions are removed as the bubble is disabled
+// import AISpeechBubble from '@/components/ai/AISpeechBubble';
+// import type { AIInsight, UserRecommendationInput } from '@/types'; 
+// import { getUserRecommendation } from '@/ai/flows/user-recommendations';
 
 
 const APP_NAME = "GutCheck";
 export const APP_VERSION = "Beta 3.5";
-const MAX_UNREAD_INSIGHTS_TO_FETCH = 5;
-const MIN_INSIGHTS_IN_QUEUE_BEFORE_GENERATING = 1; // Generate if only 0 or 1 unread left
-const INSIGHT_GENERATION_COUNT = 2; // Generate 2 new insights if needed
-const BUBBLE_DISPLAY_DURATION = 5000; // 5 seconds
+// Constants for bubble behavior are removed as bubble is disabled
+// const MAX_INSIGHTS_TO_FETCH_FOR_ROTATION = 30;
+// const MAX_UNREAD_INSIGHTS_TO_FETCH = 10;
+// const MIN_INSIGHTS_IN_QUEUE_BEFORE_GENERATING_OR_FETCHING = 5;
+// const INSIGHT_GENERATION_COUNT_IF_LOW = 2;
+// const BUBBLE_DISPLAY_DURATION = 10000; // 10 seconds
+// const INSIGHT_COOLDOWN_DURATION = 60000; // 1 minute
+// const MAX_GENERATIONS_PER_SESSION = 3;
 
 interface NavbarProps {
   isGuest?: boolean;
@@ -65,13 +71,17 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState(false);
 
-  const [aiInsightsQueue, setAiInsightsQueue] = useState<AIInsight[]>([]);
-  const [currentAiInsight, setCurrentAiInsight] = useState<AIInsight | null>(null);
-  const [showAiInsightBubble, setShowAiInsightBubble] = useState(false);
-  const aiInsightDismissTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const aiInsightIconRef = useRef<HTMLButtonElement>(null);
-  const [isAiInsightLoading, setIsAiInsightLoading] = useState(false);
-  const processingInsightIdRef = useRef<string | null>(null);
+  // State and refs related to AI insight bubble are removed
+  // const [aiInsightsQueue, setAiInsightsQueue] = useState<AIInsight[]>([]);
+  // const [currentAiInsight, setCurrentAiInsight] = useState<AIInsight | null>(null);
+  // const [showAiInsightBubble, setShowAiInsightBubble] = useState(false);
+  // const aiInsightDismissTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // const insightCooldownTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // const aiInsightIconRef = useRef<HTMLButtonElement>(null);
+  // const [isAiInsightLoading, setIsAiInsightLoading] = useState(false);
+  // const [generatedInsightsTodayCount, setGeneratedInsightsTodayCount] = useState(0);
+  // const [nextInsightDisplayAllowedTime, setNextInsightDisplayAllowedTime] = useState(0);
+  // const processingInsightIdRef = useRef<string | null>(null);
 
 
   useEffect(() => {
@@ -100,185 +110,10 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   }, [authUser, authLoading]);
 
 
-  const markInsightAsRead = useCallback(async (insightId: string) => {
-    if (!authUser || !insightId) return;
-    try {
-      const insightDocRef = firestoreDoc(db, 'users', authUser.uid, 'aiInsights', insightId);
-      await updateDoc(insightDocRef, { read: true });
-    } catch (error) {
-      console.error('Error marking insight as read:', error);
-    }
-  }, [authUser]);
+  // Functions related to AI insight bubble (markInsightAsRead, showNextAiInsight, handleDismissAiInsight, generateAndStoreNewInsight, fetchAndQueueInsights) are removed
+  // as the bubble feature is disabled. The AI insights page will handle its own data fetching.
 
-  const showNextAiInsight = useCallback(() => {
-    if (aiInsightDismissTimerRef.current) {
-      clearTimeout(aiInsightDismissTimerRef.current);
-      aiInsightDismissTimerRef.current = null;
-    }
-    setShowAiInsightBubble(false);
-    setCurrentAiInsight(null);
-
-    setAiInsightsQueue(prevQueue => {
-      const nextUnreadIndex = prevQueue.findIndex(insight => !insight.read && insight.id !== processingInsightIdRef.current);
-      if (nextUnreadIndex !== -1) {
-        const insightToShow = prevQueue[nextUnreadIndex];
-        setCurrentAiInsight(insightToShow);
-        setShowAiInsightBubble(true);
-        processingInsightIdRef.current = insightToShow.id;
-
-        aiInsightDismissTimerRef.current = setTimeout(() => {
-          handleDismissAiInsight(false, insightToShow.id);
-        }, BUBBLE_DISPLAY_DURATION);
-        
-        // Optimistically mark as read in local queue to prevent re-showing immediately
-        const updatedQueue = prevQueue.map(i => i.id === insightToShow.id ? {...i, read: true} : i);
-        return updatedQueue.filter(i => i.id !== insightToShow.id); // Remove shown insight from queue
-      }
-      processingInsightIdRef.current = null;
-      return prevQueue.filter(i => !i.read); // Keep only actually unread items if nothing was shown
-    });
-  }, [markInsightAsRead]); // Added markInsightAsRead as dependency
-
-  const handleDismissAiInsight = useCallback((isUserDismissal: boolean, insightIdToDismiss?: string) => {
-    const insightId = insightIdToDismiss || currentAiInsight?.id;
-    if (aiInsightDismissTimerRef.current) {
-      clearTimeout(aiInsightDismissTimerRef.current);
-      aiInsightDismissTimerRef.current = null;
-    }
-    setShowAiInsightBubble(false);
-    
-    if (insightId) {
-      markInsightAsRead(insightId);
-      // Update local queue: remove the dismissed insight or ensure it's marked read
-       setAiInsightsQueue(prevQueue => prevQueue.filter(i => i.id !== insightId));
-    }
-    
-    setCurrentAiInsight(null);
-    processingInsightIdRef.current = null;
-
-    // Attempt to show the next insight only if dismissed by timer or if user dismissed AND there are more.
-    // This short delay helps prevent rapid-fire bubbles if there's a quick succession of events.
-    setTimeout(() => {
-        if (aiInsightsQueue.some(i => !i.read && i.id !== insightId)) {
-             showNextAiInsight();
-        } else {
-            // If no more insights in the immediate queue, try to fetch/generate more
-            fetchAndQueueInsights();
-        }
-    }, 500);
-  }, [currentAiInsight, markInsightAsRead, showNextAiInsight, aiInsightsQueue]);
-
-
-  const generateAndStoreNewInsight = useCallback(async (requestType?: UserRecommendationInput['requestType']) => {
-    if (!authUser || isAiInsightLoading) return null;
-    setIsAiInsightLoading(true);
-    try {
-      const aiInput: UserRecommendationInput = { 
-        userId: authUser.uid, 
-        requestType,
-        recentFoodLogSummary: undefined, 
-        recentSymptomSummary: undefined,
-      };
-      const result = await getUserRecommendation(aiInput);
-      if (result && result.recommendationText) {
-        const insightsColRef = collection(db, 'users', authUser.uid, 'aiInsights');
-        const newInsightDocRef = await addDoc(insightsColRef, {
-          text: result.recommendationText,
-          timestamp: serverTimestamp(),
-          read: false,
-        });
-        const newInsight: AIInsight = {
-            id: newInsightDocRef.id,
-            text: result.recommendationText,
-            timestamp: new Date(), 
-            read: false,
-        };
-        setAiInsightsQueue(prev => [...prev, newInsight].sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()));
-        return newInsight;
-      }
-    } catch (error) {
-      console.error('Error generating or storing AI insight:', error);
-    } finally {
-      setIsAiInsightLoading(false);
-    }
-    return null;
-  }, [authUser, isAiInsightLoading]);
-
-
-  const fetchAndQueueInsights = useCallback(async () => {
-    if (!authUser || isAiInsightLoading) return;
-    
-    const unreadInCurrentQueue = aiInsightsQueue.filter(i => !i.read).length;
-    if (unreadInCurrentQueue > 0 && !currentAiInsight) { // If queue has items and nothing showing, try to show one
-        showNextAiInsight();
-        return; // Don't fetch/generate if we can just show from existing queue
-    }
-    if (isAiInsightLoading) return; // Double check loading state
-
-    setIsAiInsightLoading(true);
-    let fetchedInsights: AIInsight[] = [];
-    try {
-      const insightsColRef = collection(db, 'users', authUser.uid, 'aiInsights');
-      const q = query(
-        insightsColRef,
-        where('read', '==', false),
-        orderBy('timestamp', 'asc'), 
-        limit(MAX_UNREAD_INSIGHTS_TO_FETCH)
-      );
-      const querySnapshot = await getDocs(q);
-      fetchedInsights = querySnapshot.docs.map(docSnap => ({
-        id: docSnap.id,
-        ...(docSnap.data() as Omit<AIInsight, 'id' | 'timestamp'>),
-        timestamp: (docSnap.data().timestamp as Timestamp)?.toDate() || new Date(),
-      }));
-      
-      setAiInsightsQueue(prev => {
-        const existingIds = new Set(prev.map(i => i.id));
-        const newUnreadInsights = fetchedInsights.filter(fi => !existingIds.has(fi.id));
-        const combined = [...prev, ...newUnreadInsights];
-        return combined
-          .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-          .filter((insight, index, self) => index === self.findIndex((t) => t.id === insight.id)); // Deduplicate
-      });
-
-    } catch (error) {
-      console.error('Error fetching AI insights:', error);
-    }
-    
-    // After fetching, check if we need to generate more
-    const currentTotalUnread = aiInsightsQueue.filter(i => !i.read).length + fetchedInsights.filter(i => !i.read && !aiInsightsQueue.find(q => q.id === i.id)).length;
-
-    if (currentTotalUnread < MIN_INSIGHTS_IN_QUEUE_BEFORE_GENERATING) {
-      const types: UserRecommendationInput['requestType'][] = ['general_wellness', 'diet_tip', 'activity_nudge', 'mindfulness_reminder'];
-      for (let i = 0; i < INSIGHT_GENERATION_COUNT; i++) {
-        // await so they are added to queue one by one, for showNextAiInsight to potentially pick up
-        await generateAndStoreNewInsight(types[i % types.length]); 
-      }
-    }
-    
-    setIsAiInsightLoading(false);
-    // If no bubble is currently shown, try to show one from the newly populated queue
-    if (!currentAiInsight && !showAiInsightBubble) {
-        showNextAiInsight();
-    }
-
-  }, [authUser, isAiInsightLoading, aiInsightsQueue, generateAndStoreNewInsight, showNextAiInsight, currentAiInsight, showAiInsightBubble]);
-
-
-  useEffect(() => {
-    if (authUser && !authLoading && !isGuest) {
-        // Initial fetch and potentially show first insight
-        if (aiInsightsQueue.filter(i => !i.read).length < MIN_INSIGHTS_IN_QUEUE_BEFORE_GENERATING && !currentAiInsight && !showAiInsightBubble) {
-             fetchAndQueueInsights();
-        }
-    } else if (!authUser) {
-        // Clear queue and bubble if user logs out
-        setAiInsightsQueue([]);
-        setCurrentAiInsight(null);
-        setShowAiInsightBubble(false);
-        if(aiInsightDismissTimerRef.current) clearTimeout(aiInsightDismissTimerRef.current);
-    }
-  }, [authUser, authLoading, isGuest, fetchAndQueueInsights, currentAiInsight, showAiInsightBubble]);
+  // useEffect hooks for managing bubble display and fetching are removed.
 
 
   const handleSignOut = async () => {
@@ -311,9 +146,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   const aiInsightsLinkHandler = (e: React.MouseEvent) => {
     e.preventDefault();
     router.push(pathname === '/ai-insights' ? '/?openDashboard=true' : '/ai-insights');
-     if (showAiInsightBubble && currentAiInsight) { // If a bubble is showing, dismiss it when navigating to the page
-      handleDismissAiInsight(true, currentAiInsight.id);
-    }
+    // Logic for dismissing bubble on navigation is removed
   };
 
   const headerBaseClasses = "sticky top-0 z-50 w-full";
@@ -370,7 +203,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                   
                   <div className="relative">
                     <Button 
-                      ref={aiInsightIconRef}
+                      // ref={aiInsightIconRef} // Ref removed
                       variant="ghost" 
                       size="icon" 
                       className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/ai-insights' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50')} 
@@ -379,14 +212,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                     >
                       <Lightbulb className="h-5 w-5" />
                     </Button>
-                     {showAiInsightBubble && currentAiInsight && aiInsightIconRef.current && (
-                        <AISpeechBubble
-                        insightText={currentAiInsight.text}
-                        onDismiss={() => handleDismissAiInsight(true, currentAiInsight.id)}
-                        position="bottom"
-                        className="left-1/2 -translate-x-1/2" // Center under the icon
-                        />
-                    )}
+                     {/* AISpeechBubble rendering removed */}
                   </div>
                 </>
               )}
@@ -440,4 +266,3 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
     </header>
   );
 }
-
