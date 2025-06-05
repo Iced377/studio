@@ -192,18 +192,7 @@ export interface FeedbackSubmission {
 
 export type FeedbackSubmissionCreate = Omit<FeedbackSubmission, 'id'>;
 
-// New type for interactive AI Dietitian Insights (replaces old AIInsight)
-export interface KeptAIInsight {
-  id: string; // Firestore document ID
-  userQuestion: string;
-  aiResponse: string;
-  timestamp: Date; // Client-side Date object
-}
-
-export interface KeptAIInsightFirestore extends Omit<KeptAIInsight, 'timestamp' | 'id'> {
-  timestamp: Timestamp; // Firestore Timestamp for storage
-}
-
+// KeptAIInsight and KeptAIInsightFirestore types removed
 
 // Previous AIInsight type (used by Navbar for bubble, now potentially deprecated or for simpler tips)
 // To avoid breaking Navbar if it's still using it for /ai-insights page title or other minor things,
@@ -214,3 +203,5 @@ export interface AIInsight {
   timestamp: Date;
   read: boolean;
 }
+
+    

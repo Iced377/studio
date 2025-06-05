@@ -4,12 +4,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import Navbar from '@/components/shared/Navbar';
-import { Loader2, MessageSquareText, Trash2, ThumbsUp, ThumbsDown, Brain, Sparkles, Info } from 'lucide-react';
+import { Loader2, Brain, Sparkles, ThumbsDown } from 'lucide-react'; // Removed MessageSquareText, Trash2, ThumbsUp
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-// Textarea removed as it's no longer used for free-form questions
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { KeptAIInsight, KeptAIInsightFirestore, LoggedFoodItem, SymptomLog, UserProfile, TimelineEntry } from '@/types';
+import type { LoggedFoodItem, SymptomLog, UserProfile } from '@/types'; // Removed KeptAIInsight and KeptAIInsightFirestore
 import { getPersonalizedDietitianInsight, type PersonalizedDietitianInput } from '@/ai/flows/personalized-dietitian-flow';
 import { db } from '@/config/firebase';
 import {
@@ -17,24 +16,19 @@ import {
   query,
   orderBy,
   getDocs,
-  addDoc,
-  deleteDoc,
   doc,
   Timestamp,
   getDoc,
   limit,
   where,
-} from 'firebase/firestore';
-import { formatDistanceToNow } from 'date-fns';
+} from 'firebase/firestore'; // Removed addDoc, deleteDoc
+// Removed formatDistanceToNow as it's no longer used for insight timestamps
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
-// --- TEMPORARY FEATURE UNLOCK FLAG --- (align with page.tsx)
 const TEMPORARILY_UNLOCK_ALL_FEATURES = true;
-// --- END TEMPORARY FEATURE UNLOCK FLAG ---
-
-const DATA_FETCH_LIMIT_DAYS = 90; // Fetch last 90 days of data for AI context
+const DATA_FETCH_LIMIT_DAYS = 90;
 const PREDEFINED_QUESTION = "What do you think about my food today so far and what would you recommend for the rest of today?";
 
 export default function AIInsightsPage() {
@@ -42,11 +36,9 @@ export default function AIInsightsPage() {
   const { toast } = useToast();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
-  // userQuestion state is removed
   const [currentAIResponse, setCurrentAIResponse] = useState<string | null>(null);
   const [isGeneratingInsight, setIsGeneratingInsight] = useState(false);
-  const [keptInsights, setKeptInsights] = useState<KeptAIInsight[]>([]);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  // Removed keptInsights and isLoadingHistory states
   const [error, setError] = useState<string | null>(null);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -59,22 +51,18 @@ export default function AIInsightsPage() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [currentAIResponse, keptInsights, scrollToBottom]);
+  }, [currentAIResponse, scrollToBottom]);
 
-  // Fetch user profile and kept insights
   useEffect(() => {
     if (authLoading) return;
     if (!authUser) {
-      setIsLoadingHistory(false);
-      setError("Please log in to use the AI Dietitian and view your insights history.");
+      setError("Please log in to use the AI Dietitian.");
       return;
     }
 
-    const fetchInitialData = async () => {
-      setIsLoadingHistory(true);
+    const fetchUserProfileData = async () => {
       setError(null);
       try {
-        // Fetch user profile
         const userDocRef = doc(db, 'users', authUser.uid);
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
@@ -82,34 +70,16 @@ export default function AIInsightsPage() {
         } else {
            setUserProfile({ uid: authUser.uid, email: authUser.email, displayName: authUser.displayName, safeFoods: [], premium: false });
         }
-
-        const insightsColRef = collection(db, 'users', authUser.uid, 'keptAiInsights');
-        const q = query(insightsColRef, orderBy('timestamp', 'desc'));
-        
-        const querySnapshot = await getDocs(q);
-        const fetchedInsights: KeptAIInsight[] = querySnapshot.docs.map(docSnap => {
-          const data = docSnap.data();
-          return {
-            id: docSnap.id,
-            userQuestion: data.userQuestion,
-            aiResponse: data.aiResponse,
-            timestamp: (data.timestamp as Timestamp)?.toDate() || new Date(),
-          } as KeptAIInsight;
-        });
-        setKeptInsights(fetchedInsights);
       } catch (err: any) {
-        console.error("Error fetching AI insights history or user profile:", err);
-        setError("Could not load your AI insights. Please try again later.");
-      } finally {
-        setIsLoadingHistory(false);
+        console.error("Error fetching user profile:", err);
+        setError("Could not load your user profile. Please try again later.");
       }
     };
 
-    fetchInitialData();
+    fetchUserProfileData();
   }, [authUser, authLoading]);
 
   const handleQuestionSubmit = async () => {
-    // No longer relies on userQuestion state
     if (!authUser) return;
 
     setIsGeneratingInsight(true);
@@ -171,14 +141,12 @@ export default function AIInsightsPage() {
           let finalLinkedIds: string[] = [];
           const rawLinkedIds = symptomEntry.linkedFoodItemIds;
 
-          if (Array.isArray(rawLinkedIds)) {
+           if (Array.isArray(rawLinkedIds)) {
               finalLinkedIds = rawLinkedIds.filter(id => typeof id === 'string' && id.trim().length > 0);
           } else if (typeof rawLinkedIds === 'string' && rawLinkedIds.trim().length > 0) {
               finalLinkedIds = [rawLinkedIds.trim()];
-          } else if (Array.isArray(rawLinkedIds) && rawLinkedIds.every(id => typeof id === 'string' && id.trim().length > 0)) {
-            finalLinkedIds = rawLinkedIds;
           }
-
+          
           return {
               symptoms: symptomEntry.symptoms.map(s => ({ name: s.name })),
               severity: symptomEntry.severity,
@@ -189,7 +157,7 @@ export default function AIInsightsPage() {
       });
       
       const aiInput: PersonalizedDietitianInput = {
-        userQuestion: PREDEFINED_QUESTION, // Use predefined question
+        userQuestion: PREDEFINED_QUESTION,
         foodLog: processedFoodLog,
         symptomLog: processedSymptomLog,
         userProfile: userProfile ? {
@@ -204,52 +172,23 @@ export default function AIInsightsPage() {
 
     } catch (err: any) {
       console.error("Error getting AI insight:", err);
-      setError("Sorry, I couldn't generate an insight for that question. Please try again or rephrase.");
+      setError("Sorry, I couldn't generate an insight. Please try again or rephrase.");
       setCurrentAIResponse(null);
     } finally {
       setIsGeneratingInsight(false);
     }
   };
 
-  const handleKeepInsight = async () => {
-    if (!currentAIResponse || !authUser) return;
-
-    const insightToSave: KeptAIInsightFirestore = {
-      userQuestion: PREDEFINED_QUESTION, // Save predefined question
-      aiResponse: currentAIResponse,
-      timestamp: Timestamp.now(),
-    };
-
-    try {
-      const docRef = await addDoc(collection(db, 'users', authUser.uid, 'keptAiInsights'), insightToSave);
-      setKeptInsights(prev => [{ ...insightToSave, id: docRef.id, timestamp: new Date() }, ...prev]);
-      setCurrentAIResponse(null);
-      // setUserQuestion(''); // No longer needed
-      toast({ title: "Insight Saved!", description: "This insight is now in your history." });
-    } catch (err) {
-      console.error("Error saving insight:", err);
-      toast({ title: "Save Error", description: "Could not save this insight.", variant: "destructive" });
-    }
-  };
+  // handleKeepInsight removed
 
   const handleDiscardInsight = () => {
     setCurrentAIResponse(null);
+    toast({ title: "Insight Discarded", description: "The AI response has been cleared." });
   };
 
-  const handleDeleteInsight = async (insightId: string) => {
-    if (!authUser) return;
-    try {
-      await deleteDoc(doc(db, 'users', authUser.uid, 'keptAiInsights', insightId));
-      setKeptInsights(prev => prev.filter(insight => insight.id !== insightId));
-      toast({ title: "Insight Deleted", description: "The insight has been removed from your history." });
-    } catch (err) {
-      console.error("Error deleting insight:", err);
-      toast({ title: "Delete Error", description: "Could not delete this insight.", variant: "destructive" });
-    }
-  };
+  // handleDeleteInsight removed
 
-
-  if (authLoading || isLoadingHistory) {
+  if (authLoading) { // Removed isLoadingHistory check
     return (
       <div className="flex flex-col min-h-screen">
         <Navbar />
@@ -290,40 +229,12 @@ export default function AIInsightsPage() {
 
         <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
           <div className="space-y-6">
-            {keptInsights.map((insight) => (
-              <Card key={insight.id} className="bg-card shadow-md border-border">
-                <CardHeader className="pb-2 pt-3 px-4">
-                  <p className="text-sm font-semibold text-primary flex items-center">
-                    <MessageSquareText className="h-4 w-4 mr-2 opacity-80" /> You asked:
-                  </p>
-                  <p className="text-foreground whitespace-pre-wrap">{insight.userQuestion}</p>
-                </CardHeader>
-                <CardContent className="px-4 py-2">
-                  <p className="text-sm font-semibold text-green-500 flex items-center">
-                     <Sparkles className="h-4 w-4 mr-2 opacity-80" /> AI Dietitian replied:
-                  </p>
-                  <div className="prose prose-sm dark:prose-invert max-w-none text-foreground">
-                    <ReactMarkdown>{insight.aiResponse}</ReactMarkdown>
-                  </div>
-                </CardContent>
-                <CardFooter className="px-4 pb-3 pt-2 flex justify-between items-center">
-                  <p className="text-xs text-muted-foreground">
-                    Saved {formatDistanceToNow(new Date(insight.timestamp), { addSuffix: true })}
-                  </p>
-                  <Button variant="ghost" size="sm" onClick={() => handleDeleteInsight(insight.id)} className="text-destructive hover:bg-destructive/10">
-                    <Trash2 className="h-4 w-4 mr-1" /> Delete
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+            {/* Kept insights mapping removed */}
 
             {currentAIResponse && !isGeneratingInsight && (
               <Card className="bg-green-500/10 border-green-500/30 shadow-lg">
                 <CardHeader className="pb-2 pt-3 px-4">
-                   <p className="text-sm font-semibold text-primary flex items-center">
-                    <MessageSquareText className="h-4 w-4 mr-2 opacity-80" /> You asked:
-                  </p>
-                  <p className="text-foreground whitespace-pre-wrap">{PREDEFINED_QUESTION}</p>
+                   {/* Removed "You asked:" as the question is predefined and displayed in main header */}
                 </CardHeader>
                 <CardContent className="px-4 py-2">
                   <p className="text-sm font-semibold text-green-600 dark:text-green-400 flex items-center">
@@ -337,9 +248,7 @@ export default function AIInsightsPage() {
                   <Button variant="outline" onClick={handleDiscardInsight} className="text-sm">
                     <ThumbsDown className="h-4 w-4 mr-1.5" /> Discard
                   </Button>
-                  <Button onClick={handleKeepInsight} className="text-sm bg-primary hover:bg-primary/90 text-primary-foreground">
-                    <ThumbsUp className="h-4 w-4 mr-1.5" /> Keep Insight
-                  </Button>
+                  {/* "Keep Insight" button removed */}
                 </CardFooter>
               </Card>
             )}
@@ -370,3 +279,5 @@ export default function AIInsightsPage() {
     </div>
   );
 }
+
+    
