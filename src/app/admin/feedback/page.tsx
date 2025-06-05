@@ -46,17 +46,17 @@ export default function AdminFeedbackPage() {
 
         if (userProfileSnap.exists()) {
           const userProfileData = userProfileSnap.data() as UserProfile;
-          if (userProfileData.isAdmin === true) {
+          if (userProfileData.isAdmin === true) { // Strict boolean check
             adminStatus = true;
             setIsCurrentUserAdmin(true);
             console.log('[Admin Page] User is admin.');
           } else {
-            setProfileError("Your user profile does not have administrator privileges.");
+            setProfileError(`Your user profile does not have administrator privileges. 'isAdmin' flag is missing, not true (boolean), or profile incorrect. Current isAdmin value: ${userProfileData.isAdmin}`);
             setIsCurrentUserAdmin(false);
-            console.log('[Admin Page] User is not admin.');
+            console.log('[Admin Page] User is not admin or isAdmin flag is not boolean true.');
           }
         } else {
-          setProfileError(`User profile not found for your account (UID: ${authUser.uid}). Ensure a user document exists in Firestore at 'users/${authUser.uid}' with the field 'isAdmin' set to true (boolean).`);
+          setProfileError(`User profile not found for your account (UID: ${authUser.uid}). Ensure a user document exists in Firestore at 'users/${authUser.uid}' with an 'isAdmin' field set to boolean true.`);
           setIsCurrentUserAdmin(false);
           console.log('[Admin Page] User profile not found.');
         }
@@ -66,11 +66,10 @@ export default function AdminFeedbackPage() {
         console.error("[Admin Page] Error checking admin status (err.message):", err.message);
         setProfileError(`Error accessing user profile: ${err.message}. Code: ${err.code}. Please try again or check Firestore permissions.`);
         setIsCurrentUserAdmin(false);
-        adminStatus = false; 
+        adminStatus = false;
       }
 
       if (adminStatus) {
-        // Fetch feedback submissions
         try {
           console.log('[Admin Page] Fetching feedback submissions.');
           const feedbackQuery = query(collection(db, 'feedbackSubmissions'), orderBy('timestamp', 'desc'));
@@ -88,8 +87,7 @@ export default function AdminFeedbackPage() {
           console.error("[Admin Page] Error fetching feedback submissions (err.message):", err.message);
           setFeedbackError(`Failed to load feedback: ${err.message}. Code: ${err.code}.`);
         }
-
-        // Fetch user count
+        
         console.log('[Admin Page] Attempting to fetch user count. Current adminStatus:', adminStatus, 'authUser.uid:', authUser?.uid);
         try {
           const usersCollectionRef = collection(db, 'users');
@@ -102,9 +100,9 @@ export default function AdminFeedbackPage() {
           console.error("[Admin Page] Error fetching user count (err.message):", err.message);
           setUserCountError(
             `Failed to load user count: ${err.message} (Code: ${err.code || 'N/A'}). ` +
-            `This indicates a Firestore security rule is denying the 'list' permission for the '/users' collection path, even for admins. ` +
-            `Please use the Firestore Rules Simulator to test a 'list' operation on '/users' with your admin UID. ` +
-            `Ensure your rule 'match /users { allow list: if request.auth != null && exists(...) && get(...).data.isAdmin == true; }' is correctly defined and published.`
+            `This strongly suggests an issue with Firestore security rules denying the 'list' permission on the '/users' collection path. ` +
+            `Please use the Firestore Rules Simulator: simulate a 'get' operation on path 'users' (or 'users/nonexistentdoc') with your admin UID. ` +
+            `Ensure your rule 'match /users { allow list: if request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true; }' is correctly defined, published, and that the 'isAdmin' field in your user document ('users/${authUser?.uid}') is a boolean 'true' (not a string).`
           );
         }
       }
@@ -164,7 +162,7 @@ export default function AdminFeedbackPage() {
           </CardHeader>
           <CardContent>
             {userCountError ? (
-              <div className="text-destructive">
+              <div className="text-destructive text-sm p-3 bg-destructive/10 border border-destructive/30 rounded-md">
                 <AlertTriangle className="inline-block mr-2 h-5 w-5" />
                 {userCountError}
               </div>
@@ -248,6 +246,3 @@ export default function AdminFeedbackPage() {
     </div>
   );
 }
-    
-
-      
