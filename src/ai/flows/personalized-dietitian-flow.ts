@@ -127,7 +127,7 @@ INSTRUCTIONS:
 7.  Structure your response clearly. Use paragraphs. If suggesting multiple points, consider using bullet points (markdown-style like * or -) for readability.
 8.  Be highly personalized. Refer to specific foods they've eaten or symptoms they've logged if relevant.
 9.  Maintain a supportive and encouraging tone. Avoid making definitive medical diagnoses; frame suggestions as possibilities to explore or discuss with a healthcare professional if appropriate.
-10. Do NOT just repeat the input data. Synthesize it to form new insights.
+10. Do NOT just repeat the input data. Synthesize it to form new insights. **Your response should be formatted in plain text or simple Markdown suitable for direct display to the user. Do NOT include any \`{{...}}\` templating syntax, or any other code-like structures, in your final \`aiResponse\` string, even if you are referencing data that was presented to you in that format.**
 11. Ensure the output is a single string for the 'aiResponse' field.
 
 Provide your detailed, personalized insight below:
@@ -163,3 +163,4 @@ const personalizedDietitianFlow = ai.defineFlow(
     return output;
   }
 );
+
