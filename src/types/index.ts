@@ -1,11 +1,10 @@
 
-
 import type { AnalyzeFoodItemOutput as OriginalAnalyzeFoodItemOutput, FoodFODMAPProfile as DetailedFodmapProfileFromAI } from "@/ai/flows/fodmap-detection";
-import type { ProcessedFeedbackOutput as AIProcessedFeedback } from "@/ai/flows/process-feedback-flow"; // Added
+import type { ProcessedFeedbackOutput as AIProcessedFeedback } from "@/ai/flows/process-feedback-flow";
 import type { FoodFODMAPProfile } from "@/ai/flows/food-similarity";
 import type React from 'react';
-import type { Timestamp } from 'firebase/firestore'; // Added
-export type { UserRecommendationInput } from '@/ai/flows/user-recommendations'; // Added for Navbar context typing
+import type { Timestamp } from 'firebase/firestore';
+export type { UserRecommendationInput } from '@/ai/flows/user-recommendations';
 
 export type FodmapScore = 'Green' | 'Yellow' | 'Red';
 
@@ -112,7 +111,7 @@ export interface UserProfile {
   displayName: string | null;
   safeFoods: SafeFood[];
   premium?: boolean;
-  isAdmin?: boolean; // Added isAdmin field
+  isAdmin?: boolean;
 }
 
 export type { DetailedFodmapProfileFromAI };
@@ -164,12 +163,12 @@ export interface SymptomFrequency {
 export interface MicronutrientAchievement {
   name: string;
   achievedDays: number;
-  iconName?: string; 
+  iconName?: string;
 }
 
 export interface SingleMicronutrientProgress {
   name: string;
-  achievedValue?: number; // Changed from achievedDV
+  achievedValue?: number;
   achievedDV: number;
   icon: React.ElementType;
   targetDV: number;
@@ -191,14 +190,27 @@ export interface FeedbackSubmission {
   adminNotes?: string;
 }
 
-export type FeedbackSubmissionCreate = Omit<FeedbackSubmission, 'id'>; // For creating new docs
+export type FeedbackSubmissionCreate = Omit<FeedbackSubmission, 'id'>;
 
-// AI Insights for Navbar Speech Bubbles and AI Insights Page
+// New type for interactive AI Dietitian Insights (replaces old AIInsight)
+export interface KeptAIInsight {
+  id: string; // Firestore document ID
+  userQuestion: string;
+  aiResponse: string;
+  timestamp: Date; // Client-side Date object
+}
+
+export interface KeptAIInsightFirestore extends Omit<KeptAIInsight, 'timestamp' | 'id'> {
+  timestamp: Timestamp; // Firestore Timestamp for storage
+}
+
+
+// Previous AIInsight type (used by Navbar for bubble, now potentially deprecated or for simpler tips)
+// To avoid breaking Navbar if it's still using it for /ai-insights page title or other minor things,
+// we can keep it distinct for now.
 export interface AIInsight {
-  id: string;       // Unique ID for the insight
-  text: string;     // The content of the insight/recommendation
-  timestamp: Date;  // When the insight was generated/shown
-  read: boolean;    // Whether the user has dismissed/read this specific instance of the bubble
-  // Potentially add: type (e.g., 'diet_suggestion', 'behavior_nudge', 'general_tip')
-  // Potentially add: sourceFlow (e.g., 'user-recommendations-flow') 
+  id: string;
+  text: string;
+  timestamp: Date;
+  read: boolean;
 }
