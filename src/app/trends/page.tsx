@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { db } from '@/config/firebase';
 import { collection, query, where, orderBy, getDocs, Timestamp, doc, getDoc } from 'firebase/firestore'; // Added doc, getDoc
-import type { TimelineEntry, LoggedFoodItem, SymptomLog, TimeRange, MacroPoint, CaloriePoint, SafetyPoint, SymptomFrequency, MicronutrientDetail, MicronutrientAchievement, UserProfile } from '@/types';
+import type { TimelineEntry, LoggedFoodItem, SymptomLog, TimeRange, MacroPoint, CaloriePoint, SafetyPoint, GIPoint, SymptomFrequency, MicronutrientDetail, MicronutrientAchievement, UserProfile } from '@/types'; // Added GIPoint
 import { COMMON_SYMPTOMS } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/hooks/use-toast'; 
@@ -17,11 +17,12 @@ import DailyMacrosTrendChart from '@/components/trends/DailyMacrosTrendChart';
 import DailyCaloriesTrendChart from '@/components/trends/DailyCaloriesTrendChart';
 import LoggedSafetyTrendChart from '@/components/trends/LoggedSafetyTrendChart';
 import SymptomOccurrenceChart from '@/components/trends/SymptomOccurrenceChart';
+import GITrendChart from '@/components/trends/GITrendChart'; // Import the new chart
 import MicronutrientAchievementList from '@/components/trends/MicronutrientAchievementList'; 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, AlertTriangle, BarChart3, Award } from 'lucide-react'; 
-import { subDays, subMonths, subYears, formatISO, startOfDay, endOfDay, parseISO } from 'date-fns';
+import { subDays, subMonths, subYears, formatISO, startOfDay, endOfDay, parseISO, getHours, format } from 'date-fns'; // Added getHours, format
 
 // --- TEMPORARY FEATURE UNLOCK FLAG ---
 // Set to true to give all users full feature access (e.g., no data retention limits for trends).
@@ -182,6 +183,32 @@ export default function TrendsPage() {
     }));
   }, [filteredEntries]);
 
+  const giTrendData = useMemo<GIPoint[]>(() => {
+    const foodEntries = filteredEntries.filter(e => e.entryType === 'food') as LoggedFoodItem[];
+    const hourlyGiTotals: Record<number, { sum: number; count: number }> = {};
+
+    foodEntries.forEach(entry => {
+      if (entry.fodmapData?.glycemicIndexInfo?.value) {
+        const hour = getHours(new Date(entry.timestamp));
+        if (!hourlyGiTotals[hour]) {
+          hourlyGiTotals[hour] = { sum: 0, count: 0 };
+        }
+        hourlyGiTotals[hour].sum += entry.fodmapData.glycemicIndexInfo.value;
+        hourlyGiTotals[hour].count += 1;
+      }
+    });
+
+    const result: GIPoint[] = [];
+    for (let i = 0; i < 24; i++) {
+      const data = hourlyGiTotals[i];
+      result.push({
+        hour: format(new Date(0, 0, 0, i), 'HH:mm'), // Format as "00:00", "01:00", etc.
+        gi: data ? data.sum / data.count : 0, // Calculate average GI, or 0 if no data
+      });
+    }
+    return result;
+  }, [filteredEntries]);
+
   const symptomFrequencyData = useMemo<SymptomFrequency[]>(() => {
     const symptomLogs = filteredEntries.filter(e => e.entryType === 'symptom') as SymptomLog[];
     const frequencyMap: Record<string, number> = {};
@@ -330,6 +357,15 @@ export default function TrendsPage() {
               </CardHeader>
               <CardContent>
                  {macroData.length > 0 ? <DailyMacrosTrendChart data={macroData} theme={currentTheme} isDarkMode={isDarkMode} /> : <p className="text-muted-foreground text-center py-8">No macronutrient data for this period.</p>}
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card shadow-lg border-border">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-foreground">Hourly Glycemic Index (GI) Trend</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {giTrendData.length > 0 ? <GITrendChart data={giTrendData} theme={currentTheme} isDarkMode={isDarkMode} /> : <p className="text-muted-foreground text-center py-8">No GI data available for this period.</p>}
               </CardContent>
             </Card>
 

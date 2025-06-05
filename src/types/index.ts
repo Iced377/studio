@@ -1,9 +1,11 @@
 
+
 import type { AnalyzeFoodItemOutput as OriginalAnalyzeFoodItemOutput, FoodFODMAPProfile as DetailedFodmapProfileFromAI } from "@/ai/flows/fodmap-detection";
 import type { ProcessedFeedbackOutput as AIProcessedFeedback } from "@/ai/flows/process-feedback-flow"; // Added
 import type { FoodFODMAPProfile } from "@/ai/flows/food-similarity";
 import type React from 'react';
 import type { Timestamp } from 'firebase/firestore'; // Added
+export type { UserRecommendationInput } from '@/ai/flows/user-recommendations'; // Added for Navbar context typing
 
 export type FodmapScore = 'Green' | 'Yellow' | 'Red';
 
@@ -110,6 +112,7 @@ export interface UserProfile {
   displayName: string | null;
   safeFoods: SafeFood[];
   premium?: boolean;
+  isAdmin?: boolean; // Added isAdmin field
 }
 
 export type { DetailedFodmapProfileFromAI };
@@ -148,6 +151,11 @@ export interface SafetyPoint {
   notMarked: number;
 }
 
+export interface GIPoint {
+  hour: string; // e.g., "00:00", "01:00"
+  gi: number;
+}
+
 export interface SymptomFrequency {
   name: string;
   value: number;
@@ -184,3 +192,13 @@ export interface FeedbackSubmission {
 }
 
 export type FeedbackSubmissionCreate = Omit<FeedbackSubmission, 'id'>; // For creating new docs
+
+// AI Insights for Navbar Speech Bubbles and AI Insights Page
+export interface AIInsight {
+  id: string;       // Unique ID for the insight
+  text: string;     // The content of the insight/recommendation
+  timestamp: Date;  // When the insight was generated/shown
+  read: boolean;    // Whether the user has dismissed/read this specific instance of the bubble
+  // Potentially add: type (e.g., 'diet_suggestion', 'behavior_nudge', 'general_tip')
+  // Potentially add: sourceFlow (e.g., 'user-recommendations-flow') 
+}

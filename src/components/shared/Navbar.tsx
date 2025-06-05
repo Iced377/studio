@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon } from 'lucide-react';
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb } from 'lucide-react'; // Removed X
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -20,13 +20,31 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
-import { useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { db } from '@/config/firebase';
-import type { UserProfile } from '@/types';
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  limit,
+  getDocs,
+  getDoc,
+  addDoc,
+  updateDoc,
+  doc as firestoreDoc, 
+  serverTimestamp,
+  Timestamp
+} from 'firebase/firestore';
+import type { UserProfile, AIInsight, UserRecommendationInput } from '@/types'; 
+import { getUserRecommendation } from '@/ai/flows/user-recommendations';
+// Removed AISpeechBubble import
 
 const APP_NAME = "GutCheck";
 export const APP_VERSION = "Beta 3.5";
+const MAX_UNREAD_INSIGHTS_TO_FETCH = 5;
+const MIN_INSIGHTS_IN_QUEUE_BEFORE_GENERATING = 2;
+const INSIGHT_GENERATION_COUNT = 3; 
 
 interface NavbarProps {
   isGuest?: boolean;
@@ -45,12 +63,17 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState(false);
 
+  const [aiInsightsQueue, setAiInsightsQueue] = useState<AIInsight[]>([]);
+  // Removed currentAiInsight, showAiInsightBubble, aiInsightDismissTimerRef, aiInsightIconRef
+  const [isAiInsightLoading, setIsAiInsightLoading] = useState(false);
+  const hasFetchedInitialInsights = useRef(false); 
+
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (authUser) {
         try {
-          const userProfileDocRef = doc(db, 'users', authUser.uid);
-          const userProfileSnap = await getDoc(userProfileDocRef);
+          const userProfileRef = firestoreDoc(db, 'users', authUser.uid);
+          const userProfileSnap = await getDoc(userProfileRef);
           if (userProfileSnap.exists()) {
             const userProfileData = userProfileSnap.data() as UserProfile;
             setIsCurrentUserAdmin(userProfileData.isAdmin === true);
@@ -69,6 +92,105 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
       fetchUserProfile();
     }
   }, [authUser, authLoading]);
+
+  const generateAndStoreNewInsight = useCallback(async (requestType?: UserRecommendationInput['requestType']) => {
+    if (!authUser || isAiInsightLoading) return null;
+    setIsAiInsightLoading(true);
+    try {
+      const aiInput: UserRecommendationInput = { 
+        userId: authUser.uid, 
+        requestType,
+        recentFoodLogSummary: undefined, // Flow updated to handle optional context
+        recentSymptomSummary: undefined, // Navbar doesn't easily have this context for now
+      };
+      const result = await getUserRecommendation(aiInput);
+      if (result && result.recommendationText) {
+        const insightsColRef = collection(db, 'users', authUser.uid, 'aiInsights');
+        const newInsightDocRef = await addDoc(insightsColRef, {
+          text: result.recommendationText,
+          timestamp: serverTimestamp(),
+          read: false,
+        });
+        const newInsight: AIInsight = {
+            id: newInsightDocRef.id,
+            text: result.recommendationText,
+            timestamp: new Date(), 
+            read: false,
+        };
+        return newInsight;
+      }
+    } catch (error) {
+      console.error('Error generating or storing AI insight:', error);
+    } finally {
+      setIsAiInsightLoading(false);
+    }
+    return null;
+  }, [authUser, isAiInsightLoading]);
+
+  const fetchAndQueueInsights = useCallback(async () => {
+    if (!authUser || isAiInsightLoading) return; // Removed hasFetchedInitialInsights.current check here to allow re-population
+    setIsAiInsightLoading(true);
+    // hasFetchedInitialInsights.current = true; // This line is no longer needed as we don't show bubbles
+
+    let fetchedInsights: AIInsight[] = [];
+    try {
+      const insightsColRef = collection(db, 'users', authUser.uid, 'aiInsights');
+      const q = query(
+        insightsColRef,
+        where('read', '==', false),
+        orderBy('timestamp', 'asc'), 
+        limit(MAX_UNREAD_INSIGHTS_TO_FETCH)
+      );
+      const querySnapshot = await getDocs(q);
+      fetchedInsights = querySnapshot.docs.map(docSnap => ({
+        id: docSnap.id,
+        ...(docSnap.data() as Omit<AIInsight, 'id' | 'timestamp'>),
+        timestamp: (docSnap.data().timestamp as Timestamp)?.toDate() || new Date(),
+      }));
+      
+      // Update queue: add new, keep old un-fetched ones
+      setAiInsightsQueue(prev => {
+        const newQueue = [...fetchedInsights];
+        prev.forEach(p => {
+          if (!newQueue.find(f => f.id === p.id)) {
+            newQueue.push(p);
+          }
+        });
+        return newQueue.sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      });
+
+
+    } catch (error) {
+      console.error('Error fetching AI insights:', error);
+    }
+    
+    const currentQueueLength = aiInsightsQueue.filter(i => !i.read).length + fetchedInsights.filter(i => !i.read).length;
+    if (currentQueueLength < MIN_INSIGHTS_IN_QUEUE_BEFORE_GENERATING) {
+      const types: UserRecommendationInput['requestType'][] = ['general_wellness', 'diet_tip', 'activity_nudge'];
+      for (let i = 0; i < INSIGHT_GENERATION_COUNT; i++) {
+        const newInsight = await generateAndStoreNewInsight(types[i % types.length]);
+        if (newInsight) {
+          setAiInsightsQueue(prev => [...prev, newInsight].sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()));
+        }
+      }
+    }
+    setIsAiInsightLoading(false);
+  }, [authUser, generateAndStoreNewInsight, isAiInsightLoading, aiInsightsQueue]);
+
+
+  // Removed showNextAiInsight and handleDismissAiInsight and related useEffects for bubble logic
+
+  useEffect(() => {
+    if (authUser && !authLoading && !isGuest) {
+        // Fetch insights to populate the queue for the AI Insights page,
+        // rather than for showing a bubble.
+        // This could be triggered less often if performance becomes an issue.
+        if (aiInsightsQueue.filter(i => !i.read).length < MIN_INSIGHTS_IN_QUEUE_BEFORE_GENERATING) {
+            fetchAndQueueInsights();
+        }
+    }
+  }, [authUser, authLoading, isGuest, fetchAndQueueInsights, aiInsightsQueue]);
+
 
   const handleSignOut = async () => {
     const error = await signOutUser();
@@ -89,22 +211,18 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
 
   const trendsLinkHandler = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (pathname === '/trends') {
-      router.push('/?openDashboard=true');
-    } else {
-      router.push('/trends');
-    }
+    router.push(pathname === '/trends' ? '/?openDashboard=true' : '/trends');
   };
   
   const micronutrientsLinkHandler = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (pathname === '/micronutrients') {
-      router.push('/?openDashboard=true');
-    } else {
-      router.push('/micronutrients');
-    }
+    router.push(pathname === '/micronutrients' ? '/?openDashboard=true' : '/micronutrients');
   };
 
+  const aiInsightsLinkHandler = (e: React.MouseEvent) => {
+    e.preventDefault();
+    router.push(pathname === '/ai-insights' ? '/?openDashboard=true' : '/ai-insights');
+  };
 
   const headerBaseClasses = "sticky top-0 z-50 w-full";
   const guestHeaderClasses = "bg-background text-foreground";
@@ -112,92 +230,58 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
     !isDarkMode ? "bg-muted text-foreground" : "bg-background text-foreground",
     "border-b border-border/50"
   );
-
   const appNameBaseClasses = "font-bold font-headline sm:inline-block text-xl";
 
   return (
-    <header className={cn(
-        headerBaseClasses,
-        isGuest ? guestHeaderClasses : registeredUserHeaderClasses
-    )}>
+    <header className={cn(headerBaseClasses, isGuest ? guestHeaderClasses : registeredUserHeaderClasses)}>
       <div className="flex h-16 w-full max-w-screen-2xl items-center justify-between px-4 mx-auto">
         <Link href="/" className="flex items-center space-x-2">
-          {!isGuest && ( 
+          {!isGuest && (
             <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-foreground bg-black p-1">
-              <Image
-                src="/Gutcheck_logo.png"
-                alt="GutCheck Logo"
-                width={28}
-                height={28}
-                className={cn("object-contain", "filter brightness-0 invert")}
-                priority
-              />
+              <Image src="/Gutcheck_logo.png" alt="GutCheck Logo" width={28} height={28} className={cn("object-contain", "filter brightness-0 invert")} priority />
             </div>
           )}
           {!isGuest && (
             <>
-              <span className={cn(appNameBaseClasses, 'text-foreground')}>
-                {APP_NAME}
-              </span>
+              <span className={cn(appNameBaseClasses, 'text-foreground')}>{APP_NAME}</span>
               <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
             </>
           )}
         </Link>
 
         <div className="flex items-center space-x-1 sm:space-x-1.5">
-          {isGuest && guestButtonScheme ? (
+          {isGuest ? (
             <div className="flex items-center space-x-2 sm:space-x-3">
-              <span className="hidden sm:inline text-sm text-foreground font-medium animate-pulse">Unlock your gut's secrets! ✨</span>
+              {guestButtonScheme ? <span className="hidden sm:inline text-sm text-foreground font-medium animate-pulse">Unlock your gut's secrets! ✨</span> : null}
               <Button
                 onClick={() => router.push('/login')}
                 className={cn(
-                  "h-9 px-3 sm:px-4 text-white text-xs sm:text-sm",
-                  guestButtonScheme.base,
-                  guestButtonScheme.border,
-                  guestButtonScheme.hover
+                  "h-9 px-3 sm:px-4 text-xs sm:text-sm",
+                  guestButtonScheme ? `${guestButtonScheme.base} ${guestButtonScheme.border} ${guestButtonScheme.hover} text-white` : ''
                 )}
+                variant={guestButtonScheme ? 'default' : 'default'} 
               >
                 <UserPlus className="mr-1.5 h-4 sm:h-5 w-4 sm:w-5" />
                 Sign In / Sign Up
               </Button>
             </div>
-          ) : isGuest ? ( 
-             <Button
-              onClick={() => router.push('/login')}
-              variant="default"
-              className="h-9 px-4"
-            >
-              <UserPlus className="mr-2 h-5 w-5" />
-              Sign In / Sign Up
-            </Button>
           ) : (
             <>
               {!authLoading && authUser && (
                 <>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className={cn(
-                        "h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", 
-                        pathname === '/trends' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-                    )} 
-                    aria-label="Trends" 
-                    onClick={trendsLinkHandler}
-                  >
+                  <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/trends' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50')} aria-label="Trends" onClick={trendsLinkHandler}>
                     <BarChart3 className="h-5 w-5" />
                   </Button>
-                  <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className={cn(
-                        "h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0",
-                        pathname === '/micronutrients' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-                      )} 
-                      aria-label="Micronutrients Progress"
-                      onClick={micronutrientsLinkHandler}
-                    >
-                      <Atom className="h-5 w-5" />
+                  <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/micronutrients' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50')} aria-label="Micronutrients Progress" onClick={micronutrientsLinkHandler}>
+                    <Atom className="h-5 w-5" />
                   </Button>
+                  
+                  <div className="relative"> {/* Removed aiInsightIconRef */}
+                    <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/ai-insights' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50')} aria-label="AI Insights" onClick={aiInsightsLinkHandler}>
+                      <Lightbulb className="h-5 w-5" />
+                    </Button>
+                    {/* AISpeechBubble removed from here */}
+                  </div>
                 </>
               )}
 
@@ -220,12 +304,8 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                   <DropdownMenuContent className="w-56" align="end" forceMount>
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none text-foreground">
-                          {authUser.displayName || 'User'}
-                        </p>
-                        <p className="text-xs leading-none text-muted-foreground">
-                          {authUser.email}
-                        </p>
+                        <p className="text-sm font-medium leading-none text-foreground">{authUser.displayName || 'User'}</p>
+                        <p className="text-xs leading-none text-muted-foreground">{authUser.email}</p>
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
@@ -254,3 +334,4 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
     </header>
   );
 }
+
