@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { identifyFoodFromImage, type IdentifyFoodFromImageOutput } from '@/ai/flows/identify-food-from-image-flow';
 import { useTheme } from '@/contexts/ThemeContext';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'; // Explicitly import ScrollBar
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 export interface IdentifiedPhotoData {
   name: string;
@@ -130,9 +130,8 @@ export default function IdentifyFoodByPhotoDialog({
           )}
         </DialogHeader>
 
-        {/* This ScrollArea should handle the scrolling for its content */}
-        <ScrollArea className="flex-1 min-h-0"> {/* min-h-0 is crucial for flex item scrolling */}
-          <div className="space-y-4 py-4 px-4"> {/* Increased padding */}
+        <ScrollArea className="flex-1 min-h-0">
+          <div className="space-y-4 py-4 px-4">
             {!imagePreview && !identifiedData && !isLoading && !photoError && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button variant="outline" type="button" className="w-full border-primary text-primary hover:bg-primary/10 py-6 text-base" onClick={() => cameraInputRef.current?.click()} disabled={isLoading}>
@@ -179,7 +178,7 @@ export default function IdentifyFoodByPhotoDialog({
                 <AlertTriangle className="h-6 w-6 mb-2 shrink-0" />
                 <div>
                   <p className="font-semibold">Identification Failed</p>
-                  <p className="mb-2">{photoError}</p>
+                  <p className="mb-2 break-words whitespace-normal">{photoError}</p>
                   <Button variant="outline" className="text-xs mt-1 text-destructive hover:underline" onClick={() => {
                       resetDialogState();
                   }}>Try a different photo</Button>
@@ -190,11 +189,11 @@ export default function IdentifyFoodByPhotoDialog({
             {identifiedData && !isLoading && (
               <div className="mt-3 p-4 bg-muted/50 border border-input rounded-md space-y-2 text-sm">
                 <h3 className="text-base font-semibold text-foreground flex items-center"><CheckCircle className="h-5 w-5 mr-2 text-green-500"/> Identified Details:</h3>
-                <p><strong className="text-foreground">Food:</strong> {identifiedData.identifiedFoodName || "N/A"}</p>
-                <p><strong className="text-foreground">Ingredients:</strong> {identifiedData.identifiedIngredients || "N/A"}</p>
-                <p><strong className="text-foreground">Portion:</strong> {identifiedData.estimatedPortionSize || "N/A"} {identifiedData.estimatedPortionUnit || ""}</p>
+                <p className="break-words whitespace-normal"><strong className="text-foreground">Food:</strong> {identifiedData.identifiedFoodName || "N/A"}</p>
+                <p className="break-words whitespace-normal"><strong className="text-foreground">Ingredients:</strong> {identifiedData.identifiedIngredients || "N/A"}</p>
+                <p className="break-words whitespace-normal"><strong className="text-foreground">Portion:</strong> {identifiedData.estimatedPortionSize || "N/A"} {identifiedData.estimatedPortionUnit || ""}</p>
                 {identifiedData.ocrText && (
-                  <p className="text-xs"><strong className="text-foreground">OCR Text (partial):</strong> {identifiedData.ocrText.substring(0, 100)}{identifiedData.ocrText.length > 100 ? '...' : ''}</p>
+                  <p className="text-xs break-words whitespace-normal"><strong className="text-foreground">OCR Text (partial):</strong> {identifiedData.ocrText.substring(0, 100)}{identifiedData.ocrText.length > 100 ? '...' : ''}</p>
                 )}
                 <p className={cn("text-xs pt-2 flex items-start gap-1.5", "text-muted-foreground")}>
                   <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 text-primary" />
@@ -203,10 +202,10 @@ export default function IdentifyFoodByPhotoDialog({
               </div>
             )}
           </div>
-          <ScrollBar orientation="vertical" /> {/* Explicitly add ScrollBar */}
+          <ScrollBar orientation="vertical" />
         </ScrollArea>
 
-        <DialogFooter className="pt-2 shrink-0"> {/* Kept shrink-0 */}
+        <DialogFooter className="pt-2 shrink-0">
           <DialogClose asChild>
             <Button type="button" variant="outline" className={cancelClasses} onClick={() => handleOpenChangeWithReset(false)} disabled={isLoading}>
               Cancel
@@ -222,4 +221,3 @@ export default function IdentifyFoodByPhotoDialog({
     </Dialog>
   );
 }
-    
