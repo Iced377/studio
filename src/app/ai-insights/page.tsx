@@ -4,10 +4,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import Navbar from '@/components/shared/Navbar';
-import { Loader2, Send, MessageSquareText, Trash2, ThumbsUp, ThumbsDown, Brain, Sparkles } from 'lucide-react';
+import { Loader2, MessageSquareText, Trash2, ThumbsUp, ThumbsDown, Brain, Sparkles, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+// Textarea removed as it's no longer used for free-form questions
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { KeptAIInsight, KeptAIInsightFirestore, LoggedFoodItem, SymptomLog, UserProfile, TimelineEntry } from '@/types';
 import { getPersonalizedDietitianInsight, type PersonalizedDietitianInput } from '@/ai/flows/personalized-dietitian-flow';
@@ -35,13 +35,14 @@ const TEMPORARILY_UNLOCK_ALL_FEATURES = true;
 // --- END TEMPORARY FEATURE UNLOCK FLAG ---
 
 const DATA_FETCH_LIMIT_DAYS = 90; // Fetch last 90 days of data for AI context
+const PREDEFINED_QUESTION = "What do you think about my food today so far and what would you recommend for the rest of today?";
 
 export default function AIInsightsPage() {
   const { user: authUser, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
-  const [userQuestion, setUserQuestion] = useState('');
+  // userQuestion state is removed
   const [currentAIResponse, setCurrentAIResponse] = useState<string | null>(null);
   const [isGeneratingInsight, setIsGeneratingInsight] = useState(false);
   const [keptInsights, setKeptInsights] = useState<KeptAIInsight[]>([]);
@@ -79,11 +80,9 @@ export default function AIInsightsPage() {
         if (userDocSnap.exists()) {
           setUserProfile(userDocSnap.data() as UserProfile);
         } else {
-          // Basic profile if not found, though one should exist
            setUserProfile({ uid: authUser.uid, email: authUser.email, displayName: authUser.displayName, safeFoods: [], premium: false });
         }
 
-        // Fetch kept insights
         const insightsColRef = collection(db, 'users', authUser.uid, 'keptAiInsights');
         const q = query(insightsColRef, orderBy('timestamp', 'desc'));
         
@@ -110,14 +109,14 @@ export default function AIInsightsPage() {
   }, [authUser, authLoading]);
 
   const handleQuestionSubmit = async () => {
-    if (!userQuestion.trim() || !authUser) return;
+    // No longer relies on userQuestion state
+    if (!authUser) return;
 
     setIsGeneratingInsight(true);
-    setCurrentAIResponse(null); // Clear previous response
+    setCurrentAIResponse(null);
     setError(null);
 
     try {
-      // Fetch recent food and symptom logs
       const now = new Date();
       const startDate = new Date(now);
       startDate.setDate(now.getDate() - DATA_FETCH_LIMIT_DAYS);
@@ -133,10 +132,9 @@ export default function AIInsightsPage() {
          foodLogQuery = query(timelineEntriesColRef, where('entryType', 'in', ['food', 'manual_macro']), where('timestamp', '>=', Timestamp.fromDate(startDate)), orderBy('timestamp', 'desc'));
          symptomLogQuery = query(timelineEntriesColRef, where('entryType', '==', 'symptom'), where('timestamp', '>=', Timestamp.fromDate(startDate)), orderBy('timestamp', 'desc'));
       } else {
-        // Free users get less data for context (e.g., last 7 days)
         const freeUserStartDate = new Date(now);
         freeUserStartDate.setDate(now.getDate() - 7);
-        foodLogQuery = query(timelineEntriesColRef, where('entryType', 'in', ['food', 'manual_macro']), where('timestamp', '>=', Timestamp.fromDate(freeUserStartDate)), orderBy('timestamp', 'desc'), limit(50)); // Limit entries for performance
+        foodLogQuery = query(timelineEntriesColRef, where('entryType', 'in', ['food', 'manual_macro']), where('timestamp', '>=', Timestamp.fromDate(freeUserStartDate)), orderBy('timestamp', 'desc'), limit(50));
         symptomLogQuery = query(timelineEntriesColRef, where('entryType', '==', 'symptom'), where('timestamp', '>=', Timestamp.fromDate(freeUserStartDate)), orderBy('timestamp', 'desc'), limit(20));
          toast({
           title: "Contextual Data Notice",
@@ -153,7 +151,6 @@ export default function AIInsightsPage() {
       const foodLogData: LoggedFoodItem[] = foodLogSnapshot.docs.map(d => ({...d.data(), id: d.id, timestamp: (d.data().timestamp as Timestamp).toDate() } as LoggedFoodItem));
       const symptomLogData: SymptomLog[] = symptomLogSnapshot.docs.map(d => ({...d.data(), id: d.id, timestamp: (d.data().timestamp as Timestamp).toDate() } as SymptomLog));
       
-      // Prepare input for AI flow with robust transformations
       const processedFoodLog = foodLogData.map(item => ({
           name: item.name,
           originalName: item.originalName,
@@ -178,6 +175,8 @@ export default function AIInsightsPage() {
               finalLinkedIds = rawLinkedIds.filter(id => typeof id === 'string' && id.trim().length > 0);
           } else if (typeof rawLinkedIds === 'string' && rawLinkedIds.trim().length > 0) {
               finalLinkedIds = [rawLinkedIds.trim()];
+          } else if (Array.isArray(rawLinkedIds) && rawLinkedIds.every(id => typeof id === 'string' && id.trim().length > 0)) {
+            finalLinkedIds = rawLinkedIds;
           }
 
           return {
@@ -190,7 +189,7 @@ export default function AIInsightsPage() {
       });
       
       const aiInput: PersonalizedDietitianInput = {
-        userQuestion: userQuestion,
+        userQuestion: PREDEFINED_QUESTION, // Use predefined question
         foodLog: processedFoodLog,
         symptomLog: processedSymptomLog,
         userProfile: userProfile ? {
@@ -213,10 +212,10 @@ export default function AIInsightsPage() {
   };
 
   const handleKeepInsight = async () => {
-    if (!currentAIResponse || !authUser || !userQuestion) return;
+    if (!currentAIResponse || !authUser) return;
 
     const insightToSave: KeptAIInsightFirestore = {
-      userQuestion: userQuestion,
+      userQuestion: PREDEFINED_QUESTION, // Save predefined question
       aiResponse: currentAIResponse,
       timestamp: Timestamp.now(),
     };
@@ -224,8 +223,8 @@ export default function AIInsightsPage() {
     try {
       const docRef = await addDoc(collection(db, 'users', authUser.uid, 'keptAiInsights'), insightToSave);
       setKeptInsights(prev => [{ ...insightToSave, id: docRef.id, timestamp: new Date() }, ...prev]);
-      setCurrentAIResponse(null); // Clear current response area
-      setUserQuestion(''); // Clear input field
+      setCurrentAIResponse(null);
+      // setUserQuestion(''); // No longer needed
       toast({ title: "Insight Saved!", description: "This insight is now in your history." });
     } catch (err) {
       console.error("Error saving insight:", err);
@@ -235,8 +234,6 @@ export default function AIInsightsPage() {
 
   const handleDiscardInsight = () => {
     setCurrentAIResponse(null);
-    // Optionally clear userQuestion as well if desired, or leave it for re-submission/editing
-    // setUserQuestion(''); 
   };
 
   const handleDeleteInsight = async (insightId: string) => {
@@ -264,7 +261,7 @@ export default function AIInsightsPage() {
     );
   }
 
-  if (error && !isGeneratingInsight) { // Don't show main page error if an insight generation fails, that's handled inline
+  if (error && !isGeneratingInsight) {
     return (
       <div className="flex flex-col min-h-screen">
         <Navbar />
@@ -285,14 +282,14 @@ export default function AIInsightsPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center justify-center">
             <Sparkles className="mr-2 h-7 w-7 text-primary" /> Your Personal AI Dietitian
           </h1>
-          <p className="text-muted-foreground text-sm sm:text-base mt-1">
-            Ask anything about your diet, health, and well-being. I&apos;ll use your logged data to provide personalized insights.
+          <p className="text-muted-foreground text-sm sm:text-base mt-1 max-w-2xl mx-auto">
+            Get personalized insights based on your logged data by asking: <br/>
+            <em className="text-primary/90">&quot;{PREDEFINED_QUESTION}&quot;</em>
           </p>
         </div>
 
         <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
           <div className="space-y-6">
-            {/* Display Kept Insights */}
             {keptInsights.map((insight) => (
               <Card key={insight.id} className="bg-card shadow-md border-border">
                 <CardHeader className="pb-2 pt-3 px-4">
@@ -320,14 +317,13 @@ export default function AIInsightsPage() {
               </Card>
             ))}
 
-            {/* Display Current AI Response (if any) */}
             {currentAIResponse && !isGeneratingInsight && (
               <Card className="bg-green-500/10 border-green-500/30 shadow-lg">
                 <CardHeader className="pb-2 pt-3 px-4">
                    <p className="text-sm font-semibold text-primary flex items-center">
                     <MessageSquareText className="h-4 w-4 mr-2 opacity-80" /> You asked:
                   </p>
-                  <p className="text-foreground whitespace-pre-wrap">{userQuestion}</p>
+                  <p className="text-foreground whitespace-pre-wrap">{PREDEFINED_QUESTION}</p>
                 </CardHeader>
                 <CardContent className="px-4 py-2">
                   <p className="text-sm font-semibold text-green-600 dark:text-green-400 flex items-center">
@@ -350,44 +346,25 @@ export default function AIInsightsPage() {
              {isGeneratingInsight && (
               <div className="flex items-center justify-center p-6 bg-muted/50 rounded-md">
                 <Loader2 className="h-6 w-6 animate-spin text-primary mr-3" />
-                <p className="text-foreground">Your AI Dietitian is thinking...</p>
+                <p className="text-foreground">Your AI Dietitian is analyzing your day...</p>
               </div>
             )}
-            {error && isGeneratingInsight && ( // Show error specifically for current generation attempt
+            {error && isGeneratingInsight && (
                 <p className="text-destructive text-sm text-center p-2">{error}</p>
             )}
           </div>
         </ScrollArea>
 
-        {/* Input Area */}
         <div className="p-4 border-t border-border bg-background">
-          <div className="flex gap-2">
-            <Textarea
-              value={userQuestion}
-              onChange={(e) => setUserQuestion(e.target.value)}
-              placeholder="Ask your AI Dietitian a question... (e.g., 'Why do I feel bloated after eating pasta?' or 'Suggest some high-protein breakfast ideas based on my logs.')"
-              className="flex-1 resize-none text-base bg-input text-foreground placeholder:text-muted-foreground"
-              rows={2}
-              disabled={isGeneratingInsight}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  if (!isGeneratingInsight && userQuestion.trim()) {
-                    handleQuestionSubmit();
-                  }
-                }
-              }}
-            />
-            <Button
-              onClick={handleQuestionSubmit}
-              disabled={isGeneratingInsight || !userQuestion.trim()}
-              className="h-auto px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90"
-              size="lg"
-            >
-              <Send className="h-5 w-5" />
-              <span className="sr-only">Send</span>
-            </Button>
-          </div>
+          <Button
+            onClick={handleQuestionSubmit}
+            disabled={isGeneratingInsight}
+            className="w-full h-auto px-4 py-3 bg-primary text-primary-foreground hover:bg-primary/90 text-base"
+            size="lg"
+          >
+            <Brain className="h-5 w-5 mr-2" />
+            Get Today&apos;s Analysis & Recommendations
+          </Button>
         </div>
       </main>
     </div>
