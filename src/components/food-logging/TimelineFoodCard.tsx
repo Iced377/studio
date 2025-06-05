@@ -10,7 +10,7 @@ import DietaryFiberIndicator from '@/components/shared/DietaryFiberIndicator';
 import MicronutrientsIndicator from '@/components/shared/MicronutrientsIndicator';
 import GutBacteriaIndicator from '@/components/shared/GutBacteriaIndicator';
 import { Badge } from '@/components/ui/badge';
-import { ThumbsUp, ThumbsDown, Trash2, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3, CheckCheck, PencilLine, Sparkles, Leaf, Users, Activity, Repeat } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Trash2, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3, CheckCheck, PencilLine, Sparkles, Leaf, Users, Activity, Repeat, MessageSquareText, Info } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -64,6 +64,9 @@ export default function TimelineFoodCard({
   const primaryTextClass = "text-foreground";
   const buttonTextClass = "text-foreground"; 
 
+  const fodmapReason = item.fodmapData?.reason;
+  const gutImpactReasoning = item.fodmapData?.gutBacteriaImpact?.reasoning;
+
   return (
     <Card className={cardClasses}>
       {isLoadingAi && !isManualMacroEntry && (
@@ -81,6 +84,7 @@ export default function TimelineFoodCard({
             )}
             {!isManualMacroEntry && <p className={cn("text-sm", mutedTextClass)}>Portion: {item.portionSize} {item.portionUnit}</p>}
           </div>
+           {item.fodmapData && !isManualMacroEntry && <FodmapIndicator score={item.fodmapData.overallRisk} reason={item.fodmapData.reason} />}
         </div>
          {item.sourceDescription && !isManualMacroEntry ? (
            <p className={cn("text-sm italic pt-1 break-words", mutedTextClass, "text-muted-foreground/70")}>{item.sourceDescription}</p>
@@ -121,10 +125,23 @@ export default function TimelineFoodCard({
                 <GlycemicIndexIndicator giInfo={item.fodmapData.glycemicIndexInfo} />
                 <DietaryFiberIndicator fiberInfo={item.fodmapData.dietaryFiberInfo} />
                 <MicronutrientsIndicator micronutrientsInfo={item.fodmapData.micronutrientsInfo} />
-                <FodmapIndicator score={item.fodmapData?.overallRisk} reason={item.fodmapData?.reason} />
                 <GutBacteriaIndicator gutImpact={item.fodmapData.gutBacteriaImpact} />
             </div>
         )}
+        
+        {/* New AI Commentary Section */}
+        {!isManualMacroEntry && (fodmapReason || gutImpactReasoning) && (
+          <div className={cn("text-xs border-t pt-2 mt-2 space-y-1.5", "border-border/50", mutedTextClass)}>
+            <h4 className="text-xs font-semibold text-foreground/80 flex items-center"><MessageSquareText className="h-3.5 w-3.5 mr-1.5 text-primary/70"/>AI Notes:</h4>
+            {fodmapReason && (
+              <p><strong className="text-foreground/70">FODMAP:</strong> {fodmapReason}</p>
+            )}
+            {gutImpactReasoning && (
+              <p><strong className="text-foreground/70">Gut Impact:</strong> {gutImpactReasoning}</p>
+            )}
+          </div>
+        )}
+
          {item.fodmapData?.ingredientFodmapScores && item.fodmapData.ingredientFodmapScores.length > 0 && !isManualMacroEntry && (
           <div className="mt-2 max-h-24 overflow-y-auto pr-2 border-t pt-2 border-border/50">
             <p className={cn("text-sm font-medium mb-1", mutedTextClass)}>Ingredient FODMAPs:</p>
@@ -223,3 +240,4 @@ export default function TimelineFoodCard({
     </Card>
   );
 }
+
