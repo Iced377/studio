@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { identifyFoodFromImage, type IdentifyFoodFromImageOutput } from '@/ai/flows/identify-food-from-image-flow';
 import { useTheme } from '@/contexts/ThemeContext';
-import { ScrollArea } from '@/components/ui/scroll-area'; 
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'; // Explicitly import ScrollBar
 
 export interface IdentifiedPhotoData {
   name: string;
@@ -130,9 +130,9 @@ export default function IdentifyFoodByPhotoDialog({
           )}
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0">
-          {/* Increased horizontal padding (px-4) on this inner div */}
-          <div className="space-y-4 py-4 px-4"> 
+        {/* This ScrollArea should handle the scrolling for its content */}
+        <ScrollArea className="flex-1 min-h-0"> {/* min-h-0 is crucial for flex item scrolling */}
+          <div className="space-y-4 py-4 px-4"> {/* Increased padding */}
             {!imagePreview && !identifiedData && !isLoading && !photoError && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button variant="outline" type="button" className="w-full border-primary text-primary hover:bg-primary/10 py-6 text-base" onClick={() => cameraInputRef.current?.click()} disabled={isLoading}>
@@ -203,10 +203,10 @@ export default function IdentifyFoodByPhotoDialog({
               </div>
             )}
           </div>
+          <ScrollBar orientation="vertical" /> {/* Explicitly add ScrollBar */}
         </ScrollArea>
 
-        {/* Removed mt-auto from DialogFooter and kept shrink-0 */}
-        <DialogFooter className="pt-2 shrink-0"> 
+        <DialogFooter className="pt-2 shrink-0"> {/* Kept shrink-0 */}
           <DialogClose asChild>
             <Button type="button" variant="outline" className={cancelClasses} onClick={() => handleOpenChangeWithReset(false)} disabled={isLoading}>
               Cancel
@@ -222,3 +222,4 @@ export default function IdentifyFoodByPhotoDialog({
     </Dialog>
   );
 }
+    
