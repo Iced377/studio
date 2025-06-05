@@ -85,11 +85,13 @@ User's Profile Information (if available):
 Display Name: {{#if userProfile.displayName}}{{userProfile.displayName}}{{else}}N/A{{/if}}
 Premium User: {{#if userProfile.premium}}Yes{{else}}No{{/if}}
 Marked Safe Foods (name, portion):
-{{#each userProfile.safeFoods}}
-- {{this.name}} ({{this.portionSize}} {{this.portionUnit}})
+{{#if userProfile.safeFoods}}
+  {{#each userProfile.safeFoods}}
+  - {{this.name}} ({{this.portionSize}} {{this.portionUnit}})
+  {{/each}}
 {{else}}
 (No specific safe foods marked by user)
-{{/each}}
+{{/if}}
 {{else}}
 (No user profile information provided)
 {{/if}}
@@ -127,13 +129,13 @@ INSTRUCTIONS:
 7.  Structure your response clearly. Use paragraphs. If suggesting multiple points, consider using bullet points (markdown-style like * or -) for readability.
 8.  Be highly personalized. Refer to specific foods they've eaten or symptoms they've logged if relevant.
 9.  Maintain a supportive and encouraging tone. Avoid making definitive medical diagnoses; frame suggestions as possibilities to explore or discuss with a healthcare professional if appropriate.
-10. Do NOT just repeat the input data. Synthesize it to form new insights.
-11. Your response text (the value for 'aiResponse') should be formatted in plain text or simple Markdown suitable for direct display to the user. Do NOT include any \`{{...}}\` templating syntax, or any other code-like structures, in the 'aiResponse' string itself.
-
-Your final output MUST be a JSON object with a single key "aiResponse". The value of "aiResponse" should be your detailed, personalized insight as a string. For example:
+10. Do NOT just repeat the input data. Synthesize it to form new insights. Your response should be formatted in plain text or simple Markdown suitable for direct display to the user.
+11. Ensure the output is a single string for the 'aiResponse' field within a JSON object. Your final output MUST be a JSON object with a single key "aiResponse". The value of "aiResponse" should be your detailed, personalized insight as a string. For example:
 {
   "aiResponse": "Your detailed insight here..."
 }
+
+Provide your detailed, personalized insight below:
 `,
 });
 
@@ -145,6 +147,8 @@ const personalizedDietitianFlow = ai.defineFlow(
   },
   async (input) => {
     // Data transformation: Convert Date objects to ISO strings if they are not already.
+    // This is mostly a safeguard; Firestore retrieval should give serializable data,
+    // but direct Date objects might come from client-side construction.
     const transformedInput = {
         ...input,
         foodLog: input.foodLog.map(item => ({
