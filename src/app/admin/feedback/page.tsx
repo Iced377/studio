@@ -10,9 +10,11 @@ import { format } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, AlertTriangle, ShieldAlert, ExternalLink } from 'lucide-react';
+import { Loader2, AlertTriangle, ShieldAlert, ExternalLink, ArrowLeft } from 'lucide-react';
 import Navbar from '@/components/shared/Navbar';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function AdminFeedbackPage() {
   const { user: authUser, loading: authLoading } = useAuth();
@@ -21,6 +23,10 @@ export default function AdminFeedbackPage() {
   const [profileError, setProfileError] = useState<string | null>(null);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
   const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState<boolean | null>(null);
+  // Removed userCount related states as the feature was removed.
+  // const [totalUsers, setTotalUsers] = useState<number | null>(null);
+  // const [userCountError, setUserCountError] = useState<string | null>(null);
+
 
   useEffect(() => {
     const checkAdminAndFetchData = async () => {
@@ -34,6 +40,7 @@ export default function AdminFeedbackPage() {
 
       setProfileError(null);
       setFeedbackError(null);
+      // setUserCountError(null); // No longer needed
       let adminStatus = false;
 
       try {
@@ -80,6 +87,32 @@ export default function AdminFeedbackPage() {
           console.error("[Admin Page] Error fetching feedback submissions:", err);
           setFeedbackError(`Failed to load feedback: ${err.message}. Code: ${err.code || 'N/A'}.`);
         }
+
+        // User count logic removed
+        // try {
+        //   console.log('[Admin Page] Fetching user count.');
+        //   const usersSnapshot = await getDocs(collection(db, 'users'));
+        //   setTotalUsers(usersSnapshot.size);
+        // } catch (err: any) {
+        //   console.error("[Admin Page] Error fetching user count (raw error):", JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
+        //   console.error("[Admin Page] Error fetching user count (err.code):", err.code);
+        //   console.error("[Admin Page] Error fetching user count (err.message):", err.message);
+        //   setUserCountError(
+        //     `Failed to load user count: Firestore permission denied (Code: ${err.code || 'N/A'}). This means your security rules are blocking the 'list' operation on the '/users' collection.\n\n` +
+        //     `**Troubleshooting Steps:**\n` +
+        //     `1. **Firestore Rules Simulator:**\n` +
+        //     `   - Go to Firebase Console -> Firestore -> Rules.\n` +
+        //     `   - Simulate a 'get' operation.\n` +
+        //     `   - Path: 'users' (If this gives 'Path must be documented', use 'users/nonexistentdoc').\n` +
+        //     `   - Authenticated: ON, UID: '${authUser.uid}'.\n` +
+        //     `   - Verify the rule 'match /users { allow list: if ... }' is being hit and why it might be failing.\n` +
+        //     `2. **Admin User Document ('/users/${authUser.uid}'):**\n` +
+        //     `   - Ensure the document exists.\n` +
+        //     `   - Ensure it has a field named 'isAdmin'.\n` +
+        //     `   - Crucially, ensure the value of 'isAdmin' is the **boolean \`true\`** (not the string "true").\n` +
+        //     `3. **Rule Exactness:** Ensure your 'allow list' rule for '/users' is exactly: 'allow list: if request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;' and is published.`
+        //   );
+        // }
       }
       setIsLoadingData(false);
     };
@@ -127,8 +160,41 @@ export default function AdminFeedbackPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Navbar />
-      <main className="flex-grow container mx-auto px-2 sm:px-4 py-8 space-y-8">
-        {/* User Statistics Card Removed */}
+      <main className="flex-grow container mx-auto px-2 sm:px-4 py-8 space-y-6"> {/* Reduced space-y from 8 to 6 */}
+        
+        {isCurrentUserAdmin && (
+          <div className="mb-0"> {/* Removed mb-4, relying on Card's margin or space-y of main */}
+            <Button asChild variant="outline" size="sm">
+              <Link href="/?openDashboard=true">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Return to Dashboard
+              </Link>
+            </Button>
+          </div>
+        )}
+
+        {/* User Statistics Card and its error display have been removed */}
+        {/* {userCountError && (
+          <Card className="border-destructive">
+            <CardHeader>
+              <CardTitle className="text-lg text-destructive">User Statistics Error</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-destructive whitespace-pre-line">{userCountError}</p>
+            </CardContent>
+          </Card>
+        )}
+        {totalUsers !== null && !userCountError && (
+            <Card>
+            <CardHeader>
+                <CardTitle className="text-xl font-semibold text-foreground">User Statistics</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p className="text-foreground">Total Registered Users: <span className="font-bold text-primary">{totalUsers}</span></p>
+            </CardContent>
+            </Card>
+        )} */}
+
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-foreground">Feedback Submissions</CardTitle>
