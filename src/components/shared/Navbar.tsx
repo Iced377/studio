@@ -3,12 +3,23 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X } from 'lucide-react';
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X, ScrollText } from 'lucide-react'; // Added ScrollText for release notes
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,27 +43,47 @@ import {
   getDoc,
   addDoc,
   updateDoc,
-  doc as firestoreDoc, 
+  doc as firestoreDoc,
   serverTimestamp,
   Timestamp
 } from 'firebase/firestore';
-import type { UserProfile } from '@/types'; 
-// AISpeechBubble and related types/functions are removed as the bubble is disabled
-// import AISpeechBubble from '@/components/ai/AISpeechBubble';
-// import type { AIInsight, UserRecommendationInput } from '@/types'; 
-// import { getUserRecommendation } from '@/ai/flows/user-recommendations';
-
+import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.5";
-// Constants for bubble behavior are removed as bubble is disabled
-// const MAX_INSIGHTS_TO_FETCH_FOR_ROTATION = 30;
-// const MAX_UNREAD_INSIGHTS_TO_FETCH = 10;
-// const MIN_INSIGHTS_IN_QUEUE_BEFORE_GENERATING_OR_FETCHING = 5;
-// const INSIGHT_GENERATION_COUNT_IF_LOW = 2;
-// const BUBBLE_DISPLAY_DURATION = 10000; // 10 seconds
-// const INSIGHT_COOLDOWN_DURATION = 60000; // 1 minute
-// const MAX_GENERATIONS_PER_SESSION = 3;
+export const APP_VERSION = "Beta 3.5.1"; // Updated version
+
+interface ReleaseNote {
+  version: string;
+  date?: string;
+  title?: string;
+  description: string | string[];
+}
+
+const releaseNotesData: ReleaseNote[] = [
+  {
+    version: "Beta 3.5.1",
+    date: "July 30, 2024",
+    title: "Release Notes Feature",
+    description: [
+      "Made the app version in the navbar clickable.",
+      "Clicking the version now displays this release notes dialog.",
+      "Updated various UI elements and fixed minor bugs.",
+    ],
+  },
+  {
+    version: "Beta 3.5.0",
+    date: "July 29, 2024",
+    title: "Admin Panel & UI Enhancements",
+    description: "Iterative fixes for admin panel permissions and user statistics. General UI polish.",
+  },
+  {
+    version: "Beta 3.4.0",
+    date: "July 28, 2024",
+    title: "User Statistics & Rule Refinements",
+    description: "Added user statistics card to admin page. Refined Firestore security rules for better access control.",
+  },
+];
+
 
 interface NavbarProps {
   isGuest?: boolean;
@@ -70,18 +101,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   const { toast } = useToast();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState(false);
-
-  // State and refs related to AI insight bubble are removed
-  // const [aiInsightsQueue, setAiInsightsQueue] = useState<AIInsight[]>([]);
-  // const [currentAiInsight, setCurrentAiInsight] = useState<AIInsight | null>(null);
-  // const [showAiInsightBubble, setShowAiInsightBubble] = useState(false);
-  // const aiInsightDismissTimerRef = useRef<NodeJS.Timeout | null>(null);
-  // const insightCooldownTimerRef = useRef<NodeJS.Timeout | null>(null);
-  // const aiInsightIconRef = useRef<HTMLButtonElement>(null);
-  // const [isAiInsightLoading, setIsAiInsightLoading] = useState(false);
-  // const [generatedInsightsTodayCount, setGeneratedInsightsTodayCount] = useState(0);
-  // const [nextInsightDisplayAllowedTime, setNextInsightDisplayAllowedTime] = useState(0);
-  // const processingInsightIdRef = useRef<string | null>(null);
+  const [isReleaseNotesOpen, setIsReleaseNotesOpen] = useState(false);
 
 
   useEffect(() => {
@@ -110,19 +130,13 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   }, [authUser, authLoading]);
 
 
-  // Functions related to AI insight bubble (markInsightAsRead, showNextAiInsight, handleDismissAiInsight, generateAndStoreNewInsight, fetchAndQueueInsights) are removed
-  // as the bubble feature is disabled. The AI insights page will handle its own data fetching.
-
-  // useEffect hooks for managing bubble display and fetching are removed.
-
-
   const handleSignOut = async () => {
     const error = await signOutUser();
     if (error) {
       toast({ title: 'Logout Failed', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Logged Out', description: 'You have been successfully logged out.' });
-      router.push('/'); // Redirect to home which will show guest page
+      router.push('/');
     }
   };
 
@@ -146,7 +160,6 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   const aiInsightsLinkHandler = (e: React.MouseEvent) => {
     e.preventDefault();
     router.push(pathname === '/ai-insights' ? '/?openDashboard=true' : '/ai-insights');
-    // Logic for dismissing bubble on navigation is removed
   };
 
   const headerBaseClasses = "sticky top-0 z-50 w-full";
@@ -160,19 +173,70 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   return (
     <header className={cn(headerBaseClasses, isGuest ? guestHeaderClasses : registeredUserHeaderClasses)}>
       <div className="flex h-16 w-full max-w-screen-2xl items-center justify-between px-4 mx-auto">
-        <Link href="/" className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2"> {/* Wrapper for logo and version */}
+          <Link href="/" className="flex items-center space-x-2">
+            {!isGuest && (
+              <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-foreground bg-black p-1">
+                <Image src="/Gutcheck_logo.png" alt="GutCheck Logo" width={28} height={28} className={cn("object-contain", "filter brightness-0 invert")} priority />
+              </div>
+            )}
+            {!isGuest && (
+              <>
+                <span className={cn(appNameBaseClasses, 'text-foreground')}>{APP_NAME}</span>
+              </>
+            )}
+          </Link>
           {!isGuest && (
-            <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-foreground bg-black p-1">
-              <Image src="/Gutcheck_logo.png" alt="GutCheck Logo" width={28} height={28} className={cn("object-contain", "filter brightness-0 invert")} priority />
-            </div>
+            <Dialog open={isReleaseNotesOpen} onOpenChange={setIsReleaseNotesOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="text-xs text-muted-foreground hover:text-foreground hover:bg-accent/50 p-1 h-auto ml-0 mt-1 rounded-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+                  aria-label={`App Version ${APP_VERSION}, click for release notes`}
+                >
+                  {APP_VERSION}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-lg bg-card text-card-foreground border-border">
+                <DialogHeader>
+                  <DialogTitle className="font-headline text-xl flex items-center">
+                     <ScrollText className="mr-2 h-5 w-5" /> Release Notes
+                  </DialogTitle>
+                </DialogHeader>
+                <ScrollArea className="max-h-[60vh] pr-2 -mr-2 py-2">
+                  <div className="space-y-4">
+                    {releaseNotesData.map((release, index) => (
+                      <div key={index} className="pb-3 border-b border-border last:border-b-0">
+                        <h3 className="text-md font-semibold text-foreground">
+                          Version {release.version}
+                          {release.date && <span className="text-xs text-muted-foreground ml-2 font-normal">- {release.date}</span>}
+                        </h3>
+                        {release.title && <p className="text-sm font-medium text-primary mt-0.5">{release.title}</p>}
+                        {Array.isArray(release.description) ? (
+                          <ul className="list-disc list-inside text-sm text-muted-foreground mt-1 space-y-0.5">
+                            {release.description.map((note, noteIndex) => (
+                              <li key={noteIndex}>{note}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm text-muted-foreground mt-1">{release.description}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+                <DialogFooter className="sm:justify-start mt-2">
+                  <DialogClose asChild>
+                    <Button type="button" variant="secondary" className="w-full sm:w-auto">
+                      Close
+                    </Button>
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           )}
-          {!isGuest && (
-            <>
-              <span className={cn(appNameBaseClasses, 'text-foreground')}>{APP_NAME}</span>
-              <span className="text-xs text-muted-foreground ml-1 mt-1">{APP_VERSION}</span>
-            </>
-          )}
-        </Link>
+        </div>
+
 
         <div className="flex items-center space-x-1 sm:space-x-1.5">
           {isGuest ? (
@@ -203,7 +267,6 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                   
                   <div className="relative">
                     <Button 
-                      // ref={aiInsightIconRef} // Ref removed
                       variant="ghost" 
                       size="icon" 
                       className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/ai-insights' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50')} 
@@ -212,7 +275,6 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                     >
                       <Lightbulb className="h-5 w-5" />
                     </Button>
-                     {/* AISpeechBubble rendering removed */}
                   </div>
                 </>
               )}
