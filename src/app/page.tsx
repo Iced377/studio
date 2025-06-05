@@ -238,10 +238,21 @@ export default function FoodTimelinePage() {
         } finally {
             setIsDataLoading(false);
         }
-      } else {
+      } else { // Guest user (authUser is null, authLoading is false)
         setUserProfile(initialGuestProfile);
         setTimelineEntries([]);
         setLastGuestFoodItem(null);
+        // Explicitly close dialogs that might have been open for the authenticated user
+        setIsAddFoodDialogOpenState(false);
+        setIsSimplifiedAddFoodDialogOpen(false);
+        setIsIdentifyByPhotoDialogOpen(false);
+        setIsSymptomLogDialogOpen(false);
+        setIsAddManualMacroDialogOpen(false);
+        setIsLogPreviousMealDialogOpen(false);
+        setIsCentralPopoverOpen(false);
+        setEditingItem(null);
+        setIsPremiumDashboardOpen(false); // Close dashboard sheet if user logs out
+        setIsGuestSheetOpen(false); // Ensure guest sheet is initially closed
         setIsDataLoading(false);
       }
     };
