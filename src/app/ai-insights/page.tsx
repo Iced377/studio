@@ -150,34 +150,49 @@ export default function AIInsightsPage() {
         getDocs(symptomLogQuery)
       ]);
 
-      const foodLog: LoggedFoodItem[] = foodLogSnapshot.docs.map(d => ({...d.data(), id: d.id, timestamp: (d.data().timestamp as Timestamp).toDate() } as LoggedFoodItem));
-      const symptomLog: SymptomLog[] = symptomLogSnapshot.docs.map(d => ({...d.data(), id: d.id, timestamp: (d.data().timestamp as Timestamp).toDate() } as SymptomLog));
+      const foodLogData: LoggedFoodItem[] = foodLogSnapshot.docs.map(d => ({...d.data(), id: d.id, timestamp: (d.data().timestamp as Timestamp).toDate() } as LoggedFoodItem));
+      const symptomLogData: SymptomLog[] = symptomLogSnapshot.docs.map(d => ({...d.data(), id: d.id, timestamp: (d.data().timestamp as Timestamp).toDate() } as SymptomLog));
       
-      // Prepare input for AI flow
+      // Prepare input for AI flow with robust transformations
+      const processedFoodLog = foodLogData.map(item => ({
+          name: item.name,
+          originalName: item.originalName,
+          ingredients: item.ingredients,
+          portionSize: item.portionSize,
+          portionUnit: item.portionUnit,
+          timestamp: item.timestamp.toISOString(),
+          overallFodmapRisk: item.fodmapData?.overallRisk,
+          calories: item.calories,
+          protein: item.protein,
+          carbs: item.carbs,
+          fat: item.fat,
+          userFeedback: item.userFeedback,
+          sourceDescription: item.sourceDescription
+      }));
+
+      const processedSymptomLog = symptomLogData.map(symptomEntry => {
+          let finalLinkedIds: string[] = [];
+          const rawLinkedIds = symptomEntry.linkedFoodItemIds;
+
+          if (Array.isArray(rawLinkedIds)) {
+              finalLinkedIds = rawLinkedIds.filter(id => typeof id === 'string' && id.trim().length > 0);
+          } else if (typeof rawLinkedIds === 'string' && rawLinkedIds.trim().length > 0) {
+              finalLinkedIds = [rawLinkedIds.trim()];
+          }
+
+          return {
+              symptoms: symptomEntry.symptoms.map(s => ({ name: s.name })),
+              severity: symptomEntry.severity,
+              notes: symptomEntry.notes,
+              timestamp: symptomEntry.timestamp.toISOString(),
+              linkedFoodItemIds: finalLinkedIds,
+          };
+      });
+      
       const aiInput: PersonalizedDietitianInput = {
         userQuestion: userQuestion,
-        foodLog: foodLog.map(item => ({ // Map to schema expected by AI flow
-            name: item.name,
-            originalName: item.originalName,
-            ingredients: item.ingredients,
-            portionSize: item.portionSize,
-            portionUnit: item.portionUnit,
-            timestamp: item.timestamp.toISOString(),
-            overallFodmapRisk: item.fodmapData?.overallRisk,
-            calories: item.calories,
-            protein: item.protein,
-            carbs: item.carbs,
-            fat: item.fat,
-            userFeedback: item.userFeedback,
-            sourceDescription: item.sourceDescription
-        })),
-        symptomLog: symptomLog.map(item => ({
-            symptoms: item.symptoms.map(s => ({ name: s.name })),
-            severity: item.severity,
-            notes: item.notes,
-            timestamp: item.timestamp.toISOString(),
-            linkedFoodItemIds: item.linkedFoodItemIds
-        })),
+        foodLog: processedFoodLog,
+        symptomLog: processedSymptomLog,
         userProfile: userProfile ? {
             displayName: userProfile.displayName,
             safeFoods: userProfile.safeFoods.map(sf => ({ name: sf.name, portionSize: sf.portionSize, portionUnit: sf.portionUnit })),
