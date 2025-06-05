@@ -24,19 +24,21 @@ export default function AdminFeedbackPage() {
   useEffect(() => {
     const checkAdminAndFetchData = async () => {
       if (authLoading) return;
-      if (!authUser) {
+      if (!authUser || !authUser.uid) {
         setIsCurrentUserAdmin(false);
         setIsLoadingData(false);
+        setError("Authentication not found. Please log in.");
         return;
       }
 
+      setError(null); // Clear previous errors
       try {
         const userProfileDocRef = doc(db, 'users', authUser.uid);
         const userProfileSnap = await getDoc(userProfileDocRef);
 
         if (userProfileSnap.exists()) {
           const userProfileData = userProfileSnap.data() as UserProfile;
-          if (userProfileData.isAdmin === true) { 
+          if (userProfileData.isAdmin === true) {
             setIsCurrentUserAdmin(true);
 
             // Fetch feedback submissions
@@ -55,14 +57,18 @@ export default function AdminFeedbackPage() {
             setTotalUsers(usersSnapshot.size);
 
           } else {
+            // User profile exists, but isAdmin is not true or missing
+            setError("Your user profile does not have administrator privileges. Please contact support if you believe this is an error.");
             setIsCurrentUserAdmin(false);
           }
         } else {
+          // User profile document does not exist
+          setError(`User profile not found for your account (UID: ${authUser.uid}). Ensure a user document exists in Firestore at 'users/${authUser.uid}' with the field 'isAdmin' set to true (boolean).`);
           setIsCurrentUserAdmin(false); 
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error checking admin status or fetching data:", err);
-        setError("Failed to load data. Please try again.");
+        setError(`Error accessing user profile: ${err.message}. Please try again or check Firestore permissions.`);
         setIsCurrentUserAdmin(false);
       } finally {
         setIsLoadingData(false);
@@ -84,6 +90,21 @@ export default function AdminFeedbackPage() {
     );
   }
 
+  // Display specific error message if one was set during admin check
+  if (error && isCurrentUserAdmin === false) {
+    return (
+      <>
+        <Navbar />
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] text-center p-6">
+          <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
+          <h1 className="text-3xl font-bold text-foreground mb-2">Access Denied</h1>
+          <p className="text-muted-foreground max-w-xl">{error}</p>
+        </div>
+      </>
+    );
+  }
+  
+  // Fallback "Access Denied" if no specific error but still not admin
   if (!isCurrentUserAdmin) {
     return (
       <>
@@ -97,6 +118,7 @@ export default function AdminFeedbackPage() {
     );
   }
 
+  // General error for data loading after admin confirmed (e.g., feedback list fails)
   if (error) {
     return (
       <>
