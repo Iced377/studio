@@ -11,7 +11,7 @@ export type FodmapScore = 'Green' | 'Yellow' | 'Red';
 // Extended AI Output to include new health indicators
 export interface GlycemicIndexInfo {
   value?: number;
-  level?: 'Low' | 'Medium' | 'High';
+  level?: 'Low' | 'Medium' | 'High' | 'Unknown';
 }
 
 export interface DietaryFiberInfo {
@@ -36,11 +36,20 @@ export interface GutBacteriaImpactInfo {
   reasoning?: string; // Brief AI-generated explanation
 }
 
+export interface AISummaries {
+  fodmapSummary?: string;
+  micronutrientSummary?: string;
+  glycemicIndexSummary?: string;
+  gutImpactSummary?: string;
+}
+
 export type ExtendedAnalyzeFoodItemOutput = OriginalAnalyzeFoodItemOutput & {
   glycemicIndexInfo?: GlycemicIndexInfo;
   dietaryFiberInfo?: DietaryFiberInfo;
   micronutrientsInfo?: MicronutrientsInfo;
   gutBacteriaImpact?: GutBacteriaImpactInfo;
+  detectedAllergens?: string[];
+  aiSummaries?: AISummaries;
 };
 
 

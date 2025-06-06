@@ -2,7 +2,8 @@
 'use server';
 /**
  * @fileOverview This file contains the Genkit flow for FODMAP detection in food items, considering portion sizes,
- * and also estimates calorie, macronutrient content, Glycemic Index, Fiber, Micronutrients, and Gut Bacteria Impact.
+ * and also estimates calorie, macronutrient content, Glycemic Index, Fiber, Micronutrients, Gut Bacteria Impact,
+ * and detects common allergens, providing textual summaries.
  *
  * - analyzeFoodItem - Analyzes a food item for FODMAPs and various health indicators.
  * - AnalyzeFoodItemInput - The input type for the analyzeFoodItem function.
@@ -47,7 +48,7 @@ const IngredientScoreSchema = z.object({
 // New schemas for additional health indicators
 const GlycemicIndexInfoSchema = z.object({
   value: z.number().optional().describe("Estimated Glycemic Index (GI) value of the food item per serving. Provide if known from common food databases."),
-  level: z.enum(['Low', 'Medium', 'High']).optional().describe("Categorical GI level (Low: <=55, Medium: 56-69, High: >=70) based on the GI value and portion.")
+  level: z.enum(['Low', 'Medium', 'High', 'Unknown']).optional().describe("Categorical GI level (Low: <=55, Medium: 56-69, High: >=70, Unknown) based on the GI value and portion.")
 }).describe("Information about the food item's estimated Glycemic Index.");
 
 const DietaryFiberInfoSchema = z.object({
@@ -72,6 +73,13 @@ const GutBacteriaImpactInfoSchema = z.object({
   reasoning: z.string().optional().describe("Short reasoning for the estimated gut bacteria impact (e.g., 'Contains prebiotic fiber', 'High in processed sugars, may negatively impact diversity', 'Contains probiotics')."),
 }).describe("Estimated impact of the food item on gut bacteria.");
 
+const AISummariesSchema = z.object({
+  fodmapSummary: z.string().optional().describe("Optional concise summary of FODMAP analysis if the main `reason` is very detailed. E.g., 'Mainly low FODMAP but watch portion of X'."),
+  micronutrientSummary: z.string().optional().describe("Brief (1-2 sentence) textual summary of key micronutrients. E.g., 'Good source of Vitamin C and Iron.' or 'Notable for Calcium content.'"),
+  glycemicIndexSummary: z.string().optional().describe("Brief (1 sentence) textual summary of glycemic impact. E.g., 'Likely has a low glycemic impact based on its ingredients.'"),
+  gutImpactSummary: z.string().optional().describe("Optional concise summary of gut bacteria impact if `gutBacteriaImpact.reasoning` is detailed."),
+}).describe("Additional concise textual summaries for display in an 'AI Notes' section.");
+
 const AnalyzeFoodItemOutputSchema = z.object({
   ingredientFodmapScores: z.array(IngredientScoreSchema).describe('A list of ingredients and their FODMAP scores, adjusted for the overall portion.'),
   overallRisk: FodmapScoreSchema.describe('The overall FODMAP risk level of the food item for the specified portion (Green, Yellow, or Red).'),
@@ -81,11 +89,12 @@ const AnalyzeFoodItemOutputSchema = z.object({
   protein: z.number().optional().describe('Estimated total protein in grams for the given portion.'),
   carbs: z.number().optional().describe('Estimated total carbohydrates in grams for the given portion.'),
   fat: z.number().optional().describe('Estimated total fat in grams for the given portion.'),
-  // Adding new health indicator fields
   glycemicIndexInfo: GlycemicIndexInfoSchema.optional().describe("Glycemic Index information."),
   dietaryFiberInfo: DietaryFiberInfoSchema.optional().describe("Dietary fiber information."),
   micronutrientsInfo: MicronutrientsInfoSchema.optional().describe("Micronutrients overview."),
   gutBacteriaImpact: GutBacteriaImpactInfoSchema.optional().describe("Gut bacteria impact assessment."),
+  detectedAllergens: z.array(z.string()).optional().describe("List of common allergens detected in the ingredients (e.g., Milk, Wheat, Soy). If none, can be empty or omitted."),
+  aiSummaries: AISummariesSchema.optional().describe("Concise AI-generated textual summaries for display in notes."),
 });
 // The AnalyzeFoodItemOutput type is now imported from @/types where it's defined as ExtendedAnalyzeFoodItemOutput
 
@@ -97,14 +106,14 @@ export async function analyzeFoodItem(input: AnalyzeFoodItemInput): Promise<Anal
 const analyzeFoodItemPrompt = ai.definePrompt({
   name: 'analyzeFoodItemPrompt',
   input: {schema: AnalyzeFoodItemInputSchema},
-  output: {schema: AnalyzeFoodItemOutputSchema}, // This schema now includes the new health indicators
+  output: {schema: AnalyzeFoodItemOutputSchema}, // This schema now includes the new health indicators, allergens, and AI summaries
   prompt: `You are an expert AI assistant specialized in comprehensive food analysis for individuals with IBS, focusing on portion-specificity.
 You will receive a food item, its ingredients, and a portion size. Your task is to provide:
 
 1.  **FODMAP Analysis (Portion-Specific):**
     *   Analyze each ingredient for its FODMAP content.
     *   Determine an overall FODMAP risk (Green, Yellow, Red) for the *specified portion*.
-    *   Provide a detailed explanation for the overall risk.
+    *   Provide a detailed explanation for the overall risk in the \`reason\` field.
     *   If possible, estimate a detailed FODMAP profile (fructans, GOS, lactose, excess fructose, sorbitol, mannitol) for the given portion.
 
 2.  **Nutritional Estimation (Portion-Specific):**
@@ -113,7 +122,7 @@ You will receive a food item, its ingredients, and a portion size. Your task is 
 
 3.  **Glycemic Index (GI) (Portion-Specific):**
     *   Estimate the Glycemic Index (GI) value if commonly known for the item or its main ingredients.
-    *   Categorize the GI level (Low, Medium, High) based on standard ranges (Low: <=55, Medium: 56-69, High: >=70), considering the portion. If GI value is not available, level may also be "Unknown".
+    *   Categorize the GI level (Low, Medium, High, Unknown) based on standard ranges (Low: <=55, Medium: 56-69, High: >=70), considering the portion.
 
 4.  **Dietary Fiber (Portion-Specific):**
     *   Estimate the total dietary fiber in grams.
@@ -126,7 +135,18 @@ You will receive a food item, its ingredients, and a portion size. Your task is 
 
 6.  **Gut Bacteria Impact (Portion-Specific):**
     *   Estimate the general impact on gut bacteria (Positive, Negative, Neutral, Unknown).
-    *   Provide brief reasoning (e.g., "Contains prebiotic fiber like inulin", "High in saturated fat, potentially negative for diversity", "Probiotic content from yogurt").
+    *   Provide brief reasoning in the \`gutBacteriaImpact.reasoning\` field (e.g., "Contains prebiotic fiber like inulin", "High in saturated fat, potentially negative for diversity", "Probiotic content from yogurt").
+
+7.  **Allergen Detection:**
+    *   Analyze the 'Ingredients: {{{ingredients}}}' list.
+    *   Identify any of the following common allergens: Milk, Eggs, Fish, Crustacean shellfish (e.g., crab, lobster, shrimp), Tree nuts (e.g., almonds, walnuts, pecans, cashews, hazelnuts, pistachios), Peanuts, Wheat, Soybeans, Sesame.
+    *   Populate the \`detectedAllergens\` array with the names of any allergens found. If none are found, this array can be empty or omitted. Be precise with allergen names.
+
+8.  **AI Textual Summaries (for \`aiSummaries\` field):**
+    *   **aiSummaries.fodmapSummary**: (Optional) If the main \`reason\` field for overall FODMAP risk is very long or technical, provide a very concise 1-sentence summary here that's easier to understand. Otherwise, this can be omitted if \`reason\` is already concise and user-friendly.
+    *   **aiSummaries.micronutrientSummary**: Provide a brief (1-2 sentence) textual summary highlighting key micronutrient aspects (e.g., "Good source of Vitamin C and Iron." or "Notable for its Calcium content and some B vitamins."). Avoid simply listing them; provide a qualitative summary.
+    *   **aiSummaries.glycemicIndexSummary**: Provide a brief (1 sentence) textual summary of the glycemic impact (e.g., "Likely has a low glycemic impact." or "May have a moderate effect on blood sugar due to X ingredient.").
+    *   **aiSummaries.gutImpactSummary**: (Optional) If the main \`gutBacteriaImpact.reasoning\` field is very technical or long, provide a very concise 1-sentence summary here. Otherwise, this can be omitted if the reasoning is already concise and user-friendly.
 
 Base your analysis on established FODMAP data (like Monash University's guidelines), general nutritional databases, and common knowledge about food properties. ALWAYS consider the specified portion size.
 
@@ -134,8 +154,8 @@ Food Item: {{{foodItem}}}
 Ingredients: {{{ingredients}}}
 Portion: {{{portionSize}}} {{{portionUnit}}}
 
-Output a JSON object adhering to the full output schema including all FODMAP details, nutritional estimates, glycemicIndexInfo, dietaryFiberInfo, micronutrientsInfo, and gutBacteriaImpact.
-If specific data for an optional field (e.g., a specific micronutrient amount, GI value) is not reasonably estimable or widely available, omit that specific sub-field or set to null, but try to provide the higher-level object if some information can be given (e.g., gutImpact.sentiment = 'Unknown'). For micronutrients, if none are particularly "notable", the 'notable' array can be empty or omitted.
+Output a JSON object adhering to the full output schema including all FODMAP details, nutritional estimates, glycemicIndexInfo, dietaryFiberInfo, micronutrientsInfo, gutBacteriaImpact, detectedAllergens, and aiSummaries.
+If specific data for an optional field (e.g., a specific micronutrient amount, GI value) is not reasonably estimable or widely available, omit that specific sub-field or set to null, but try to provide the higher-level object if some information can be given (e.g., gutImpact.sentiment = 'Unknown'). For micronutrients, if none are particularly "notable", the 'notable' array can be empty or omitted. Ensure all requested summaries in \`aiSummaries\` are attempted if the base data is available.
 `,
 });
 
@@ -154,3 +174,4 @@ const analyzeFoodItemFlow = ai.defineFlow(
 // Ensure the detailed profile type is exported if it's used elsewhere, though now the main output is extended.
 // The ExtendedAnalyzeFoodItemOutput from @/types is the primary export type for this flow's result.
 export type { FoodFODMAPProfile as DetailedFodmapProfileFromAI };
+

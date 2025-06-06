@@ -10,10 +10,10 @@ import DietaryFiberIndicator from '@/components/shared/DietaryFiberIndicator';
 import MicronutrientsIndicator from '@/components/shared/MicronutrientsIndicator';
 import GutBacteriaIndicator from '@/components/shared/GutBacteriaIndicator';
 import { Badge } from '@/components/ui/badge';
-import { ThumbsUp, ThumbsDown, Trash2, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3, CheckCheck, PencilLine, Sparkles, Leaf, Users, Activity, Repeat, MessageSquareText, Info } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Trash2, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3, CheckCheck, PencilLine, Sparkles, Leaf, Users, Activity, Repeat, MessageSquareText, Info, AlertCircle } from 'lucide-react'; // Added AlertCircle
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'; // Added Tooltip imports
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'; 
 
 interface TimelineFoodCardProps {
   item: LoggedFoodItem;
@@ -65,8 +65,8 @@ export default function TimelineFoodCard({
   const primaryTextClass = "text-foreground";
   const buttonTextClass = "text-foreground"; 
 
-  const fodmapReason = item.fodmapData?.reason;
-  const gutImpactReasoning = item.fodmapData?.gutBacteriaImpact?.reasoning;
+  const aiSummaries = item.fodmapData?.aiSummaries;
+  const detectedAllergens = item.fodmapData?.detectedAllergens;
 
   return (
     <Card className={cardClasses}>
@@ -110,6 +110,22 @@ export default function TimelineFoodCard({
             <CheckCheck className="mr-1.5 h-4 w-4" /> Similar to your Safe Foods
           </Badge>
         )}
+
+        {detectedAllergens && detectedAllergens.length > 0 && !isManualMacroEntry && (
+            <div className="border-t border-border/50 pt-2">
+                <p className="text-sm font-medium text-destructive flex items-center mb-1">
+                    <AlertCircle className="h-4 w-4 mr-1.5" /> Contains Allergens:
+                </p>
+                <div className="flex flex-wrap gap-1">
+                    {detectedAllergens.map(allergen => (
+                        <Badge key={allergen} variant="destructive" className="text-xs bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30">
+                            {allergen}
+                        </Badge>
+                    ))}
+                </div>
+            </div>
+        )}
+
         {macroParts.length > 0 && (
             <div className={cn("text-sm border-t pt-2", mutedTextClass, "border-border/50")}>
                 <p className="flex items-center gap-x-2 sm:gap-x-3 flex-wrap">
@@ -130,8 +146,9 @@ export default function TimelineFoodCard({
             </div>
         )}
         
-        {/* AI Notes Section - displays FODMAP reason and Gut Impact reasoning */}
-        {!isManualMacroEntry && (fodmapReason || gutImpactReasoning) && (
+        {!isManualMacroEntry && aiSummaries && (
+          Object.values(aiSummaries).some(summary => summary && summary.length > 0) || item.fodmapData?.gutBacteriaImpact?.reasoning
+        ) && (
           <div className={cn("text-xs border-t pt-2 mt-2 space-y-1.5", "border-border/50", mutedTextClass)}>
             <TooltipProvider>
               <Tooltip>
@@ -140,16 +157,24 @@ export default function TimelineFoodCard({
                     <MessageSquareText className="h-3.5 w-3.5 mr-1.5 text-primary/70"/>AI Notes:
                   </h4>
                 </TooltipTrigger>
-                <TooltipContent className="bg-popover text-popover-foreground border-border">
-                  <p>AI-generated summary for FODMAP and Gut Impact.</p>
+                <TooltipContent className="bg-popover text-popover-foreground border-border max-w-xs">
+                  <p>AI-generated summaries for this item.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            {fodmapReason && (
-              <p><strong className="text-foreground/70">FODMAP:</strong> {fodmapReason}</p>
+            {aiSummaries.fodmapSummary && (
+              <p><strong className="text-foreground/70">FODMAP:</strong> {aiSummaries.fodmapSummary}</p>
             )}
-            {gutImpactReasoning && (
-              <p><strong className="text-foreground/70">Gut Impact:</strong> {gutImpactReasoning}</p>
+            {aiSummaries.micronutrientSummary && (
+              <p><strong className="text-foreground/70">Micronutrients:</strong> {aiSummaries.micronutrientSummary}</p>
+            )}
+            {aiSummaries.glycemicIndexSummary && (
+              <p><strong className="text-foreground/70">Glycemic Index:</strong> {aiSummaries.glycemicIndexSummary}</p>
+            )}
+            {aiSummaries.gutImpactSummary ? (
+              <p><strong className="text-foreground/70">Gut Impact:</strong> {aiSummaries.gutImpactSummary}</p>
+            ) : item.fodmapData?.gutBacteriaImpact?.reasoning && ( // Fallback to detailed reasoning if summary not present
+              <p><strong className="text-foreground/70">Gut Impact:</strong> {item.fodmapData.gutBacteriaImpact.reasoning}</p>
             )}
           </div>
         )}
@@ -252,3 +277,4 @@ export default function TimelineFoodCard({
     </Card>
   );
 }
+
