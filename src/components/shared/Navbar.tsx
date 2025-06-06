@@ -181,12 +181,12 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
     !isDarkMode ? "bg-muted text-foreground" : "bg-background text-foreground",
     "border-b border-border/50"
   );
-  const appNameBaseClasses = "font-bold font-headline sm:inline-block text-xl";
+  const appNameBaseClasses = "font-bold font-headline text-xl"; // Removed sm:inline-block from here
 
   return (
     <header className={cn(headerBaseClasses, isGuest ? guestHeaderClasses : registeredUserHeaderClasses)}>
-      <div className="flex h-16 w-full max-w-screen-2xl items-center justify-between mx-auto px-4"> {/* Restored px-4 here */}
-        <div className="flex items-center space-x-2"> 
+      <div className="flex h-16 w-full items-center justify-between px-4"> {/* Removed max-w-screen-2xl and mx-auto for full width in sheet */}
+        <div className="flex items-center space-x-1 sm:space-x-2"> 
           <Link href="/" className="flex items-center space-x-2">
             {!isGuest && (
               <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-foreground bg-black p-1">
@@ -195,7 +195,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
             )}
             {!isGuest && (
               <>
-                <span className={cn(appNameBaseClasses, 'text-foreground')}>{APP_NAME}</span>
+                <span className={cn(appNameBaseClasses, 'text-foreground hidden sm:inline-block')}>{APP_NAME}</span>
               </>
             )}
           </Link>
@@ -337,5 +337,3 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
     </header>
   );
 }
-
-    
