@@ -9,7 +9,7 @@ import GlycemicIndexIndicator from '@/components/shared/GlycemicIndexIndicator';
 import DietaryFiberIndicator from '@/components/shared/DietaryFiberIndicator';
 import MicronutrientsIndicator from '@/components/shared/MicronutrientsIndicator';
 import GutBacteriaIndicator from '@/components/shared/GutBacteriaIndicator';
-import KetoFriendlinessIndicator from '@/components/shared/KetoFriendlinessIndicator'; // Added Keto
+import KetoFriendlinessIndicator from '@/components/shared/KetoFriendlinessIndicator';
 import { Badge } from '@/components/ui/badge';
 import { ThumbsUp, ThumbsDown, Trash2, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3, CheckCheck, PencilLine, Sparkles, Leaf, Users, Activity, Repeat, MessageSquareText, Info, AlertCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -86,7 +86,7 @@ export default function TimelineFoodCard({
             )}
             {!isManualMacroEntry && <p className={cn("text-sm", mutedTextClass)}>Portion: {item.portionSize} {item.portionUnit}</p>}
           </div>
-           {item.fodmapData && !isManualMacroEntry && <FodmapIndicator score={item.fodmapData.overallRisk} reason={item.fodmapData.reason} />}
+           {/* FODMAP Indicator removed from header */}
         </div>
          {item.sourceDescription && !isManualMacroEntry ? (
            <p className={cn("text-sm italic pt-1 break-words", mutedTextClass, "text-muted-foreground/70")}>{item.sourceDescription}</p>
@@ -129,6 +129,7 @@ export default function TimelineFoodCard({
                 <DietaryFiberIndicator fiberInfo={item.fodmapData.dietaryFiberInfo} />
                 <GlycemicIndexIndicator giInfo={item.fodmapData.glycemicIndexInfo} />
                 <KetoFriendlinessIndicator ketoInfo={item.fodmapData.ketoFriendliness} />
+                <FodmapIndicator score={item.fodmapData.overallRisk} reason={item.fodmapData.reason} />
                 <GutBacteriaIndicator gutImpact={item.fodmapData.gutBacteriaImpact} />
                 {detectedAllergens && detectedAllergens.length > 0 &&
                     detectedAllergens.map(allergen => (
@@ -177,9 +178,9 @@ export default function TimelineFoodCard({
             {aiSummaries.ketoSummary && (
               <p><strong className="text-foreground/70">Keto:</strong> {aiSummaries.ketoSummary}</p>
             )}
-            {aiSummaries.gutImpactSummary ? ( /* Prioritize explicit summary if available */
+            {aiSummaries.gutImpactSummary ? ( 
               <p><strong className="text-foreground/70">Gut Impact:</strong> {aiSummaries.gutImpactSummary}</p>
-            ) : item.fodmapData?.gutBacteriaImpact?.reasoning && !aiSummaries.gutImpactSummary && ( /* Fallback to reasoning if no summary */
+            ) : item.fodmapData?.gutBacteriaImpact?.reasoning && !aiSummaries.gutImpactSummary && ( 
               <p><strong className="text-foreground/70">Gut Impact:</strong> {item.fodmapData.gutBacteriaImpact.reasoning}</p>
             )}
           </div>
