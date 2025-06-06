@@ -168,7 +168,8 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
   const headerBaseClasses = "sticky top-0 z-50 w-full";
   const guestHeaderClasses = "bg-background text-foreground";
   const registeredUserHeaderClasses = cn(
-    isDarkMode ? "bg-card text-card-foreground" : "bg-secondary text-secondary-foreground",
+    "bg-secondary text-secondary-foreground", // For light mode
+    "dark:bg-card dark:text-card-foreground",    // For dark mode
     "border-b border-border/50"
   );
   const appNameBaseClasses = "font-bold font-headline text-xl";
@@ -179,8 +180,8 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
         <div className="flex items-center space-x-1 sm:space-x-2">
           <Link href="/" className="flex items-center space-x-2">
             {!isGuest && (
-              <div className={cn("flex h-9 w-9 items-center justify-center rounded-full border-2 p-1", isDarkMode ? "border-current bg-current" : "border-current bg-current")}>
-                <Image src="/Gutcheck_logo.png" alt="GutCheck Logo" width={28} height={28} className={cn("object-contain", isDarkMode ? "filter brightness-0 invert" : "filter brightness-0 invert" )} priority />
+              <div className={cn("flex h-9 w-9 items-center justify-center rounded-full border-2 p-1", "border-current bg-current")}>
+                <Image src="/Gutcheck_logo.png" alt="GutCheck Logo" width={28} height={28} className={cn("object-contain", "filter brightness-0 invert" )} priority />
               </div>
             )}
             {!isGuest && (
@@ -261,9 +262,11 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
             <>
               {!authLoading && authUser && (
                 <div className="flex items-center space-x-1.5">
-                   <Button variant="ghost" size="icon" className="h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10" aria-label="Add Entry">
-                        <Plus className="h-5 w-5" />
-                  </Button>
+                  {onMainActionClick && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10" aria-label="Add Entry" onClick={onMainActionClick}>
+                      <Plus className="h-5 w-5" />
+                    </Button>
+                  )}
                   <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/' ? 'bg-primary/10 text-primary' : 'text-current hover:text-current/80 hover:bg-current/10')} aria-label="Home" onClick={() => router.push('/')}>
                     <Home className="h-5 w-5" />
                   </Button>
