@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import Navbar from '@/components/shared/Navbar';
-import { Loader2, Brain, Sparkles, ThumbsDown } from 'lucide-react'; 
+import { Loader2, Brain, Sparkles, ThumbsDown, Home } from 'lucide-react'; 
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -25,6 +25,7 @@ import {
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 const TEMPORARILY_UNLOCK_ALL_FEATURES = true; // Kept true as per previous state
 const DATA_FETCH_LIMIT_DAYS = 90;
@@ -200,6 +201,13 @@ export default function AIInsightsPage() {
           <Brain className="h-12 w-12 text-destructive mb-4" />
           <h2 className="text-2xl font-semibold mb-2 text-foreground">Insights Unavailable</h2>
           <p className="text-muted-foreground">{error}</p>
+           <div className="mt-8">
+            <Button asChild variant="outline">
+              <Link href="/?openDashboard=true">
+                <Home className="mr-2 h-4 w-4" /> Return to Dashboard
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -252,7 +260,7 @@ export default function AIInsightsPage() {
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t border-border bg-background">
+        <div className="p-4 border-t border-border bg-background space-y-3">
           <Button
             onClick={handleQuestionSubmit}
             disabled={isGeneratingInsight}
@@ -261,6 +269,11 @@ export default function AIInsightsPage() {
           >
             <Brain className="h-5 w-5 mr-2" />
             Get Today&apos;s Analysis & Recommendations
+          </Button>
+          <Button asChild variant="outline" className="w-full">
+            <Link href="/?openDashboard=true">
+              <Home className="mr-2 h-4 w-4" /> Return to Dashboard
+            </Link>
           </Button>
         </div>
       </main>

@@ -10,6 +10,7 @@ import { COMMON_SYMPTOMS } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/hooks/use-toast'; 
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 import Navbar from '@/components/shared/Navbar';
 import TimeRangeToggle from '@/components/trends/TimeRangeToggle';
@@ -316,6 +317,11 @@ export default function TrendsPage() {
             Not enough data yet. Start logging your meals and symptoms to see your trends over time!
             {!TEMPORARILY_UNLOCK_ALL_FEATURES && !userProfile?.premium && " (Free users: trends based on last 2 days of data)"}
           </p>
+           <div className="mt-12 text-center">
+            <Button asChild variant="outline">
+              <Link href="/?openDashboard=true">Return to Dashboard</Link>
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -389,7 +395,11 @@ export default function TrendsPage() {
                 <MicronutrientAchievementList data={micronutrientAchievementData} />
               </CardContent>
             </Card>
-
+          </div>
+          <div className="mt-12 text-center">
+            <Button asChild variant="outline">
+              <Link href="/?openDashboard=true">Return to Dashboard</Link>
+            </Button>
           </div>
         </main>
       </ScrollArea>
