@@ -10,7 +10,7 @@ import DietaryFiberIndicator from '@/components/shared/DietaryFiberIndicator';
 import MicronutrientsIndicator from '@/components/shared/MicronutrientsIndicator';
 import GutBacteriaIndicator from '@/components/shared/GutBacteriaIndicator';
 import { Badge } from '@/components/ui/badge';
-import { ThumbsUp, ThumbsDown, Trash2, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3, CheckCheck, PencilLine, Sparkles, Leaf, Users, Activity, Repeat, MessageSquareText, Info, AlertCircle } from 'lucide-react'; // Added AlertCircle
+import { ThumbsUp, ThumbsDown, Trash2, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3, CheckCheck, PencilLine, Sparkles, Leaf, Users, Activity, Repeat, MessageSquareText, Info, AlertCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'; 
@@ -111,21 +111,6 @@ export default function TimelineFoodCard({
           </Badge>
         )}
 
-        {detectedAllergens && detectedAllergens.length > 0 && !isManualMacroEntry && (
-            <div className="border-t border-border/50 pt-2">
-                <p className="text-sm font-medium text-destructive flex items-center mb-1">
-                    <AlertCircle className="h-4 w-4 mr-1.5" /> Contains Allergens:
-                </p>
-                <div className="flex flex-wrap gap-1">
-                    {detectedAllergens.map(allergen => (
-                        <Badge key={allergen} variant="destructive" className="text-xs bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30">
-                            {allergen}
-                        </Badge>
-                    ))}
-                </div>
-            </div>
-        )}
-
         {macroParts.length > 0 && (
             <div className={cn("text-sm border-t pt-2", mutedTextClass, "border-border/50")}>
                 <p className="flex items-center gap-x-2 sm:gap-x-3 flex-wrap">
@@ -143,6 +128,22 @@ export default function TimelineFoodCard({
                 <DietaryFiberIndicator fiberInfo={item.fodmapData.dietaryFiberInfo} />
                 <MicronutrientsIndicator micronutrientsInfo={item.fodmapData.micronutrientsInfo} />
                 <GutBacteriaIndicator gutImpact={item.fodmapData.gutBacteriaImpact} />
+                {detectedAllergens && detectedAllergens.length > 0 &&
+                    detectedAllergens.map(allergen => (
+                        <TooltipProvider key={allergen}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge variant="destructive" className="text-xs bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30 flex items-center gap-1 cursor-default">
+                                  <AlertCircle className="h-3 w-3" /> {allergen}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-popover text-popover-foreground border-border">
+                              <p>Contains Allergen: {allergen}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                    ))
+                }
             </div>
         )}
         
@@ -173,7 +174,7 @@ export default function TimelineFoodCard({
             )}
             {aiSummaries.gutImpactSummary ? (
               <p><strong className="text-foreground/70">Gut Impact:</strong> {aiSummaries.gutImpactSummary}</p>
-            ) : item.fodmapData?.gutBacteriaImpact?.reasoning && ( // Fallback to detailed reasoning if summary not present
+            ) : item.fodmapData?.gutBacteriaImpact?.reasoning && ( 
               <p><strong className="text-foreground/70">Gut Impact:</strong> {item.fodmapData.gutBacteriaImpact.reasoning}</p>
             )}
           </div>
@@ -277,4 +278,4 @@ export default function TimelineFoodCard({
     </Card>
   );
 }
-
+    
