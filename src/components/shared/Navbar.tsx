@@ -261,18 +261,16 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
             <>
               {!authLoading && authUser && (
                 <div className="flex items-center space-x-1.5">
+                   <Button variant="ghost" size="icon" className="h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10" aria-label="Add Entry">
+                        <Plus className="h-5 w-5" />
+                  </Button>
                   <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/' ? 'bg-primary/10 text-primary' : 'text-current hover:text-current/80 hover:bg-current/10')} aria-label="Home" onClick={() => router.push('/')}>
                     <Home className="h-5 w-5" />
                   </Button>
                   {onMainActionClick && (
-                    <>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10" aria-label="Open Actions Menu" onClick={onMainActionClick}>
-                        <LayoutGrid className="h-5 w-5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10" aria-label="Add Entry" onClick={onMainActionClick}>
-                        <Plus className="h-5 w-5" />
-                      </Button>
-                    </>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10" aria-label="Open Actions Menu" onClick={onMainActionClick}>
+                      <LayoutGrid className="h-5 w-5" />
+                    </Button>
                   )}
                   <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/trends' ? 'bg-primary/10 text-primary' : 'text-current hover:text-current/80 hover:bg-current/10')} aria-label="Trends" onClick={trendsLinkHandler}>
                     <BarChart3 className="h-5 w-5" />
@@ -324,6 +322,10 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
                         <span>Admin Dashboard</span>
                       </DropdownMenuItem>
                      )}
+                    <DropdownMenuItem onClick={() => router.push('/account/subscription')} className="cursor-pointer">
+                       <CreditCard className="mr-2 h-4 w-4" />
+                       <span>Subscription</span>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                       <LogOut className="mr-2 h-4 w-4" />
