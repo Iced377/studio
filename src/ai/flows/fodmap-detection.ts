@@ -3,7 +3,7 @@
 /**
  * @fileOverview This file contains the Genkit flow for FODMAP detection in food items, considering portion sizes,
  * and also estimates calorie, macronutrient content, Glycemic Index, Fiber, Micronutrients, Gut Bacteria Impact,
- * and detects common allergens, providing textual summaries.
+ * Keto Friendliness, and detects common allergens, providing textual summaries.
  *
  * - analyzeFoodItem - Analyzes a food item for FODMAPs and various health indicators.
  * - AnalyzeFoodItemInput - The input type for the analyzeFoodItem function.
@@ -73,11 +73,18 @@ const GutBacteriaImpactInfoSchema = z.object({
   reasoning: z.string().optional().describe("Short reasoning for the estimated gut bacteria impact (e.g., 'Contains prebiotic fiber', 'High in processed sugars, may negatively impact diversity', 'Contains probiotics')."),
 }).describe("Estimated impact of the food item on gut bacteria.");
 
+const KetoFriendlinessInfoSchema = z.object({
+    score: z.enum(['Strict Keto', 'Moderate Keto', 'Low Carb', 'Not Keto-Friendly', 'Unknown']).describe("Assessment of the food's suitability for a ketogenic diet for the given portion."),
+    reasoning: z.string().optional().describe("Brief explanation for the keto score (e.g., 'High in net carbs due to X', 'Low carb, suitable for keto in moderation', 'Mainly fats and protein, good for keto')."),
+    estimatedNetCarbs: z.number().optional().describe("Optional estimated net carbs in grams for the portion, if calculable (Total Carbs - Fiber).")
+}).describe("Information about the food item's keto-friendliness.");
+
 const AISummariesSchema = z.object({
   fodmapSummary: z.string().optional().describe("Optional concise summary of FODMAP analysis if the main `reason` is very detailed. E.g., 'Mainly low FODMAP but watch portion of X'."),
   micronutrientSummary: z.string().optional().describe("Brief (1-2 sentence) textual summary of key micronutrients. E.g., 'Good source of Vitamin C and Iron.' or 'Notable for Calcium content.'"),
   glycemicIndexSummary: z.string().optional().describe("Brief (1 sentence) textual summary of glycemic impact. E.g., 'Likely has a low glycemic impact based on its ingredients.'"),
   gutImpactSummary: z.string().optional().describe("Optional concise summary of gut bacteria impact if `gutBacteriaImpact.reasoning` is detailed."),
+  ketoSummary: z.string().optional().describe("Brief (1-2 sentence) textual summary of keto-friendliness. E.g., 'Appears suitable for a strict keto diet.' or 'Too high in carbs for keto.'"),
 }).describe("Additional concise textual summaries for display in an 'AI Notes' section.");
 
 const AnalyzeFoodItemOutputSchema = z.object({
@@ -93,6 +100,7 @@ const AnalyzeFoodItemOutputSchema = z.object({
   dietaryFiberInfo: DietaryFiberInfoSchema.optional().describe("Dietary fiber information."),
   micronutrientsInfo: MicronutrientsInfoSchema.optional().describe("Micronutrients overview."),
   gutBacteriaImpact: GutBacteriaImpactInfoSchema.optional().describe("Gut bacteria impact assessment."),
+  ketoFriendliness: KetoFriendlinessInfoSchema.optional().describe("Keto-friendliness assessment."), // Added Keto
   detectedAllergens: z.array(z.string()).optional().describe("List of common allergens detected in the ingredients (e.g., Milk, Wheat, Soy). If none, can be empty or omitted."),
   aiSummaries: AISummariesSchema.optional().describe("Concise AI-generated textual summaries for display in notes."),
 });
@@ -137,16 +145,28 @@ You will receive a food item, its ingredients, and a portion size. Your task is 
     *   Estimate the general impact on gut bacteria (Positive, Negative, Neutral, Unknown).
     *   Provide brief reasoning in the \`gutBacteriaImpact.reasoning\` field (e.g., "Contains prebiotic fiber like inulin", "High in saturated fat, potentially negative for diversity", "Probiotic content from yogurt").
 
-7.  **Allergen Detection:**
+7.  **Keto-Friendliness (Portion-Specific):**
+    *   Assess the food item's suitability for a ketogenic diet, considering its ingredients and macronutrient profile for the given portion.
+    *   Provide a \`ketoFriendliness.score\` from: 'Strict Keto', 'Moderate Keto', 'Low Carb', 'Not Keto-Friendly', 'Unknown'.
+        *   'Strict Keto': Very low net carbs (e.g., <5-10g per typical serving, mostly fats/protein).
+        *   'Moderate Keto': Low net carbs (e.g., 10-20g per serving, can fit into a more liberal keto diet).
+        *   'Low Carb': Higher than moderate keto but still relatively low in carbs (e.g., 20-50g per serving).
+        *   'Not Keto-Friendly': High in carbs or sugars.
+        *   'Unknown': If assessment is difficult.
+    *   Provide brief \`ketoFriendliness.reasoning\` (e.g., "Primarily protein and fat, very low carb", "Contains X ingredient which is high in sugar", "Moderate net carbs, suitable for some keto plans").
+    *   Optionally, estimate \`ketoFriendliness.estimatedNetCarbs\` (Total Carbs - Fiber) if you have values for both.
+
+8.  **Allergen Detection:**
     *   Analyze the 'Ingredients: {{{ingredients}}}' list.
     *   Identify any of the following common allergens: Milk, Eggs, Fish, Crustacean shellfish (e.g., crab, lobster, shrimp), Tree nuts (e.g., almonds, walnuts, pecans, cashews, hazelnuts, pistachios), Peanuts, Wheat, Soybeans, Sesame.
     *   Populate the \`detectedAllergens\` array with the names of any allergens found. If none are found, this array can be empty or omitted. Be precise with allergen names.
 
-8.  **AI Textual Summaries (for aiSummaries field):**
-    *   **aiSummaries.fodmapSummary**: (Optional) If the main \`reason\` field for overall FODMAP risk is very long or technical, provide a very concise 1-sentence summary here that's easier to understand. Otherwise, this can be omitted if \`reason\` is already concise and user-friendly.
-    *   **aiSummaries.micronutrientSummary**: Provide a brief (1-2 sentence) textual summary highlighting key micronutrient aspects (e.g., "Good source of Vitamin C and Iron." or "Notable for its Calcium content and some B vitamins."). Avoid simply listing them; provide a qualitative summary.
-    *   **aiSummaries.glycemicIndexSummary**: Provide a brief (1 sentence) textual summary of the glycemic impact (e.g., "Likely has a low glycemic impact." or "May have a moderate effect on blood sugar due to X ingredient.").
-    *   **aiSummaries.gutImpactSummary**: (Optional) If the main \`gutBacteriaImpact.reasoning\` field is very technical or long, provide a very concise 1-sentence summary here. Otherwise, this can be omitted if the reasoning is already concise and user-friendly.
+9.  **AI Textual Summaries (for aiSummaries field):**
+    *   \`aiSummaries.fodmapSummary\`: (Optional) If the main \`reason\` field for overall FODMAP risk is very long or technical, provide a very concise 1-sentence summary here that's easier to understand. Otherwise, this can be omitted if \`reason\` is already concise and user-friendly.
+    *   \`aiSummaries.micronutrientSummary\`: Provide a brief (1-2 sentence) textual summary highlighting key micronutrient aspects (e.g., "Good source of Vitamin C and Iron." or "Notable for its Calcium content and some B vitamins."). Avoid simply listing them; provide a qualitative summary.
+    *   \`aiSummaries.glycemicIndexSummary\`: Provide a brief (1 sentence) textual summary of the glycemic impact (e.g., "Likely has a low glycemic impact." or "May have a moderate effect on blood sugar due to X ingredient.").
+    *   \`aiSummaries.gutImpactSummary\`: (Optional) If the main \`gutBacteriaImpact.reasoning\` field is very technical or long, provide a very concise 1-sentence summary here. Otherwise, this can be omitted if the reasoning is already concise and user-friendly.
+    *   \`aiSummaries.ketoSummary\`: Provide a brief (1-2 sentence) textual summary of the keto-friendliness (e.g., "Good fit for a ketogenic diet." or "Contains too many carbs for keto.").
 
 Base your analysis on established FODMAP data (like Monash University's guidelines), general nutritional databases, and common knowledge about food properties. ALWAYS consider the specified portion size.
 
@@ -154,7 +174,7 @@ Food Item: {{{foodItem}}}
 Ingredients: {{{ingredients}}}
 Portion: {{{portionSize}}} {{{portionUnit}}}
 
-Output a JSON object adhering to the full output schema including all FODMAP details, nutritional estimates, glycemicIndexInfo, dietaryFiberInfo, micronutrientsInfo, gutBacteriaImpact, detectedAllergens, and aiSummaries.
+Output a JSON object adhering to the full output schema including all FODMAP details, nutritional estimates, glycemicIndexInfo, dietaryFiberInfo, micronutrientsInfo, gutBacteriaImpact, ketoFriendliness, detectedAllergens, and aiSummaries.
 If specific data for an optional field (e.g., a specific micronutrient amount, GI value) is not reasonably estimable or widely available, omit that specific sub-field or set to null, but try to provide the higher-level object if some information can be given (e.g., gutImpact.sentiment = 'Unknown'). For micronutrients, if none are particularly "notable", the 'notable' array can be empty or omitted. Ensure all requested summaries in \`aiSummaries\` are attempted if the base data is available.
 `,
 });

@@ -36,11 +36,18 @@ export interface GutBacteriaImpactInfo {
   reasoning?: string; // Brief AI-generated explanation
 }
 
+export interface KetoFriendlinessInfo {
+  score: 'Strict Keto' | 'Moderate Keto' | 'Low Carb' | 'Not Keto-Friendly' | 'Unknown';
+  reasoning?: string;
+  estimatedNetCarbs?: number; // Optional: AI can try to estimate this
+}
+
 export interface AISummaries {
   fodmapSummary?: string;
   micronutrientSummary?: string;
   glycemicIndexSummary?: string;
   gutImpactSummary?: string;
+  ketoSummary?: string; // Added for Keto
 }
 
 export type ExtendedAnalyzeFoodItemOutput = OriginalAnalyzeFoodItemOutput & {
@@ -48,6 +55,7 @@ export type ExtendedAnalyzeFoodItemOutput = OriginalAnalyzeFoodItemOutput & {
   dietaryFiberInfo?: DietaryFiberInfo;
   micronutrientsInfo?: MicronutrientsInfo;
   gutBacteriaImpact?: GutBacteriaImpactInfo;
+  ketoFriendliness?: KetoFriendlinessInfo; // Added Keto
   detectedAllergens?: string[];
   aiSummaries?: AISummaries;
 };

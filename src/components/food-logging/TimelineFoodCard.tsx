@@ -9,6 +9,7 @@ import GlycemicIndexIndicator from '@/components/shared/GlycemicIndexIndicator';
 import DietaryFiberIndicator from '@/components/shared/DietaryFiberIndicator';
 import MicronutrientsIndicator from '@/components/shared/MicronutrientsIndicator';
 import GutBacteriaIndicator from '@/components/shared/GutBacteriaIndicator';
+import KetoFriendlinessIndicator from '@/components/shared/KetoFriendlinessIndicator'; // Added Keto
 import { Badge } from '@/components/ui/badge';
 import { ThumbsUp, ThumbsDown, Trash2, ListChecks, Loader2, Flame, Beef, Wheat, Droplet, Edit3, CheckCheck, PencilLine, Sparkles, Leaf, Users, Activity, Repeat, MessageSquareText, Info, AlertCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -124,9 +125,10 @@ export default function TimelineFoodCard({
         )}
         {!isManualMacroEntry && item.fodmapData && (
             <div className={cn("text-xs border-t pt-2 mt-2 flex flex-wrap items-center gap-2", "border-border/50")}>
-                <GlycemicIndexIndicator giInfo={item.fodmapData.glycemicIndexInfo} />
-                <DietaryFiberIndicator fiberInfo={item.fodmapData.dietaryFiberInfo} />
                 <MicronutrientsIndicator micronutrientsInfo={item.fodmapData.micronutrientsInfo} />
+                <DietaryFiberIndicator fiberInfo={item.fodmapData.dietaryFiberInfo} />
+                <GlycemicIndexIndicator giInfo={item.fodmapData.glycemicIndexInfo} />
+                <KetoFriendlinessIndicator ketoInfo={item.fodmapData.ketoFriendliness} />
                 <GutBacteriaIndicator gutImpact={item.fodmapData.gutBacteriaImpact} />
                 {detectedAllergens && detectedAllergens.length > 0 &&
                     detectedAllergens.map(allergen => (
@@ -172,9 +174,12 @@ export default function TimelineFoodCard({
             {aiSummaries.glycemicIndexSummary && (
               <p><strong className="text-foreground/70">Glycemic Index:</strong> {aiSummaries.glycemicIndexSummary}</p>
             )}
-            {aiSummaries.gutImpactSummary ? (
+            {aiSummaries.ketoSummary && (
+              <p><strong className="text-foreground/70">Keto:</strong> {aiSummaries.ketoSummary}</p>
+            )}
+            {aiSummaries.gutImpactSummary ? ( /* Prioritize explicit summary if available */
               <p><strong className="text-foreground/70">Gut Impact:</strong> {aiSummaries.gutImpactSummary}</p>
-            ) : item.fodmapData?.gutBacteriaImpact?.reasoning && ( 
+            ) : item.fodmapData?.gutBacteriaImpact?.reasoning && !aiSummaries.gutImpactSummary && ( /* Fallback to reasoning if no summary */
               <p><strong className="text-foreground/70">Gut Impact:</strong> {item.fodmapData.gutBacteriaImpact.reasoning}</p>
             )}
           </div>
