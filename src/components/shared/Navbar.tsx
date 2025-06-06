@@ -185,7 +185,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
 
   return (
     <header className={cn(headerBaseClasses, isGuest ? guestHeaderClasses : registeredUserHeaderClasses)}>
-      <div className="flex h-16 w-full max-w-screen-2xl items-center justify-between mx-auto">
+      <div className="flex h-16 w-full max-w-screen-2xl items-center justify-between mx-auto px-4"> {/* Restored px-4 here */}
         <div className="flex items-center space-x-2"> 
           <Link href="/" className="flex items-center space-x-2">
             {!isGuest && (
@@ -337,3 +337,5 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
     </header>
   );
 }
+
+    
