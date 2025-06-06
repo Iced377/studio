@@ -50,7 +50,7 @@ import {
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.5.1"; 
+export const APP_VERSION = "Beta 3.5.2"; 
 
 interface ReleaseNote {
   version: string;
@@ -60,6 +60,18 @@ interface ReleaseNote {
 }
 
 const releaseNotesData: ReleaseNote[] = [
+  {
+    version: "Beta 3.5.2",
+    date: "July 30, 2024",
+    title: "Food Card Enhancements & Indicator Reordering",
+    description: [
+      "Enhanced AI notes in food cards to include summaries for micronutrients and GI.",
+      "Added highlighting for common allergens in food cards.",
+      "Introduced a new 'Keto Friendliness' indicator badge.",
+      "Reordered indicator badges on food cards: Micronutrients, Fiber, GI, Keto Score, FODMAP, Gut Impact, Allergens.",
+      "Moved the main FODMAP risk indicator from card header to the content area with other badges.",
+    ],
+  },
   {
     version: "Beta 3.5.1",
     date: "July 30, 2024",
