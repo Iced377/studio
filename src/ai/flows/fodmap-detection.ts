@@ -142,7 +142,7 @@ You will receive a food item, its ingredients, and a portion size. Your task is 
     *   Identify any of the following common allergens: Milk, Eggs, Fish, Crustacean shellfish (e.g., crab, lobster, shrimp), Tree nuts (e.g., almonds, walnuts, pecans, cashews, hazelnuts, pistachios), Peanuts, Wheat, Soybeans, Sesame.
     *   Populate the \`detectedAllergens\` array with the names of any allergens found. If none are found, this array can be empty or omitted. Be precise with allergen names.
 
-8.  **AI Textual Summaries (for \`aiSummaries\` field):**
+8.  **AI Textual Summaries (for aiSummaries field):**
     *   **aiSummaries.fodmapSummary**: (Optional) If the main \`reason\` field for overall FODMAP risk is very long or technical, provide a very concise 1-sentence summary here that's easier to understand. Otherwise, this can be omitted if \`reason\` is already concise and user-friendly.
     *   **aiSummaries.micronutrientSummary**: Provide a brief (1-2 sentence) textual summary highlighting key micronutrient aspects (e.g., "Good source of Vitamin C and Iron." or "Notable for its Calcium content and some B vitamins."). Avoid simply listing them; provide a qualitative summary.
     *   **aiSummaries.glycemicIndexSummary**: Provide a brief (1 sentence) textual summary of the glycemic impact (e.g., "Likely has a low glycemic impact." or "May have a moderate effect on blood sugar due to X ingredient.").
