@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X, ScrollText } from 'lucide-react';
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X, ScrollText, LayoutGrid } from 'lucide-react'; // Ensured Plus is not here, LayoutGrid is
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -31,26 +31,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState } from 'react'; // Removed useRef, useCallback as they are not used here
 import { db } from '@/config/firebase';
 import {
-  collection,
-  query,
-  where,
-  orderBy,
-  limit,
-  getDocs,
   getDoc,
-  addDoc,
-  updateDoc,
-  doc as firestoreDoc,
-  serverTimestamp,
-  Timestamp
+  doc as firestoreDoc, // aliased to avoid conflict
 } from 'firebase/firestore';
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.5.2"; 
+export const APP_VERSION = "Beta 3.5.2";
 
 interface ReleaseNote {
   version: string;
@@ -105,9 +95,10 @@ interface NavbarProps {
     border: string;
     hover: string;
   };
+  onMainActionClick?: () => void; // This prop is passed from ClientRoot
 }
 
-export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
+export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }: NavbarProps) {
   const { user: authUser, loading: authLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -115,7 +106,6 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState(false);
   const [isReleaseNotesOpen, setIsReleaseNotesOpen] = useState(false);
-
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -149,7 +139,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
       toast({ title: 'Logout Failed', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Logged Out', description: 'You have been successfully logged out.' });
-      router.push('/');
+      router.push('/'); // Redirect to home/guest page after logout
     }
   };
 
@@ -181,12 +171,12 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
     !isDarkMode ? "bg-muted text-foreground" : "bg-background text-foreground",
     "border-b border-border/50"
   );
-  const appNameBaseClasses = "font-bold font-headline text-xl"; // Removed sm:inline-block from here
+  const appNameBaseClasses = "font-bold font-headline text-xl";
 
   return (
     <header className={cn(headerBaseClasses, isGuest ? guestHeaderClasses : registeredUserHeaderClasses)}>
-      <div className="flex h-16 w-full items-center justify-between px-4"> {/* Removed max-w-screen-2xl and mx-auto for full width in sheet */}
-        <div className="flex items-center space-x-1 sm:space-x-2"> 
+      <div className="flex h-16 w-full items-center justify-between px-4">
+        <div className="flex items-center space-x-1 sm:space-x-2">
           <Link href="/" className="flex items-center space-x-2">
             {!isGuest && (
               <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-foreground bg-black p-1">
@@ -261,7 +251,7 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
                   "h-9 px-3 sm:px-4 text-xs sm:text-sm",
                   guestButtonScheme ? `${guestButtonScheme.base} ${guestButtonScheme.border} ${guestButtonScheme.hover} text-white` : ''
                 )}
-                variant={guestButtonScheme ? 'default' : 'default'} 
+                variant={guestButtonScheme ? 'default' : 'default'}
               >
                 <UserPlus className="mr-1.5 h-4 sm:h-5 w-4 sm:w-5" />
                 Sign In / Sign Up
@@ -270,26 +260,30 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
           ) : (
             <>
               {!authLoading && authUser && (
-                <>
+                <div className="flex items-center space-x-1.5">
+                  {onMainActionClick && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-muted-foreground hover:text-foreground hover:bg-accent/50" aria-label="Open Actions Menu" onClick={onMainActionClick}>
+                      <LayoutGrid className="h-5 w-5" />
+                    </Button>
+                  )}
                   <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/trends' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50')} aria-label="Trends" onClick={trendsLinkHandler}>
                     <BarChart3 className="h-5 w-5" />
                   </Button>
                   <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/micronutrients' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50')} aria-label="Micronutrients Progress" onClick={micronutrientsLinkHandler}>
                     <Atom className="h-5 w-5" />
                   </Button>
-                  
                   <div className="relative">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/ai-insights' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50')} 
-                      aria-label="AI Insights" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/ai-insights' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50')}
+                      aria-label="AI Insights"
                       onClick={aiInsightsLinkHandler}
                     >
                       <Lightbulb className="h-5 w-5" />
                     </Button>
                   </div>
-                </>
+                </div>
               )}
 
               <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="h-8 w-8" aria-label="Toggle dark mode">
@@ -337,3 +331,5 @@ export default function Navbar({ isGuest, guestButtonScheme }: NavbarProps) {
     </header>
   );
 }
+
+    
