@@ -40,7 +40,7 @@ import {
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.5.6";
+export const APP_VERSION = "Beta 3.5.7";
 
 interface ReleaseNote {
   version: string;
@@ -50,11 +50,23 @@ interface ReleaseNote {
 }
 
 const releaseNotesData: ReleaseNote[] = [
-   {
+  {
+    version: "Beta 3.5.7",
+    date: "June 07, 2025",
+    title: "UI Refinement & Consistency Pass",
+    description: [
+      "Implemented a new brand-aligned color scheme (soft blues, pale violet accents) for a more polished and user-friendly interface.",
+      "Standardized button styles and sizes across dialogs and authentication forms for improved consistency.",
+      "Enhanced Navbar logo display with a consistent themed background and increased size for better visibility.",
+      "Refined padding and typography in key components like timeline cards for a cleaner layout.",
+      "Removed unused UI elements and ad placeholders from dialogs.",
+    ],
+  },
+  {
     version: "Beta 3.5.6",
     date: "June 07, 2025",
-    title: "Enhanced App Aesthetics & Branding (Calo-Inspired)",
-    description: "Implemented a new color scheme (whites, grays, Calo green accent) for a more polished and user-friendly interface, replacing the previous 'FODMAPSafe' theme. Theme management now focuses on light/dark modes of this new branded look.",
+    title: "Enhanced App Aesthetics & Branding",
+    description: "Implemented a new color scheme (whites, grays, themed green accent) for a more polished and user-friendly interface. Theme management now focuses on light/dark modes of this new branded look.",
   },
   {
     version: "Beta 3.5.5",
