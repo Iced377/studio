@@ -53,8 +53,8 @@ const releaseNotesData: ReleaseNote[] = [
   {
     version: "Beta 3.5.6",
     date: "June 07, 2025",
-    title: "Improved UI",
-    description: "Enhanced App Aesthetics. New colour theme.",
+    title: "Enhanced App Aesthetics & Branding",
+    description: "Implemented the FODMAPSafe color scheme (soft blues, pale violet) for a more polished and user-friendly interface, moving away from the default theme. Simplified theme management to focus on light/dark modes of the new branded look.",
   },
   {
     version: "Beta 3.5.5",
@@ -231,7 +231,7 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
 
   return (
     <header className={cn(headerBaseClasses, isGuest ? guestHeaderClasses : registeredUserHeaderClasses)}>
-      <div className="flex h-16 w-full items-center justify-between px-4">
+      <div className={cn("flex h-16 w-full items-center justify-between", "px-2 sm:px-4")}>
         <div className="flex items-center space-x-1 sm:space-x-2">
           <Link href="/" className="flex items-center space-x-2">
             {!isGuest && (
@@ -250,7 +250,7 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
               <DialogTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="text-xs text-muted-foreground hover:text-primary hover:underline underline-offset-2 p-1 h-auto ml-0 mt-1 rounded-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 relative"
+                  className={cn("text-xs text-muted-foreground hover:text-primary hover:underline underline-offset-2 p-1 h-auto ml-0 mt-1 rounded-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 relative", "hidden sm:inline-block")}
                   aria-label={`App Version ${APP_VERSION}, click for release notes`}
                 >
                   {APP_VERSION}
@@ -303,7 +303,7 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
         </div>
 
 
-        <div className="flex items-center space-x-1 sm:space-x-1.5">
+        <div className={cn("flex items-center", "space-x-0.5 sm:space-x-1")}>
           {isGuest ? (
             <div className="flex items-center space-x-2 sm:space-x-3">
               {guestButtonScheme ? <span className="hidden sm:inline text-sm text-foreground font-medium animate-pulse">Unlock your gut's secrets! ✨</span> : null}
@@ -322,9 +322,9 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
           ) : (
             <>
               {!authLoading && authUser && (
-                <div className="flex items-center space-x-1.5">
+                <div className={cn("flex items-center", "space-x-0.5 sm:space-x-1")}>
                   {onMainActionClick && (
-                     <Button variant="ghost" size="icon" className="h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10" aria-label="Add Entry" onClick={onMainActionClick}>
+                     <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10", "hidden sm:inline-flex")} aria-label="Add Entry" onClick={onMainActionClick}>
                       <Plus className="h-5 w-5" />
                     </Button>
                   )}
@@ -332,7 +332,7 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
                     <Home className="h-5 w-5" />
                   </Button>
                   {onMainActionClick && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10" aria-label="Open Actions Menu" onClick={onMainActionClick}>
+                    <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10", "hidden sm:inline-flex")} aria-label="Open Actions Menu" onClick={onMainActionClick}>
                       <LayoutGrid className="h-5 w-5" />
                     </Button>
                   )}
