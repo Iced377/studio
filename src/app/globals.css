@@ -4,79 +4,80 @@
 @tailwind utilities;
 
 @layer base {
-  /* FODMAPSafe Light Mode Variables */
+  /* Calo-like Light Mode Variables */
   :root {
-    --background: 216 100% 95.1%; /* Very Light Blue #E5F0FF */
-    --foreground: 212 52.9% 23.9%; /* Dark Blue #1C3A5E */
+    --background: 0 0% 97%; /* Light Gray #F7F7F7 */
+    --foreground: 0 0% 13%; /* Dark Gray #212121 */
 
     --card: 0 0% 100%; /* White */
-    --card-foreground: 212 52.9% 23.9%; /* Dark Blue */
+    --card-foreground: 0 0% 13%; /* Dark Gray */
 
     --popover: 0 0% 100%; /* White */
-    --popover-foreground: 212 52.9% 23.9%; /* Dark Blue */
+    --popover-foreground: 0 0% 13%; /* Dark Gray */
 
-    --primary: 210 100% 74.1%; /* Soft Blue #7AB4FF */
-    --primary-foreground: 0 0% 100%; /* White text on Soft Blue */
+    --primary: 150 61% 42%; /* Calo Green #27AE60 */
+    --primary-foreground: 0 0% 100%; /* White text on Calo Green */
     
-    --secondary: 210 100% 88%; /* Lighter Soft Blue */
-    --secondary-foreground: 212 52.9% 23.9%; /* Dark Blue */
+    --secondary: 150 40% 90%; /* Light Calo Green #D9F0E5 */
+    --secondary-foreground: 150 61% 20%; /* Darker Green #1A6F4A */
 
-    --muted: 216 100% 90%; /* Slightly darker than background */
-    --muted-foreground: 212 30% 50%; /* Muted Dark Blue */
+    --muted: 0 0% 90%; /* Light Gray #E5E5E5 */
+    --muted-foreground: 0 0% 40%; /* Medium Gray #666666 */
 
-    --accent: 259 47.1% 72.7%; /* Pale Violet #B19CD9 */
-    --accent-foreground: 0 0% 100%; /* White text on Pale Violet */
+    --accent: 150 61% 42%; /* Calo Green (using primary as accent for now) */
+    --accent-foreground: 0 0% 100%; /* White text on Calo Green */
 
     --destructive: 0 82% 63%; /* Red #EB5757 */
     --destructive-foreground: 0 0% 100%; /* White text on Red */
 
-    --border: 210 100% 85%; /* Lighter Soft Blue for borders */
-    --input: 0 0% 100%; /* White for inputs */
-    --ring: 210 100% 74.1%; /* Soft Blue for focus rings */
+    --border: 0 0% 85%; /* Light Gray #D9D9D9 */
+    --input: 0 0% 93%; /* Slightly off-white #EDEDED for inputs */
+    --ring: 150 61% 35%; /* Darker Calo Green for focus rings #208A4E */
 
-    /* Success indicators, kept from previous theme as they are specific */
-    --success-indicator-bg: 136 59% 50%;   /* #34C759 */
+    /* Success indicators, can be Calo green or a distinct success green */
+    --success-indicator-bg: 150 61% 42%;   /* Calo Green */
     --success-indicator-text: 0 0% 100%; /* White */
   }
 
-  /* FODMAPSafe Dark Mode Variables */
+  /* Calo-like Dark Mode Variables */
   html.dark {
-    --background: 212 50% 15%; /* Very Dark Blue */
-    --foreground: 216 100% 90%; /* Light Blue/Off-white */
+    --background: 0 0% 8%; /* Very Dark Gray #141414 */
+    --foreground: 0 0% 90%; /* Light Gray/Off-white #E5E5E5 */
 
-    --card: 212 50% 20%; /* Dark Blue, slightly lighter than background */
-    --card-foreground: 216 100% 90%;
+    --card: 0 0% 12%; /* Dark Gray #1F1F1F */
+    --card-foreground: 0 0% 90%;
 
-    --popover: 212 50% 18%; /* Dark Blue */
-    --popover-foreground: 216 100% 90%;
+    --popover: 0 0% 10%; /* Darker Gray #1A1A1A */
+    --popover-foreground: 0 0% 90%;
 
-    --primary: 210 100% 74.1%; /* Soft Blue #7AB4FF */
-    --primary-foreground: 212 50% 10%; /* Very Dark Blue for contrast on primary button */
+    --primary: 150 61% 42%; /* Calo Green #27AE60 */
+    --primary-foreground: 0 0% 100%; /* White text on Calo Green */
     
-    --secondary: 210 100% 60%; /* Slightly darker/muted Soft Blue */
-    --secondary-foreground: 212 50% 10%; /* Very Dark Blue for contrast on secondary */
+    --secondary: 150 61% 25%; /* Dark Calo Green #1E5C3A */
+    --secondary-foreground: 0 0% 90%; /* Light text on Dark Green */
 
-    --muted: 212 50% 25%; /* Muted Dark Blue */
-    --muted-foreground: 216 100% 75%; /* Muted Light Blue */
+    --muted: 0 0% 15%; /* Muted Dark Gray #262626 */
+    --muted-foreground: 0 0% 60%; /* Muted Light Gray #999999 */
 
-    --accent: 259 47.1% 72.7%; /* Pale Violet #B19CD9 */
-    --accent-foreground: 259 50% 15%; /* Dark Violet for contrast on accent button */
+    --accent: 150 61% 42%; /* Calo Green */
+    --accent-foreground: 0 0% 100%; 
 
-    --destructive: 0 75% 55%; /* Darker Red for destructive actions */
+    --destructive: 0 75% 55%; /* Darker Red #D32F2F */
     --destructive-foreground: 0 0% 100%; /* White text */
 
-    --border: 210 100% 30%; /* Muted Blue border */
-    --input: 212 50% 22%; /* Dark blue for input background */
-    --ring: 210 100% 74.1%; /* Soft Blue for focus rings */
+    --border: 0 0% 20%; /* Muted Dark Gray border #333333 */
+    --input: 0 0% 14%; /* Dark gray for input background #242424 */
+    --ring: 150 61% 50%; /* Slightly lighter Calo Green for focus rings #3CC87A */
     
-    /* Success indicators, kept from previous theme as they are specific */
-    --success-indicator-bg: 136 59% 50%;
+    /* Success indicators */
+    --success-indicator-bg: 150 61% 42%;
     --success-indicator-text: 0 0% 100%;
   }
 
   /* Common variables for all themes (can be in :root or html) */
   :root, html {
     --radius: 0.5rem;
+    /* Chart colors can be updated later if needed, keeping existing for now */
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -129,7 +130,6 @@
 
 @layer utilities {
   .animate-pulse-glow {
-    /* --glow-color-rgb will be set by JS if needed, otherwise defaults to primary */
     animation: pulse-glow 3s infinite ease-in-out;
   }
   .animate-neon-chevron-pulse {

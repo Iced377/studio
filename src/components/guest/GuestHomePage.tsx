@@ -8,24 +8,9 @@ import GuestLastLogSheet from './GuestLastLogSheet';
 import type { LoggedFoodItem } from '@/types';
 import Navbar from '@/components/shared/Navbar';
 import { cn } from '@/lib/utils';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext'; // Kept for dark mode check, though guest is light
 
-interface GuestButtonScheme {
-  id: string;
-  base: string;
-  border: string;
-  hover: string;
-  focusRing: string;
-  glowRgb: string;
-}
-
-const lightModeButtonColors: GuestButtonScheme[] = [
-  { id: 'sky', base: 'bg-sky-500', border: 'border-sky-700', hover: 'hover:bg-sky-600', focusRing: 'focus:ring-sky-500', glowRgb: '14, 165, 233' },
-  { id: 'amber', base: 'bg-amber-500', border: 'border-amber-700', hover: 'hover:bg-amber-600', focusRing: 'focus:ring-amber-500', glowRgb: '245, 158, 11' },
-  { id: 'emerald', base: 'bg-emerald-500', border: 'border-emerald-700', hover: 'hover:bg-emerald-600', focusRing: 'focus:ring-emerald-500', glowRgb: '16, 185, 129' },
-  { id: 'rose', base: 'bg-rose-500', border: 'border-rose-700', hover: 'hover:bg-rose-600', focusRing: 'focus:ring-rose-500', glowRgb: '244, 63, 94' },
-  { id: 'violet', base: 'bg-violet-500', border: 'border-violet-700', hover: 'hover:bg-violet-600', focusRing: 'focus:ring-violet-500', glowRgb: '139, 92, 246' },
-];
+// GuestButtonScheme interface removed as it's no longer used
 
 export default function GuestHomePage({
   onLogFoodClick,
@@ -44,25 +29,20 @@ export default function GuestHomePage({
   onRemoveItem: (itemId: string) => void;
   isLoadingAiForItem: boolean;
 }) {
-  const [activeLightModeColorScheme, setActiveLightModeColorScheme] = useState<GuestButtonScheme>(lightModeButtonColors[0]);
+  // activeLightModeColorScheme state removed
   const { isDarkMode, toggleDarkMode } = useTheme();
 
   useEffect(() => {
-    // Guest view should always be light mode
-    document.documentElement.classList.remove('dark');
-    if (!document.documentElement.classList.contains('theme-black')) {
-      document.documentElement.classList.add('theme-black');
-    }
+    // Guest view should primarily use the light mode theme defined in globals.css
+    // but we respect if the user somehow got into dark mode and switch it back.
+    // The main button glow will use CSS variables from --primary, so it adapts.
     if (isDarkMode) {
-        toggleDarkMode(); // If hook says dark, switch to light
+        document.documentElement.classList.remove('dark');
+        // Note: We are not calling toggleDarkMode() here to avoid potential infinite loops
+        // if ThemeProvider also reacts to class changes. We just ensure light mode class.
     }
-
-    const randomIndex = Math.floor(Math.random() * lightModeButtonColors.length);
-    const selectedScheme = lightModeButtonColors[randomIndex];
-    setActiveLightModeColorScheme(selectedScheme);
-    document.documentElement.style.setProperty('--glow-color-rgb', selectedScheme.glowRgb);
-
-  }, []); // Empty dependency array ensures this runs once on mount for guest page
+    // The documentElement style for --glow-color-rgb is removed as pulse-glow now uses --primary
+  }, [isDarkMode]);
 
   const handleMainButtonClick = () => {
     onLogFoodClick();
@@ -70,18 +50,15 @@ export default function GuestHomePage({
 
   return (
     <div className="bg-background text-foreground min-h-screen flex flex-col font-body antialiased">
-      <Navbar isGuest={true} guestButtonScheme={activeLightModeColorScheme} />
+      <Navbar isGuest={true} /> {/* guestButtonScheme prop removed */}
 
       <main className="flex-grow flex flex-col items-center justify-center p-4 relative text-center">
         <div className="flex flex-col items-center space-y-4">
           <button
             onClick={handleMainButtonClick}
             className={cn(
-              "text-white rounded-full h-36 w-36 sm:h-40 sm:w-40 flex items-center justify-center border-2 animate-pulse-glow focus:outline-none focus:ring-4 shadow-xl",
-              activeLightModeColorScheme.base,
-              activeLightModeColorScheme.border,
-              activeLightModeColorScheme.hover,
-              activeLightModeColorScheme.focusRing,
+              "text-primary-foreground rounded-full h-36 w-36 sm:h-40 sm:w-40 flex items-center justify-center border-2 animate-pulse-glow focus:outline-none focus:ring-4 shadow-xl",
+              "bg-primary border-primary hover:bg-primary/90 focus:ring-primary/50", // Uses theme's primary color
               "focus:ring-offset-background focus:ring-offset-2"
             )}
             aria-label="Check My Meal"
@@ -106,7 +83,7 @@ export default function GuestHomePage({
           className="fixed bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center cursor-pointer animate-bounce z-10"
           onClick={() => onSheetOpenChange(true)}
         >
-          <ChevronUp className="h-6 w-6 text-muted-foreground/70" />
+          <ChevronUp className="h-6 w-6 text-muted-foreground/70 animate-neon-chevron-pulse" /> {/* Added animation */}
           <span className="text-xs text-muted-foreground/70">Swipe Up or Tap to View the Meal</span>
         </div>
       )}
@@ -118,7 +95,7 @@ export default function GuestHomePage({
         onSetFeedback={onSetFeedback}
         onRemoveItem={onRemoveItem}
         isLoadingAi={isLoadingAiForItem}
-        activeColorScheme={activeLightModeColorScheme}
+        // activeColorScheme prop removed
       />
     </div>
   );

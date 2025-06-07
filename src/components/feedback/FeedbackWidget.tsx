@@ -94,11 +94,11 @@ export default function FeedbackWidget() {
   return (
     <>
       <Button
-        variant="default"
+        variant="default" // Will use primary color from theme
         size="lg"
         className={cn(
-          "fixed bottom-6 left-6 rounded-full shadow-xl h-16 w-16 p-0 z-50", // Changed right-6 to left-6
-          "bg-[#00FF00] text-black hover:bg-[#00DD00] focus:ring-[#00FF00] focus:ring-offset-2",
+          "fixed bottom-6 left-6 rounded-full shadow-xl h-16 w-16 p-0 z-50",
+          "bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary focus:ring-offset-2", // Uses theme colors
           "animate-custom-feedback-bounce"
         )}
         onClick={() => setIsOpen(true)}

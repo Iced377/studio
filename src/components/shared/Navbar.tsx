@@ -50,11 +50,11 @@ interface ReleaseNote {
 }
 
 const releaseNotesData: ReleaseNote[] = [
-  {
+   {
     version: "Beta 3.5.6",
     date: "June 07, 2025",
-    title: "Enhanced App Aesthetics & Branding",
-    description: "Implemented the FODMAPSafe color scheme (soft blues, pale violet) for a more polished and user-friendly interface, moving away from the default theme. Simplified theme management to focus on light/dark modes of the new branded look.",
+    title: "Enhanced App Aesthetics & Branding (Calo-Inspired)",
+    description: "Implemented a new color scheme (whites, grays, Calo green accent) for a more polished and user-friendly interface, replacing the previous 'FODMAPSafe' theme. Theme management now focuses on light/dark modes of this new branded look.",
   },
   {
     version: "Beta 3.5.5",
@@ -123,18 +123,14 @@ const releaseNotesData: ReleaseNote[] = [
 
 interface NavbarProps {
   isGuest?: boolean;
-  guestButtonScheme?: {
-    base: string;
-    border: string;
-    hover: string;
-  };
-  onMainActionClick?: () => void; // For Plus icon / central popover
-  onOpenDashboardClick?: () => void; // For LayoutGrid icon / dashboard sheet
+  // guestButtonScheme prop removed
+  onMainActionClick?: () => void; 
+  onOpenDashboardClick?: () => void; 
 }
 
 const LOCALSTORAGE_LAST_SEEN_VERSION_KEY = 'lastSeenAppVersion';
 
-export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick, onOpenDashboardClick }: NavbarProps) {
+export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClick }: NavbarProps) {
   const { user: authUser, loading: authLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -222,29 +218,22 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick, 
   };
 
   const headerBaseClasses = "sticky top-0 z-50 w-full";
-  const guestHeaderClasses = "bg-background text-foreground";
-  const registeredUserHeaderClasses = cn(
-    "bg-secondary text-secondary-foreground",
-    "dark:bg-card dark:text-card-foreground",
-    "border-b border-border/50"
+  // Unified header style, relying on globals.css variables for light/dark
+  const headerClasses = cn(
+    headerBaseClasses,
+    "bg-card text-card-foreground border-b border-border" 
   );
   const appNameBaseClasses = "font-bold font-headline text-xl";
 
   return (
-    <header className={cn(headerBaseClasses, isGuest ? guestHeaderClasses : registeredUserHeaderClasses)}>
+    <header className={headerClasses}>
       <div className={cn("flex h-16 w-full items-center justify-between", "px-2 sm:px-4")}>
         <div className="flex items-center space-x-1 sm:space-x-2">
           <Link href="/" className="flex items-center space-x-2">
-            {!isGuest && (
-              <div className={cn("flex h-9 w-9 items-center justify-center rounded-full border-2 p-1", "border-current bg-current")}>
-                <Image src="/Gutcheck_logo.png" alt="GutCheck Logo" width={28} height={28} className={cn("object-contain", "filter brightness-0 invert" )} priority />
-              </div>
-            )}
-            {!isGuest && (
-              <>
-                <span className={cn(appNameBaseClasses, 'text-current hidden sm:inline-block')}>{APP_NAME}</span>
-              </>
-            )}
+            <div className={cn("flex h-9 w-9 items-center justify-center rounded-full border-2 p-1", isGuest ? "bg-primary border-primary" : "border-current bg-current")}>
+              <Image src="/Gutcheck_logo.png" alt="GutCheck Logo" width={28} height={28} className={cn("object-contain", isGuest ? "" : "filter brightness-0 invert" )} priority />
+            </div>
+            <span className={cn(appNameBaseClasses, isGuest ? 'text-foreground' : 'text-current', 'hidden sm:inline-block')}>{APP_NAME}</span>
           </Link>
           {!isGuest && (
             <Dialog open={isReleaseNotesOpen} onOpenChange={handleReleaseNotesToggle}>
@@ -307,29 +296,29 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick, 
         <div className={cn("flex items-center", "space-x-0.5 sm:space-x-1")}>
           {isGuest ? (
             <div className="flex items-center space-x-2 sm:space-x-3">
-              {guestButtonScheme ? <span className="hidden sm:inline text-sm text-foreground font-medium animate-pulse">Unlock your gut's secrets! ✨</span> : null}
+               <span className="hidden sm:inline text-sm text-foreground font-medium">Ready to track?</span>
               <Button
                 onClick={() => router.push('/login')}
                 className={cn(
                   "h-9 px-3 sm:px-4 text-xs sm:text-sm",
-                  guestButtonScheme ? `${guestButtonScheme.base} ${guestButtonScheme.border} ${guestButtonScheme.hover} text-white` : ''
+                  "bg-primary text-primary-foreground hover:bg-primary/90" // Uses themed primary button
                 )}
-                variant={guestButtonScheme ? 'default' : 'default'}
+                variant={'default'}
               >
                 <UserPlus className="mr-1.5 h-4 sm:h-5 w-4 sm:w-5" />
-                Sign In / Sign Up
+                Sign In / Up
               </Button>
             </div>
           ) : (
             <>
               {!authLoading && authUser && (
                 <div className={cn("flex items-center", "space-x-0.5 sm:space-x-1")}>
-                  {onMainActionClick && ( // Plus icon for central popover
+                  {onMainActionClick && ( 
                      <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10")} aria-label="Add Entry" onClick={onMainActionClick}>
                       <Plus className="h-5 w-5" />
                     </Button>
                   )}
-                  {onOpenDashboardClick && ( // LayoutGrid icon for dashboard sheet
+                  {onOpenDashboardClick && ( 
                     <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10")} aria-label="Open Dashboard" onClick={onOpenDashboardClick}>
                       <LayoutGrid className="h-5 w-5" />
                     </Button>
@@ -407,4 +396,3 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick, 
     </header>
   );
 }
-    

@@ -5,10 +5,9 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, PlusCircle, ListChecks, Pencil, CalendarDays, Edit3, ChevronUp, Repeat, Camera, LayoutGrid } from 'lucide-react'; // Added LayoutGrid
+import { Loader2, PlusCircle, ListChecks, Pencil, CalendarDays, Edit3, ChevronUp, Repeat, Camera, LayoutGrid } from 'lucide-react'; 
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
-// import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow';
 import { processMealDescription, type ProcessMealDescriptionOutput } from '@/ai/flows/process-meal-description-flow';
 
 
@@ -42,14 +41,10 @@ import Navbar from '@/components/shared/Navbar';
 import GuestHomePage from '@/components/guest/GuestHomePage';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useTheme } from '@/contexts/ThemeContext';
-import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet'; // Ensure this is imported
+// useTheme import removed as activeLightModeColorScheme logic is removed/simplified
+import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet'; 
 
-// --- TEMPORARY FEATURE UNLOCK FLAG ---
-// Set to true to give all users full feature access (e.g., no data retention limits).
-// Set to false to revert to normal premium/free tier logic.
 const TEMPORARILY_UNLOCK_ALL_FEATURES = true;
-// --- END TEMPORARY FEATURE UNLOCK FLAG ---
 
 const generateFallbackFodmapProfile = (foodName: string): FoodFODMAPProfile => {
   let hash = 0;
@@ -80,21 +75,7 @@ const initialGuestProfile: UserProfile = {
   premium: false,
 };
 
-interface ButtonColorScheme {
-  id: string;
-  base: string;
-  border: string;
-  hover: string;
-  focusRing: string;
-  glowRgb: string;
-}
-const lightModeButtonColors: ButtonColorScheme[] = [
-  { id: 'sky', base: 'bg-sky-500', border: 'border-sky-700', hover: 'hover:bg-sky-600', focusRing: 'focus:ring-sky-500', glowRgb: '14, 165, 233' },
-  { id: 'amber', base: 'bg-amber-500', border: 'border-amber-700', hover: 'hover:bg-amber-600', focusRing: 'focus:ring-amber-500', glowRgb: '245, 158, 11' },
-  { id: 'emerald', base: 'bg-emerald-500', border: 'border-emerald-700', hover: 'hover:bg-emerald-600', focusRing: 'focus:ring-emerald-500', glowRgb: '16, 185, 129' },
-  { id: 'rose', base: 'bg-rose-500', border: 'border-rose-700', hover: 'hover:bg-rose-600', focusRing: 'focus:ring-rose-500', glowRgb: '244, 63, 94' },
-  { id: 'violet', base: 'bg-violet-500', border: 'border-violet-700', hover: 'hover:bg-violet-600', focusRing: 'focus:ring-violet-500', glowRgb: '139, 92, 246' },
-];
+// ButtonColorScheme and lightModeButtonColors removed
 
 
 export default function FoodTimelinePage() {
@@ -103,13 +84,12 @@ export default function FoodTimelinePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentPathname = usePathname();
-  const { isDarkMode } = useTheme();
+  // isDarkMode from useTheme removed as activeLightModeColorScheme logic is simplified
 
   const [userProfile, setUserProfile] = useState<UserProfile>(initialGuestProfile);
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
   const [isLoadingAi, setIsLoadingAi] = useState<Record<string, boolean>>({});
 
-  // Dialog states
   const [isAddFoodDialogOpenState, setIsAddFoodDialogOpenState] = useState(false);
   const setIsAddFoodDialogOpen = (val: boolean) => {
     console.log("[Debug] setIsAddFoodDialogOpen called with:", val, "Stack:", new Error().stack?.substring(0, 500));
@@ -122,7 +102,7 @@ export default function FoodTimelinePage() {
   const [isAddManualMacroDialogOpen, setIsAddManualMacroDialogOpen] = useState(false);
   const [isLogPreviousMealDialogOpen, setIsLogPreviousMealDialogOpen] = useState(false);
   const [selectedLogDateForPreviousMeal, setSelectedLogDateForPreviousMeal] = useState<Date | undefined>(undefined);
-  const [activeLightModeColorScheme, setActiveLightModeColorScheme] = useState<ButtonColorScheme>(lightModeButtonColors[0]);
+  // activeLightModeColorScheme state removed
 
 
   const [isDataLoading, setIsDataLoading] = useState(true);
@@ -136,15 +116,9 @@ export default function FoodTimelinePage() {
   const [editingItem, setEditingItem] = useState<LoggedFoodItem | null>(null);
 
   useEffect(() => {
-    if (!isDarkMode) {
-      const randomIndex = Math.floor(Math.random() * lightModeButtonColors.length);
-      const selectedScheme = lightModeButtonColors[randomIndex];
-      setActiveLightModeColorScheme(selectedScheme);
-      document.documentElement.style.setProperty('--glow-color-rgb', selectedScheme.glowRgb);
-    } else {
-      document.documentElement.style.setProperty('--glow-color-rgb', '57, 255, 20'); 
-    }
-  }, [isDarkMode]);
+    // --glow-color-rgb is now managed by globals.css based on --primary HSL
+    // so no specific JS logic needed here to set it based on light/dark mode.
+  }, []); // Empty dependency to run once
 
  useEffect(() => {
     const setupUser = async () => {
@@ -237,11 +211,10 @@ export default function FoodTimelinePage() {
         } finally {
             setIsDataLoading(false);
         }
-      } else { // Guest user (authUser is null, authLoading is false)
+      } else { 
         setUserProfile(initialGuestProfile);
         setTimelineEntries([]);
         setLastGuestFoodItem(null);
-        // Explicitly close dialogs that might have been open for the authenticated user
         setIsAddFoodDialogOpenState(false);
         setIsSimplifiedAddFoodDialogOpen(false);
         setIsIdentifyByPhotoDialogOpen(false);
@@ -250,8 +223,8 @@ export default function FoodTimelinePage() {
         setIsLogPreviousMealDialogOpen(false);
         setIsCentralPopoverOpen(false);
         setEditingItem(null);
-        setIsPremiumDashboardOpen(false); // Close dashboard sheet if user logs out
-        setIsGuestSheetOpen(false); // Ensure guest sheet is initially closed
+        setIsPremiumDashboardOpen(false); 
+        setIsGuestSheetOpen(false); 
         setIsDataLoading(false);
       }
     };
@@ -262,7 +235,6 @@ export default function FoodTimelinePage() {
   useEffect(() => {
     if (searchParams.get('openDashboard') === 'true') {
       setIsPremiumDashboardOpen(true);
-      // Clean the URL query parameter
       router.replace(currentPathname, { scroll: false });
     }
   }, [searchParams, router, currentPathname]);
@@ -312,7 +284,6 @@ export default function FoodTimelinePage() {
     }
   };
 
-  // Handles submission from AddFoodItemDialog (manual entry)
   const handleSubmitFoodItem = async (
     foodItemData: Omit<LoggedFoodItem, 'id' | 'timestamp' | 'entryType' | 'calories' | 'protein' | 'carbs' | 'fat' | 'sourceDescription' | 'userFeedback' | 'macrosOverridden'>,
     customTimestamp?: Date
@@ -422,7 +393,6 @@ export default function FoodTimelinePage() {
     }
   };
 
-  // Handles submission from SimplifiedAddFoodDialog (text-based AI)
   const handleSubmitMealDescription = async (
     formData: SimplifiedFoodLogFormValues,
     userDidOverrideMacros: boolean,
@@ -560,7 +530,6 @@ export default function FoodTimelinePage() {
     }
   };
 
-  // New function to process and log food from photo identification
   const handleProcessAndLogPhotoIdentification = async (
     photoData: IdentifiedPhotoData,
     customTimestamp?: Date
@@ -720,8 +689,6 @@ export default function FoodTimelinePage() {
       if (itemToEdit.sourceDescription && !itemToEdit.sourceDescription.startsWith("Identified by photo")) { 
         setIsSimplifiedAddFoodDialogOpen(true);
       } else { 
-        // For items identified by photo or older manual entries without sourceDescription
-        // We still open the manual dialog for editing, as it's the most generic editor
         setIsAddFoodDialogOpen(true);
       }
     }
@@ -799,7 +766,6 @@ export default function FoodTimelinePage() {
   const handleIdentifyByPhotoClick = () => {
     setIsCentralPopoverOpen(false);
     setEditingItem(null);
-    // Defensive state resets
     setIsAddFoodDialogOpen(false);
     setIsSimplifiedAddFoodDialogOpen(false);
     setIsIdentifyByPhotoDialogOpen(true);
@@ -811,7 +777,6 @@ export default function FoodTimelinePage() {
     } else if (logMethod === 'Manual') {
       setIsAddFoodDialogOpen(true);
     } else if (logMethod === 'Photo') {
-      // Defensive state resets
       setIsAddFoodDialogOpen(false);
       setIsSimplifiedAddFoodDialogOpen(false);
       setIsIdentifyByPhotoDialogOpen(true);
@@ -1099,9 +1064,7 @@ export default function FoodTimelinePage() {
               variant="outline"
               className={cn(
                 "rounded-full h-32 w-32 sm:h-40 sm:w-40 border-2 animate-pulse-glow focus:ring-offset-background focus:ring-offset-2",
-                !isDarkMode && activeLightModeColorScheme
-                  ? `${activeLightModeColorScheme.base} ${activeLightModeColorScheme.border} ${activeLightModeColorScheme.hover} ${activeLightModeColorScheme.focusRing}`
-                  : "bg-transparent border-primary hover:bg-primary/10 focus:bg-primary/10 focus:ring-primary"
+                "bg-primary border-primary hover:bg-primary/90 focus:ring-primary/50 text-primary-foreground"
               )}
               aria-label="Open Actions Menu"
             >
@@ -1225,7 +1188,7 @@ export default function FoodTimelinePage() {
       />
       {isAnyItemLoadingAi && (
           <div className="fixed bottom-20 right-4 bg-card text-card-foreground p-3 rounded-lg shadow-lg flex items-center space-x-2 z-50">
-          <Loader2 className="h-5 w-5 animate-spin" />
+          <Loader2 className="h-5 w-5 animate-spin text-primary" /> {/* Ensure spinner uses primary color */}
           <span>AI is analyzing...</span>
           </div>
       )}

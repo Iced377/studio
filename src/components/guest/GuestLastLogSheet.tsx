@@ -9,14 +9,7 @@ import type { LoggedFoodItem } from '@/types';
 import TimelineFoodCard from '@/components/food-logging/TimelineFoodCard';
 import { cn } from "@/lib/utils";
 
-interface GuestButtonScheme {
-  id: string;
-  base: string;
-  border: string;
-  hover: string;
-  focusRing: string;
-  glowRgb: string;
-}
+// GuestButtonScheme interface removed
 
 interface GuestLastLogSheetProps {
   isOpen: boolean;
@@ -25,7 +18,7 @@ interface GuestLastLogSheetProps {
   onSetFeedback: (itemId: string, feedback: 'safe' | 'unsafe' | null) => void;
   onRemoveItem: (itemId: string) => void;
   isLoadingAi: boolean;
-  activeColorScheme?: GuestButtonScheme;
+  // activeColorScheme prop removed
 }
 
 export default function GuestLastLogSheet({
@@ -35,17 +28,15 @@ export default function GuestLastLogSheet({
   onSetFeedback,
   onRemoveItem,
   isLoadingAi,
-  activeColorScheme,
+  // activeColorScheme, // Removed
 }: GuestLastLogSheetProps) {
 
-  const buttonClasses = activeColorScheme
-    ? cn(
-        "h-10 px-4 py-2 text-white text-sm", 
-        activeColorScheme.base,
-        activeColorScheme.border,
-        activeColorScheme.hover
-      )
-    : cn(buttonVariants({ variant: "default" }), "w-full max-w-xs mx-auto");
+  // Button classes now rely on primary theme color
+  const buttonClasses = cn(
+    buttonVariants({ variant: "default", size: "lg" }),
+    "w-full max-w-xs mx-auto flex items-center justify-center",
+    "bg-primary text-primary-foreground hover:bg-primary/90" // Using themed primary
+  );
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -73,18 +64,13 @@ export default function GuestLastLogSheet({
               <p className="text-sm">Tap "Check My Meal" to see your entry here.</p>
             </div>
           )}
-          {/* CTA Section - Reordered and styling confirmed */}
           <div className="text-center px-2 mt-6 mb-4 space-y-4">
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
               Ready to supercharge your gut journey? 🚀 Sign up to save your meals, spot patterns, and unlock personalized insights! Your future self (and tummy) will thank you! 😉
             </p>
              <Link
               href="/login"
-              className={cn(
-                buttonVariants({ variant: "default", size: "lg" }), 
-                "w-full max-w-xs mx-auto flex items-center justify-center", 
-                activeColorScheme ? `${activeColorScheme.base} ${activeColorScheme.border} ${activeColorScheme.hover} text-white` : "bg-primary text-primary-foreground hover:bg-primary/90"
-              )}
+              className={buttonClasses} // Using themed button classes
             >
               <UserPlus className="mr-2 h-5 w-5" />
               Sign In / Sign Up
