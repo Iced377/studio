@@ -14,7 +14,7 @@ export default function GuestHomePage({
   onLogFoodClick,
   lastLoggedItem,
   isSheetOpen,
-  onSheetOpenChange,
+  onOpenChange,
   onSetFeedback,
   onRemoveItem,
   isLoadingAiForItem,
@@ -44,17 +44,17 @@ export default function GuestHomePage({
       <Navbar isGuest={true} />
 
       <main className="flex-grow flex flex-col items-center justify-center p-4 relative text-center">
-        <div className="flex flex-col items-center space-y-6"> {/* Increased space-y for title */}
+        <div className="flex flex-col items-center space-y-6">
           <button
             onClick={handleMainButtonClick}
             className={cn(
               "text-primary-foreground rounded-full h-40 w-40 sm:h-48 sm:w-48 flex flex-col items-center justify-center",
-              "bg-gradient-to-br from-primary to-primary/70", // Gradient background
-              "border-4 border-white/30", // Light border for pop
-              "shadow-2xl", // More prominent shadow
-              "hover:scale-105 hover:shadow-[0_0_35px_10px_hsla(var(--primary),0.6)]", // Scale and enhanced glow on hover
+              "bg-gradient-to-br from-primary to-primary/70", 
+              "border-4 border-white/30", 
+              "drop-shadow-2xl", // Replaced shadow-2xl with drop-shadow-2xl for better floating effect
+              "hover:scale-105 hover:shadow-[0_0_35px_10px_hsla(var(--primary),0.6)]", 
               "focus:outline-none focus:ring-4 focus:ring-primary/40 focus:ring-offset-2 focus:ring-offset-background",
-              "transition-all duration-300 ease-in-out" // Smooth transitions
+              "transition-all duration-300 ease-in-out" 
             )}
             aria-label="Quick-Check Your Meal"
           >
@@ -62,21 +62,20 @@ export default function GuestHomePage({
             <Image
               src="/Gutcheck_logo.png"
               alt="GutCheck Logo"
-              width={80} 
-              height={80}
-              className="object-contain my-1" // Adjusted margin
+              width={60} // Adjusted logo size
+              height={60}
+              className="object-contain my-1" 
               priority
             />
             <span className="text-lg font-medium leading-tight mb-1">Your Meal</span>
           </button>
-          {/* Removed the h1 that was previously under the button */}
         </div>
       </main>
 
       {lastLoggedItem && !isSheetOpen && (
         <div
           className="fixed bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center cursor-pointer animate-bounce z-10"
-          onClick={() => onSheetOpenChange(true)}
+          onClick={() => onOpenChange(true)}
         >
           <ChevronUp className="h-6 w-6 text-muted-foreground/70 animate-neon-chevron-pulse" />
           <span className="text-xs text-muted-foreground/70">Swipe Up or Tap to View the Meal</span>
@@ -85,7 +84,7 @@ export default function GuestHomePage({
 
       <GuestLastLogSheet
         isOpen={isSheetOpen}
-        onOpenChange={onSheetOpenChange}
+        onOpenChange={onOpenChange}
         lastLoggedItem={lastLoggedItem}
         onSetFeedback={onSetFeedback}
         onRemoveItem={onRemoveItem}
