@@ -40,7 +40,7 @@ import {
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.5.7";
+export const APP_VERSION = "Beta 3.5.8";
 
 interface ReleaseNote {
   version: string;
@@ -50,6 +50,20 @@ interface ReleaseNote {
 }
 
 const releaseNotesData: ReleaseNote[] = [
+  {
+    version: "Beta 3.5.8",
+    date: "June 08, 2025",
+    title: "Navbar, Guest View & Auth Page UI Polish",
+    description: [
+      "Enhanced Navbar icon hover states for visual consistency with the 'Plus' button.",
+      "Updated Guest View Navbar to hide the logo and adjust app name alignment.",
+      "Overhauled the main action button on the Guest Homepage: text 'Quick-Check Your Meal' now wraps around the logo inside the button, improved floating effect with drop-shadow, and enhanced button aesthetics.",
+      "Refined Login/Signup pages: updated 'Welcome' message, standardized Google Sign-In button size, and added a 'Back' button to the Login page.",
+      "Made app version and release notes visible in Guest View Navbar.",
+      "Adjusted icon sizes and layout in PremiumDashboardSheet header for micronutrients.",
+      "Standardized label typography in SymptomLoggingDialog and icon sizes in various timeline card indicators (GI, Fiber, Allergens).",
+    ],
+  },
   {
     version: "Beta 3.5.7",
     date: "June 07, 2025",
