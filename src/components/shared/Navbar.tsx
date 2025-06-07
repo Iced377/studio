@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X, ScrollText, LayoutGrid, Plus, Home, Shield } from 'lucide-react';
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X, ScrollText, LayoutGrid, Plus, Shield } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -128,12 +128,13 @@ interface NavbarProps {
     border: string;
     hover: string;
   };
-  onMainActionClick?: () => void;
+  onMainActionClick?: () => void; // For Plus icon / central popover
+  onOpenDashboardClick?: () => void; // For LayoutGrid icon / dashboard sheet
 }
 
 const LOCALSTORAGE_LAST_SEEN_VERSION_KEY = 'lastSeenAppVersion';
 
-export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }: NavbarProps) {
+export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick, onOpenDashboardClick }: NavbarProps) {
   const { user: authUser, loading: authLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -323,16 +324,13 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
             <>
               {!authLoading && authUser && (
                 <div className={cn("flex items-center", "space-x-0.5 sm:space-x-1")}>
-                  {onMainActionClick && (
+                  {onMainActionClick && ( // Plus icon for central popover
                      <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10")} aria-label="Add Entry" onClick={onMainActionClick}>
                       <Plus className="h-5 w-5" />
                     </Button>
                   )}
-                  <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/' ? 'bg-primary/10 text-primary' : 'text-current hover:text-current/80 hover:bg-current/10')} aria-label="Home" onClick={() => router.push('/')}>
-                    <Home className="h-5 w-5" />
-                  </Button>
-                  {onMainActionClick && (
-                    <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10")} aria-label="Open Actions Menu" onClick={onMainActionClick}>
+                  {onOpenDashboardClick && ( // LayoutGrid icon for dashboard sheet
+                    <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10")} aria-label="Open Dashboard" onClick={onOpenDashboardClick}>
                       <LayoutGrid className="h-5 w-5" />
                     </Button>
                   )}

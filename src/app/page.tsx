@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, PlusCircle, ListChecks, Pencil, CalendarDays, Edit3, ChevronUp, Repeat, Camera } from 'lucide-react';
+import { Loader2, PlusCircle, ListChecks, Pencil, CalendarDays, Edit3, ChevronUp, Repeat, Camera, LayoutGrid } from 'lucide-react'; // Added LayoutGrid
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
 // import { getSymptomCorrelations, type SymptomCorrelationInput, type SymptomCorrelationOutput } from '@/ai/flows/symptom-correlation-flow';
@@ -43,6 +43,7 @@ import GuestHomePage from '@/components/guest/GuestHomePage';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/contexts/ThemeContext';
+import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet'; // Ensure this is imported
 
 // --- TEMPORARY FEATURE UNLOCK FLAG ---
 // Set to true to give all users full feature access (e.g., no data retention limits).
@@ -1087,7 +1088,10 @@ export default function FoodTimelinePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden">
-       <Navbar onMainActionClick={() => setIsCentralPopoverOpen(true)} /> {/* Include Navbar here */}
+       <Navbar
+         onMainActionClick={() => setIsCentralPopoverOpen(true)}
+         onOpenDashboardClick={() => setIsPremiumDashboardOpen(true)}
+       />
       <div className="flex-grow flex items-center justify-center">
         <Popover open={isCentralPopoverOpen} onOpenChange={setIsCentralPopoverOpen}>
           <PopoverTrigger asChild>
@@ -1131,6 +1135,22 @@ export default function FoodTimelinePage() {
           </PopoverContent>
         </Popover>
       </div>
+
+      <PremiumDashboardSheet
+        isOpen={isPremiumDashboardOpen}
+        onOpenChange={setIsPremiumDashboardOpen}
+        userProfile={userProfile}
+        timelineEntries={timelineEntries}
+        dailyNutritionSummary={dailyNutritionSummary}
+        isLoadingAi={isLoadingAi}
+        onSetFeedback={handleSetFoodFeedback}
+        onRemoveTimelineEntry={handleRemoveTimelineEntry}
+        onLogSymptomsForFood={openSymptomDialog}
+        onEditIngredients={handleEditTimelineEntry}
+        onRepeatMeal={handleRepeatMeal}
+      >
+        {/* Children can be passed here if PremiumDashboardSheet is designed to wrap content */}
+      </PremiumDashboardSheet>
 
 
       <SimplifiedAddFoodDialog
@@ -1212,4 +1232,3 @@ export default function FoodTimelinePage() {
     </div>
   );
 }
-
