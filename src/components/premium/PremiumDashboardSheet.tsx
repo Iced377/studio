@@ -162,8 +162,8 @@ export default function PremiumDashboardSheet({
                           <Popover key={micro.name}>
                             <PopoverTrigger asChild>
                               <div className="relative p-0.5 cursor-pointer flex items-center">
-                                <IconComponent className="h-4.5 w-4.5 text-green-500" />
-                                <Check className="absolute -bottom-0.5 -right-0.5 h-3 w-3 text-green-600 bg-background rounded-full p-0.5" />
+                                <IconComponent className="h-4 w-4 text-green-500" />
+                                <Check className="absolute bottom-0 right-0 h-2.5 w-2.5 text-green-600 bg-background rounded-full" />
                               </div>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto max-w-xs bg-popover text-popover-foreground border-border p-2 text-sm">
@@ -225,3 +225,4 @@ export default function PremiumDashboardSheet({
     </Sheet>
   );
 }
+
