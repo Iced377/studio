@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X, ScrollText, LayoutGrid, Plus, Home } from 'lucide-react';
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X, ScrollText, LayoutGrid, Plus, Home, Shield } from 'lucide-react'; // Added Shield
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -40,7 +40,7 @@ import {
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.5.4";
+export const APP_VERSION = "Beta 3.5.5"; // Updated version
 
 interface ReleaseNote {
   version: string;
@@ -50,6 +50,15 @@ interface ReleaseNote {
 }
 
 const releaseNotesData: ReleaseNote[] = [
+  {
+    version: "Beta 3.5.5",
+    date: "July 31, 2024",
+    title: "Privacy Notice Page",
+    description: [
+      "Added a new Privacy Notice page accessible from the user dropdown menu.",
+      "Updated app version to Beta 3.5.5.",
+    ],
+  },
   {
     version: "Beta 3.5.4",
     date: "July 30, 2024",
@@ -346,6 +355,10 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
                     <DropdownMenuItem onClick={() => router.push('/account/subscription')} className="cursor-pointer">
                        <CreditCard className="mr-2 h-4 w-4" />
                        <span>Subscription</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/privacy')} className="cursor-pointer"> {/* Added Privacy Notice item */}
+                       <Shield className="mr-2 h-4 w-4" />
+                       <span>Privacy Notice</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
