@@ -323,7 +323,7 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
             <>
               {!authLoading && authUser && onMainActionClick && (
                 <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-primary hover:text-primary/90 hover:bg-primary/10")} aria-label="Add Entry" onClick={onMainActionClick}>
-                  <Plus className="h-5 w-5" />
+                  <Plus className="h-6 w-6" strokeWidth={2.5} />
                 </Button>
               )}
 
