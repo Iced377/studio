@@ -1,13 +1,15 @@
+
 'use client';
 
 import { useState } from 'react';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { signInWithGoogle } from '@/lib/firebase/auth';
-import { Chrome } from 'lucide-react'; 
+import { Chrome } from 'lucide-react';
 import type { UserCredential, AuthError } from 'firebase/auth';
 import { cn } from '@/lib/utils';
-import { useRouter } from 'next/navigation'; // Added useRouter
+// useRouter is no longer needed here for direct redirection on popup success.
+// AuthProvider and the auth pages will handle the auth state changes.
 
 interface GoogleSignInButtonProps extends Omit<ButtonProps, 'onClick' | 'disabled' | 'children'> {
   variant?: ButtonProps['variant'] | 'guest';
@@ -16,18 +18,17 @@ interface GoogleSignInButtonProps extends Omit<ButtonProps, 'onClick' | 'disable
 export default function GoogleSignInButton({ variant, className, ...props }: GoogleSignInButtonProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const router = useRouter(); // Initialized useRouter
 
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      const result = await signInWithGoogle();
-      // This block primarily handles the popup flow result.
+      // signInWithGoogle will trigger onAuthStateChanged in AuthProvider
+      // which updates the global auth state.
+      // Auth pages (/login, /signup) will then react to this change and redirect.
+      await signInWithGoogle();
+      // For popup flow, success is implicitly handled by onAuthStateChanged.
       // For redirect flow, AuthProvider handles the result after page reload.
-      if (result && (result as UserCredential).user && variant !== 'guest') { 
-        toast({ title: 'Login Successful', description: 'Welcome!' });
-        router.push('/'); // Redirect to home after successful Google popup
-      }
+      // A generic success toast might be too early here, let AuthProvider or pages handle it.
     } catch (error) {
       console.error("Google login error:", error);
       toast({
@@ -35,14 +36,15 @@ export default function GoogleSignInButton({ variant, className, ...props }: Goo
         description: (error as AuthError).message || 'Could not sign in with Google.',
         variant: 'destructive',
       });
-      setLoading(false); 
+    } finally {
+      // setLoading(false) might not execute before navigation in redirect flow.
+      // AuthProvider manages overall loading state. For popup, this is fine.
+      setLoading(false);
     }
-    // For redirect flow, setLoading(false) might not execute before navigation.
-    // AuthProvider manages overall loading state.
   };
 
-  const buttonClasses = variant === 'guest' 
-    ? "bg-transparent text-white border-white hover:bg-white/10 h-9 px-4" 
+  const buttonClasses = variant === 'guest'
+    ? "bg-transparent text-white border-white hover:bg-white/10 h-9 px-4"
     : "w-full max-w-xs";
 
   return (

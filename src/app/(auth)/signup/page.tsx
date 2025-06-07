@@ -1,9 +1,32 @@
 
-import SignUpForm from '@/components/auth/SignUpForm';
-import GoogleSignInButton from '@/components/auth/GoogleSignInButton'; // Keep for the "Or continue with Google" part
+'use client'; // Ensure this is at the top
 
+import { useEffect } from 'react';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { useRouter } from 'next/navigation';
+import SignUpForm from '@/components/auth/SignUpForm';
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
+import { Loader2 } from 'lucide-react';
 
 export default function SignUpPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/');
+    }
+  }, [user, loading, router]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-full flex-col justify-center items-center py-12 sm:px-6 lg:px-8">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="mt-4 text-muted-foreground">Checking authentication...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-full flex-col justify-center items-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
