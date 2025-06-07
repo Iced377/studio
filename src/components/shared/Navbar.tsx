@@ -250,7 +250,11 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
               <DialogTrigger asChild>
                 <Button
                   variant="ghost"
-                  className={cn("text-xs p-1 h-auto ml-0 mt-1 rounded-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 relative", "text-primary underline underline-offset-2 hover:text-primary/90")}
+                  className={cn(
+                    "text-xs p-1 h-auto ml-0 mt-1 rounded-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 relative",
+                    "text-primary underline underline-offset-2",
+                    "hover:bg-transparent hover:text-primary/80" // Corrected hover state
+                  )}
                   aria-label={`App Version ${APP_VERSION}, click for release notes`}
                 >
                   {APP_VERSION}
@@ -322,7 +326,7 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
           ) : (
             <>
               {!authLoading && authUser && onMainActionClick && (
-                <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-primary hover:text-primary/90 hover:bg-primary/10")} aria-label="Add Entry" onClick={onMainActionClick}>
+                 <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-primary hover:text-primary/90 hover:bg-primary/10")} aria-label="Add Entry" onClick={onMainActionClick}>
                   <Plus className="h-6 w-6" strokeWidth={3} />
                 </Button>
               )}
