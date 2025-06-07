@@ -123,7 +123,6 @@ const releaseNotesData: ReleaseNote[] = [
 
 interface NavbarProps {
   isGuest?: boolean;
-  // guestButtonScheme prop removed
   onMainActionClick?: () => void; 
   onOpenDashboardClick?: () => void; 
 }
@@ -218,7 +217,6 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
   };
 
   const headerBaseClasses = "sticky top-0 z-50 w-full";
-  // Unified header style, relying on globals.css variables for light/dark
   const headerClasses = cn(
     headerBaseClasses,
     "bg-card text-card-foreground border-b border-border" 
@@ -230,10 +228,10 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
       <div className={cn("flex h-16 w-full items-center justify-between", "px-2 sm:px-4")}>
         <div className="flex items-center space-x-1 sm:space-x-2">
           <Link href="/" className="flex items-center space-x-2">
-            <div className={cn("flex h-9 w-9 items-center justify-center rounded-full border-2 p-1", isGuest ? "bg-primary border-primary" : "border-current bg-current")}>
+            <div className={cn("flex h-9 w-9 items-center justify-center rounded-full border-2 p-1", "bg-primary border-primary")}>
               <Image src="/Gutcheck_logo.png" alt="GutCheck Logo" width={28} height={28} className={cn("object-contain", isGuest ? "" : "filter brightness-0 invert" )} priority />
             </div>
-            <span className={cn(appNameBaseClasses, isGuest ? 'text-foreground' : 'text-current', 'hidden sm:inline-block')}>{APP_NAME}</span>
+            <span className={cn(appNameBaseClasses, 'text-current', 'hidden sm:inline-block')}>{APP_NAME}</span>
           </Link>
           {!isGuest && (
             <Dialog open={isReleaseNotesOpen} onOpenChange={handleReleaseNotesToggle}>
@@ -301,7 +299,7 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
                 onClick={() => router.push('/login')}
                 className={cn(
                   "h-9 px-3 sm:px-4 text-xs sm:text-sm",
-                  "bg-primary text-primary-foreground hover:bg-primary/90" // Uses themed primary button
+                  "bg-primary text-primary-foreground hover:bg-primary/90" 
                 )}
                 variant={'default'}
               >
