@@ -106,7 +106,7 @@ const PrivacyPage = () => {
       </section>
 
       <div className="mt-8 text-sm text-gray-500">
-        <p>Last updated: July 31, 2024</p>
+        <p>Last updated: June 7, 2025</p>
       </div>
 
       <div className="mt-12 text-center">
