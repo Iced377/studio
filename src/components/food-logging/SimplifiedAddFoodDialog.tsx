@@ -23,8 +23,7 @@ import { Sprout, Loader2, Edit, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/contexts/ThemeContext';
-// import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder'; // Ad placeholder removed
-// Image identification logic and related imports are removed
+
 
 const simplifiedFoodLogSchema = z.object({
   mealDescription: z.string().min(10, { message: 'Please describe your meal in more detail (at least 10 characters).' }),
@@ -68,15 +67,12 @@ export default function SimplifiedAddFoodDialog({
   initialMacrosOverridden = false,
 }: SimplifiedAddFoodDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
-  // States related to photo identification are removed
+  
   const { toast } = useToast();
   const [userWantsToOverrideMacros, setUserWantsToOverrideMacros] = useState(initialMacrosOverridden);
   const { isDarkMode } = useTheme();
 
-  // const adSenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-8897507841347789";
-  // const adSenseSlotIdSimplifiedBanner = process.env.NEXT_PUBLIC_ADSENSE_SIMPLIFIED_LOG_BANNER_AD_ID || "YOUR_SIMPLIFIED_LOG_BANNER_AD_ID_HERE";
 
-  // Refs for file inputs are removed
 
   const form = useForm<SimplifiedFoodLogFormValues>({
     resolver: zodResolver(simplifiedFoodLogSchema),
@@ -106,7 +102,7 @@ export default function SimplifiedAddFoodDialog({
         reset({ mealDescription: '', calories: undefined, protein: undefined, carbs: undefined, fat: undefined });
         setUserWantsToOverrideMacros(false);
       }
-      // Resetting image related states is removed
+      
     }
   }, [isOpen, isEditing, initialValues, initialMacrosOverridden, reset]);
 
@@ -132,7 +128,7 @@ export default function SimplifiedAddFoodDialog({
     }
   };
 
-  // handleImageFileChange function is removed
+
 
   const dialogContentClasses = cn("sm:max-w-lg", "bg-card text-card-foreground border-border");
   const titleClasses = cn("font-headline text-xl flex items-center", "text-foreground");
@@ -170,24 +166,15 @@ export default function SimplifiedAddFoodDialog({
               ? "Tell us what you ate, including ingredients and their approximate portion sizes."
               : (isEditing
                   ? "Update the description. You can also manually adjust nutritional info below."
-                  : "Describe your meal in natural language. Our AI will estimate nutritional info.") // Removed "or use a photo"
+                  : "Describe your meal in natural language. Our AI will estimate nutritional info.") 
             }
           </DialogDescription>
         </DialogHeader>
 
-        {/* Ad placeholder removed from here
-        {!isGuestView && (
-          <div className="my-4">
-            <BannerAdPlaceholder
-              adClientId={adSenseClientId}
-              adSlotId={adSenseSlotIdSimplifiedBanner}
-            />
-          </div>
-        )}
-        */}
+        
 
         <form onSubmit={form.handleSubmit(handleDialogSubmit)} className="space-y-4 pt-2 max-h-[calc(60vh-50px)] overflow-y-auto pr-2">
-         {/* Photo identification UI and logic removed */}
+         
           
           <div>
             <Label htmlFor="mealDescription" className={labelClasses}>Meal Description</Label>

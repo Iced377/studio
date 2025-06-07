@@ -174,7 +174,7 @@ export default function LoginForm() {
             <p className="text-sm text-destructive mt-1">{loginForm.formState.errors.password.message}</p>
           )}
         </div>
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full" size="lg" disabled={loading}>
           {loading ? 'Logging in...' : 'Login'}
         </Button>
       </form>

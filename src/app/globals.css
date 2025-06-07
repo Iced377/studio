@@ -31,7 +31,7 @@
     --destructive-foreground: 0 0% 100%; /* White text on Red */
 
     --border: 0 0% 85%; /* Light Gray #D9D9D9 */
-    --input: 0 0% 93%; /* Slightly off-white #EDEDED for inputs */
+    --input: 0 0% 80%; /* Medium Gray #CCCCCC for input borders */
     --ring: 150 61% 35%; /* Darker Calo Green for focus rings #208A4E */
 
     /* Success indicators, can be Calo green or a distinct success green */
@@ -66,7 +66,7 @@
     --destructive-foreground: 0 0% 100%; /* White text */
 
     --border: 0 0% 20%; /* Muted Dark Gray border #333333 */
-    --input: 0 0% 14%; /* Dark gray for input background #242424 */
+    --input: 0 0% 25%; /* Lighter Dark Gray #404040 for input borders */
     --ring: 150 61% 50%; /* Slightly lighter Calo Green for focus rings #3CC87A */
     
     /* Success indicators */

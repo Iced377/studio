@@ -19,14 +19,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { LoggedFoodItem } from '@/types';
-import { Sprout, Loader2, Camera, Upload, AlertTriangle } from 'lucide-react'; // Removed unused Camera, Upload, AlertTriangle
+import { Sprout, Loader2 } from 'lucide-react'; 
 import { useToast } from '@/hooks/use-toast';
-// import BannerAdPlaceholder from '@/components/ads/BannerAdPlaceholder'; // Ad placeholder removed
+
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
-// identifyFoodFromImage and related types are not used here anymore
-// import { identifyFoodFromImage, type IdentifyFoodFromImageOutput } from '@/ai/flows/identify-food-from-image-flow';
-// import Image from 'next/image'; // Not used here anymore
+
 
 const manualEntrySchema = z.object({
   name: z.string().min(1, { message: 'Food name is required' }),
@@ -56,8 +54,7 @@ export default function AddFoodItemDialog({
   const { toast } = useToast();
   const { isDarkMode } = useTheme();
 
-  // const adSenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-8897507841347789";
-  // const adSenseSlotIdBanner = process.env.NEXT_PUBLIC_ADSENSE_MANUAL_LOG_BANNER_AD_ID || "YOUR_MANUAL_LOG_BANNER_AD_ID_HERE";
+
 
 
   const form = useForm<ManualEntryFormValues>({
@@ -120,14 +117,7 @@ export default function AddFoodItemDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Ad placeholder removed from here
-        <div className="my-4">
-          <BannerAdPlaceholder
-            adClientId={adSenseClientId}
-            adSlotId={adSenseSlotIdBanner}
-          />
-        </div>
-        */}
+        
 
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 pt-2">
           <div>

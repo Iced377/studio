@@ -100,7 +100,7 @@ export default function SignUpForm() {
             <p className="text-sm text-destructive mt-1">{form.formState.errors.confirmPassword.message}</p>
           )}
         </div>
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full" size="lg" disabled={loading}>
           {loading ? 'Signing up...' : 'Sign Up'}
         </Button>
       </form>
