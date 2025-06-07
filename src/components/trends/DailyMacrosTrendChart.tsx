@@ -9,25 +9,23 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 interface DailyMacrosTrendChartProps {
   data: MacroPoint[];
-  theme: string; // 'black', 'orange', 'green', 'red'
+  // theme: string; // Removed unused theme prop
   isDarkMode: boolean;
 }
 
-const getColors = (theme: string, isDarkMode: boolean) => {
-  // Simplified: in a real app, pull these from CSS vars or a config
+const getColors = (isDarkMode: boolean) => { // Removed theme parameter
   const baseColors = {
-    protein: isDarkMode ? 'hsl(var(--chart-1))' : 'hsl(var(--chart-1))', // Example: Reddish
-    carbs: isDarkMode ? 'hsl(var(--chart-2))' : 'hsl(var(--chart-2))',   // Example: Greenish
-    fat: isDarkMode ? 'hsl(var(--chart-4))' : 'hsl(var(--chart-4))',      // Example: Yellowish
+    protein: isDarkMode ? 'hsl(var(--chart-1))' : 'hsl(var(--chart-1))', 
+    carbs: isDarkMode ? 'hsl(var(--chart-2))' : 'hsl(var(--chart-2))',   
+    fat: isDarkMode ? 'hsl(var(--chart-4))' : 'hsl(var(--chart-4))',      
     grid: isDarkMode ? "hsl(var(--border))" : "hsl(var(--border))",
     text: isDarkMode ? "hsl(var(--muted-foreground))" : "hsl(var(--muted-foreground))",
   };
-  // Specific theme overrides could go here if needed
   return baseColors;
 };
 
-export default function DailyMacrosTrendChart({ data, theme, isDarkMode }: DailyMacrosTrendChartProps) {
-  const colors = getColors(theme, isDarkMode);
+export default function DailyMacrosTrendChart({ data, isDarkMode }: DailyMacrosTrendChartProps) {
+  const colors = getColors(isDarkMode);
   
   const chartConfig = {
     protein: { label: "Protein (g)", color: colors.protein },

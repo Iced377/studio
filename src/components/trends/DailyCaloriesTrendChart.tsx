@@ -9,11 +9,11 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 interface DailyCaloriesTrendChartProps {
   data: CaloriePoint[];
-  theme: string;
+  // theme: string; // Removed unused theme prop
   isDarkMode: boolean;
 }
 
-const getColors = (theme: string, isDarkMode: boolean) => {
+const getColors = (isDarkMode: boolean) => { // Removed theme parameter
   return {
     calories: isDarkMode ? 'hsl(var(--chart-5))' : 'hsl(var(--chart-5))', // Example: Bluish/Purple
     grid: isDarkMode ? "hsl(var(--border))" : "hsl(var(--border))",
@@ -21,8 +21,8 @@ const getColors = (theme: string, isDarkMode: boolean) => {
   };
 };
 
-export default function DailyCaloriesTrendChart({ data, theme, isDarkMode }: DailyCaloriesTrendChartProps) {
-  const colors = getColors(theme, isDarkMode);
+export default function DailyCaloriesTrendChart({ data, isDarkMode }: DailyCaloriesTrendChartProps) {
+  const colors = getColors(isDarkMode);
   
   const chartConfig = {
     calories: { label: "Calories (kcal)", color: colors.calories },

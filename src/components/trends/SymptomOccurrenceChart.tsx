@@ -8,7 +8,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recha
 
 interface SymptomOccurrenceChartProps {
   data: SymptomFrequency[];
-  theme: string;
+  // theme: string; // Removed unused theme prop
   isDarkMode: boolean;
 }
 
@@ -18,18 +18,19 @@ const PREDEFINED_CHART_COLORS = [
   'hsl(var(--chart-3))',
   'hsl(var(--chart-4))',
   'hsl(var(--chart-5))',
-  'hsl(220, 70%, 60%)', // Additional distinct colors
+  'hsl(220, 70%, 60%)', 
   'hsl(340, 70%, 60%)',
   'hsl(100, 70%, 60%)',
 ];
 
-export default function SymptomOccurrenceChart({ data, theme, isDarkMode }: SymptomOccurrenceChartProps) {
+export default function SymptomOccurrenceChart({ data, isDarkMode }: SymptomOccurrenceChartProps) {
+  // isDarkMode and theme props are not directly used for PREDEFINED_CHART_COLORS,
+  // but kept isDarkMode in case future theming needs it.
 
   if (!data || data.length === 0) {
     return <p className="text-center text-muted-foreground py-8">No symptom data available for the selected period.</p>;
   }
 
-  // Create chartConfig dynamically for labels and colors
   const chartConfig = data.reduce((acc, item, index) => {
     acc[item.name] = {
       label: item.name,
@@ -55,10 +56,8 @@ export default function SymptomOccurrenceChart({ data, theme, isDarkMode }: Symp
           cx="50%"
           cy="50%"
           outerRadius={120}
-          innerRadius={80} // For Donut shape
-          fill="hsl(var(--foreground))" // Default fill, overridden by Cell
-          labelLine={false}
-          // label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`} // Optional: if you want labels on slices
+          innerRadius={80} 
+          fill="hsl(var(--foreground))" 
         >
           {data.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={chartConfig[entry.name]?.color || PREDEFINED_CHART_COLORS[index % PREDEFINED_CHART_COLORS.length]} />

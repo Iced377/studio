@@ -1,28 +1,29 @@
+
 'use client';
 
-import type { GIPoint } from '@/types'; // We will define GIPoint in the next step
+import type { GIPoint } from '@/types'; 
 import { useTheme } from '@/contexts/ThemeContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface GITrendChartProps {
-  data: GIPoint[]; // Expects data like [{ hour: "00:00", gi: 30 }, { hour: "01:00", gi: 45 }, ...]
-  theme: string;
+  data: GIPoint[]; 
+  // theme: string; // Removed unused theme prop
   isDarkMode: boolean;
 }
 
-const getGIColors = (theme: string, isDarkMode: boolean) => {
+const getGIColors = (isDarkMode: boolean) => { // Removed theme parameter
   const baseColors = {
-    gi: isDarkMode ? 'hsl(var(--chart-3))' : 'hsl(var(--chart-3))', // Example: Blueish, assuming chart-3 is suitable
+    gi: isDarkMode ? 'hsl(var(--chart-3))' : 'hsl(var(--chart-3))', 
     grid: isDarkMode ? "hsl(var(--border))" : "hsl(var(--border))",
     text: isDarkMode ? "hsl(var(--muted-foreground))" : "hsl(var(--muted-foreground))",
   };
   return baseColors;
 };
 
-export default function GITrendChart({ data, theme, isDarkMode }: GITrendChartProps) {
-  const colors = getGIColors(theme, isDarkMode);
+export default function GITrendChart({ data, isDarkMode }: GITrendChartProps) {
+  const colors = getGIColors(isDarkMode);
   
   const chartConfig = {
     gi: { label: "Glycemic Index", color: colors.gi },
@@ -32,9 +33,8 @@ export default function GITrendChart({ data, theme, isDarkMode }: GITrendChartPr
     return <p className="text-center text-muted-foreground py-8">No GI data available for the selected period.</p>;
   }
   
-  // Determine Y-axis domain dynamically, ensuring it covers typical GI range
   const maxGiInDatapoints = data.length > 0 ? Math.max(...data.map(d => d.gi)) : 0;
-  const yAxisDomainMax = Math.max(maxGiInDatapoints, 100); // Ensure Y axis goes to at least 100 or max data point
+  const yAxisDomainMax = Math.max(maxGiInDatapoints, 100); 
   const yAxisDomain = [0, yAxisDomainMax];
 
   return (
@@ -51,10 +51,10 @@ export default function GITrendChart({ data, theme, isDarkMode }: GITrendChartPr
           axisLine={false}
           tickMargin={8}
           stroke={colors.text}
-          angle={0} // Keep hours upright
+          angle={0} 
           textAnchor={"middle"}
           height={30}
-          interval={data.length > 12 ? Math.floor(data.length / 12) : 0} // Show a reasonable number of ticks
+          interval={data.length > 12 ? Math.floor(data.length / 12) : 0} 
         />
         <YAxis 
             tickLine={false} 

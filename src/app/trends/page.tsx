@@ -31,7 +31,7 @@ const TEMPORARILY_UNLOCK_ALL_FEATURES = true; // Kept true as per previous state
 
 export default function TrendsPage() {
   const { user, loading: authLoading } = useAuth();
-  const { theme: currentTheme, isDarkMode } = useTheme();
+  const { isDarkMode } = useTheme(); // Removed currentTheme as it's no longer used for charts
   const { toast } = useToast(); 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null); 
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
@@ -345,7 +345,7 @@ export default function TrendsPage() {
                 <CardTitle className="text-xl font-semibold text-foreground">Daily Calorie Intake</CardTitle>
               </CardHeader>
               <CardContent>
-                {calorieData.length > 0 ? <DailyCaloriesTrendChart data={calorieData} theme={currentTheme} isDarkMode={isDarkMode} /> : <p className="text-muted-foreground text-center py-8">No calorie data for this period.</p>}
+                {calorieData.length > 0 ? <DailyCaloriesTrendChart data={calorieData} isDarkMode={isDarkMode} /> : <p className="text-muted-foreground text-center py-8">No calorie data for this period.</p>}
               </CardContent>
             </Card>
 
@@ -354,7 +354,7 @@ export default function TrendsPage() {
                 <CardTitle className="text-xl font-semibold text-foreground">Daily Macronutrient Trends</CardTitle>
               </CardHeader>
               <CardContent>
-                 {macroData.length > 0 ? <DailyMacrosTrendChart data={macroData} theme={currentTheme} isDarkMode={isDarkMode} /> : <p className="text-muted-foreground text-center py-8">No macronutrient data for this period.</p>}
+                 {macroData.length > 0 ? <DailyMacrosTrendChart data={macroData} isDarkMode={isDarkMode} /> : <p className="text-muted-foreground text-center py-8">No macronutrient data for this period.</p>}
               </CardContent>
             </Card>
 
@@ -363,7 +363,7 @@ export default function TrendsPage() {
                 <CardTitle className="text-xl font-semibold text-foreground">Hourly Glycemic Index (GI) Trend</CardTitle>
               </CardHeader>
               <CardContent>
-                {giTrendData.length > 0 ? <GITrendChart data={giTrendData} theme={currentTheme} isDarkMode={isDarkMode} /> : <p className="text-muted-foreground text-center py-8">No GI data available for this period.</p>}
+                {giTrendData.length > 0 ? <GITrendChart data={giTrendData} isDarkMode={isDarkMode} /> : <p className="text-muted-foreground text-center py-8">No GI data available for this period.</p>}
               </CardContent>
             </Card>
 
@@ -372,7 +372,7 @@ export default function TrendsPage() {
                 <CardTitle className="text-xl font-semibold text-foreground">Food Safety Feedback</CardTitle>
               </CardHeader>
               <CardContent>
-                {safetyData.length > 0 ? <LoggedSafetyTrendChart data={safetyData} theme={currentTheme} isDarkMode={isDarkMode} /> : <p className="text-muted-foreground text-center py-8">No food safety feedback logged for this period.</p>}
+                {safetyData.length > 0 ? <LoggedSafetyTrendChart data={safetyData} isDarkMode={isDarkMode} /> : <p className="text-muted-foreground text-center py-8">No food safety feedback logged for this period.</p>}
               </CardContent>
             </Card>
 
@@ -381,7 +381,7 @@ export default function TrendsPage() {
                 <CardTitle className="text-xl font-semibold text-foreground">Symptom Occurrence</CardTitle>
               </CardHeader>
               <CardContent className="h-[350px] flex items-center justify-center">
-                 {symptomFrequencyData.length > 0 ? <SymptomOccurrenceChart data={symptomFrequencyData} theme={currentTheme} isDarkMode={isDarkMode} /> : <p className="text-muted-foreground text-center py-8">No symptoms logged for this period.</p>}
+                 {symptomFrequencyData.length > 0 ? <SymptomOccurrenceChart data={symptomFrequencyData} isDarkMode={isDarkMode} /> : <p className="text-muted-foreground text-center py-8">No symptoms logged for this period.</p>}
               </CardContent>
             </Card>
             
@@ -413,4 +413,3 @@ const getPathname = () => {
   }
   return "";
 };
-
