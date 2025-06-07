@@ -335,21 +335,21 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
                 {!authLoading && authUser && (
                   <>
                     {onOpenDashboardClick && (
-                      <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10")} aria-label="Open Dashboard" onClick={onOpenDashboardClick}>
+                      <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-primary hover:bg-primary/10")} aria-label="Open Dashboard" onClick={onOpenDashboardClick}>
                         <LayoutGrid className="h-5 w-5" />
                       </Button>
                     )}
-                    <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/trends' ? 'bg-primary/10 text-primary' : 'text-current hover:text-current/80 hover:bg-current/10')} aria-label="Trends" onClick={trendsLinkHandler}>
+                    <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/trends' ? 'bg-primary/10 text-primary' : 'text-current hover:text-primary hover:bg-primary/10')} aria-label="Trends" onClick={trendsLinkHandler}>
                       <BarChart3 className="h-5 w-5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/micronutrients' ? 'bg-primary/10 text-primary' : 'text-current hover:text-current/80 hover:bg-current/10')} aria-label="Micronutrients Progress" onClick={micronutrientsLinkHandler}>
+                    <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/micronutrients' ? 'bg-primary/10 text-primary' : 'text-current hover:text-primary hover:bg-primary/10')} aria-label="Micronutrients Progress" onClick={micronutrientsLinkHandler}>
                       <Atom className="h-5 w-5" />
                     </Button>
                     <div className="relative">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/ai-insights' ? 'bg-primary/10 text-primary' : 'text-current hover:text-current/80 hover:bg-current/10')}
+                        className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/ai-insights' ? 'bg-primary/10 text-primary' : 'text-current hover:text-primary hover:bg-primary/10')}
                         aria-label="AI Insights"
                         onClick={aiInsightsLinkHandler}
                       >
@@ -359,14 +359,14 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
                   </>
                 )}
 
-                <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="h-8 w-8 text-current hover:text-current/80 hover:bg-current/10" aria-label="Toggle dark mode">
+                <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="h-8 w-8 text-current hover:text-primary hover:bg-primary/10" aria-label="Toggle dark mode">
                   {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                 </Button>
 
                 {!authLoading && authUser && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="relative h-9 w-9 rounded-full border-2 border-current p-0">
+                      <Button variant="ghost" className={cn("relative h-9 w-9 rounded-full border-2 border-current p-0 hover:bg-primary/10 hover:text-primary hover:border-primary")}>
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={authUser.photoURL || undefined} alt={authUser.displayName || 'User'} />
                           <AvatarFallback className="bg-muted text-muted-foreground">
@@ -411,7 +411,7 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
                 <div className="md:hidden">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-current hover:text-current/80 hover:bg-current/10" aria-label="Open menu">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-current hover:text-primary hover:bg-primary/10" aria-label="Open menu">
                         <Menu className="h-5 w-5" />
                       </Button>
                     </DropdownMenuTrigger>
