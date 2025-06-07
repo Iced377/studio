@@ -112,9 +112,6 @@ export default function IdentifyFoodByPhotoDialog({
     }
   };
 
-  const cancelClasses = !isDarkMode
-    ? "bg-red-200 border-red-300 text-red-700 hover:bg-red-300 hover:border-red-400"
-    : "border-accent text-accent-foreground hover:bg-accent/20";
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChangeWithReset}>
@@ -206,7 +203,7 @@ export default function IdentifyFoodByPhotoDialog({
 
         <DialogFooter className="pt-2 shrink-0">
           <DialogClose asChild>
-            <Button type="button" variant="outline" className={cancelClasses} onClick={() => handleOpenChangeWithReset(false)} disabled={isLoading}>
+            <Button type="button" variant="outline" onClick={() => handleOpenChangeWithReset(false)} disabled={isLoading}>
               Cancel
             </Button>
           </DialogClose>

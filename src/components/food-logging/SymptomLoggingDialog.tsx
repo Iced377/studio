@@ -103,10 +103,6 @@ export default function SymptomLoggingDialog({
     onOpenChange(false);
   };
   
-  const cancelClasses = !isDarkMode 
-    ? "bg-red-200 border-red-300 text-red-700 hover:bg-red-300 hover:border-red-400" 
-    : "border-accent text-accent-foreground hover:bg-accent/20";
-
   const severityBadgeClasses = !isDarkMode
     ? "bg-accent text-accent-foreground w-10 h-8 flex items-center justify-center text-base"
     : "w-10 h-8 flex items-center justify-center text-base border-accent text-accent-foreground";
@@ -208,7 +204,7 @@ export default function SymptomLoggingDialog({
           </div>
 
           <DialogFooter className="pt-2">
-            <Button type="button" variant="outline" className={cancelClasses} onClick={() => onOpenChange(false)} disabled={isLoading}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
               Cancel
             </Button>
             <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/80" disabled={isLoading}>

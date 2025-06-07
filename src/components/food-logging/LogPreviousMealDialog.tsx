@@ -70,9 +70,7 @@ export default function LogPreviousMealDialog({
   
   const today = new Date();
 
-  const cancelClasses = !isDarkMode 
-    ? "bg-red-200 border-red-300 text-red-700 hover:bg-red-300 hover:border-red-400 w-full sm:w-auto" 
-    : "border-accent text-accent-foreground hover:bg-accent/20 w-full sm:w-auto";
+  const cancelClasses = "w-full sm:w-auto"; // Simplified, variant="outline" will handle theme
 
 
   return (
@@ -116,10 +114,10 @@ export default function LogPreviousMealDialog({
             <Button onClick={handleLogWithAI} className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/80" disabled={!selectedDate}>
               <Brain className="mr-2 h-5 w-5" /> AI (Text)
             </Button>
-             <Button onClick={handleLogWithPhoto} className="w-full sm:w-auto bg-primary/80 text-primary-foreground hover:bg-primary/70" disabled={!selectedDate}>
+             <Button onClick={handleLogWithPhoto} variant="secondary" className="w-full sm:w-auto" disabled={!selectedDate}>
               <Camera className="mr-2 h-5 w-5" /> AI (Photo)
             </Button>
-            <Button onClick={handleLogManually} className="w-full sm:w-auto bg-secondary text-secondary-foreground hover:bg-secondary/80" disabled={!selectedDate}>
+            <Button onClick={handleLogManually} variant="secondary" className="w-full sm:w-auto" disabled={!selectedDate}>
               <Pencil className="mr-2 h-5 w-5" /> Manual
             </Button>
           </div>

@@ -138,10 +138,6 @@ export default function SimplifiedAddFoodDialog({
   const textAreaClasses = cn("mt-1 text-base min-h-[100px]", "bg-input text-foreground placeholder:text-muted-foreground border-input focus:ring-ring focus:border-ring");
   const inputClasses = cn("mt-1", "bg-input text-foreground placeholder:text-muted-foreground");
 
-  const currentCancelButtonClasses = (isGuestView || !isDarkMode)
-  ? "bg-red-200 border-red-300 text-red-700 hover:bg-red-300 hover:border-red-400"
-  : "border-accent text-accent-foreground hover:bg-accent/20";
-
   const submitButtonClasses = cn("bg-primary text-primary-foreground hover:bg-primary/80");
   const labelClasses = cn("text-sm font-medium", "text-foreground");
   const checkboxErrorClasses = cn("text-xs mt-1", "text-destructive");
@@ -263,7 +259,7 @@ export default function SimplifiedAddFoodDialog({
 
           <DialogFooter className="pt-4 sticky bottom-0 bg-inherit">
             <DialogClose asChild>
-              <Button type="button" variant="outline" className={currentCancelButtonClasses} disabled={isLoading}>
+              <Button type="button" variant="outline" disabled={isLoading}>
                 Cancel
               </Button>
             </DialogClose>

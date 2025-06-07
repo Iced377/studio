@@ -157,7 +157,7 @@ export default function AddManualMacroEntryDialog({
           </div>
           <DialogFooter className="pt-2">
             <DialogClose asChild>
-              <Button type="button" variant="outline" className="border-accent text-accent-foreground hover:bg-accent/20" disabled={isLoading}>
+              <Button type="button" variant="outline" disabled={isLoading}>
                 Cancel
               </Button>
             </DialogClose>

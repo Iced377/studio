@@ -101,9 +101,6 @@ export default function AddFoodItemDialog({
     ? (isEditing ? 'Updating...' : 'Adding...')
     : (isEditing ? 'Update Food Item' : 'Add to Timeline');
 
-  const cancelClasses = !isDarkMode
-    ? "bg-red-200 border-red-300 text-red-700 hover:bg-red-300 hover:border-red-400"
-    : "border-accent text-accent-foreground hover:bg-accent/20";
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -166,7 +163,7 @@ export default function AddFoodItemDialog({
           </div>
           <DialogFooter className="pt-2">
              <DialogClose asChild>
-              <Button type="button" variant="outline" className={cancelClasses} onClick={() => onOpenChange(false)} disabled={isLoading}>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 Cancel
               </Button>
             </DialogClose>
