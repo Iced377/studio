@@ -250,7 +250,7 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
               <DialogTrigger asChild>
                 <Button
                   variant="ghost"
-                  className={cn("text-xs text-muted-foreground hover:text-primary hover:underline underline-offset-2 p-1 h-auto ml-0 mt-1 rounded-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 relative", "hidden sm:inline-block")}
+                  className={cn("text-xs text-muted-foreground hover:text-primary hover:underline underline-offset-2 p-1 h-auto ml-0 mt-1 rounded-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 relative")}
                   aria-label={`App Version ${APP_VERSION}, click for release notes`}
                 >
                   {APP_VERSION}
@@ -324,7 +324,7 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
               {!authLoading && authUser && (
                 <div className={cn("flex items-center", "space-x-0.5 sm:space-x-1")}>
                   {onMainActionClick && (
-                     <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10", "hidden sm:inline-flex")} aria-label="Add Entry" onClick={onMainActionClick}>
+                     <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10")} aria-label="Add Entry" onClick={onMainActionClick}>
                       <Plus className="h-5 w-5" />
                     </Button>
                   )}
@@ -332,7 +332,7 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
                     <Home className="h-5 w-5" />
                   </Button>
                   {onMainActionClick && (
-                    <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10", "hidden sm:inline-flex")} aria-label="Open Actions Menu" onClick={onMainActionClick}>
+                    <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10")} aria-label="Open Actions Menu" onClick={onMainActionClick}>
                       <LayoutGrid className="h-5 w-5" />
                     </Button>
                   )}
