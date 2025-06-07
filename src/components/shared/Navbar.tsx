@@ -245,65 +245,64 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
             </div>
             <span className={cn(appNameBaseClasses, 'text-current', 'hidden sm:inline-block')}>{APP_NAME}</span>
           </Link>
-          {!isGuest && (
-            <Dialog open={isReleaseNotesOpen} onOpenChange={handleReleaseNotesToggle}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "text-xs p-1 h-auto ml-0 mt-1 rounded-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 relative",
-                    "text-primary underline underline-offset-2",
-                    "hover:bg-transparent hover:text-primary/80" // Corrected hover state
-                  )}
-                  aria-label={`App Version ${APP_VERSION}, click for release notes`}
-                >
-                  {APP_VERSION}
-                  {showNewReleaseIndicator && (
-                    <span
-                      className="absolute top-0.5 right-0.5 block h-2 w-2 rounded-full bg-red-500 border border-background"
-                      aria-hidden="true"
-                    />
-                  )}
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-lg bg-card text-card-foreground border-border">
-                <DialogHeader>
-                  <DialogTitle className="font-headline text-xl flex items-center">
-                     <ScrollText className="mr-2 h-5 w-5" /> Release Notes
-                  </DialogTitle>
-                </DialogHeader>
-                <ScrollArea className="max-h-[60vh] pr-2 -mr-2 py-2">
-                  <div className="space-y-4">
-                    {releaseNotesData.map((release, index) => (
-                      <div key={index} className="pb-3 border-b border-border last:border-b-0">
-                        <h3 className="text-md font-semibold text-foreground">
-                          Version {release.version}
-                          {release.date && <span className="text-xs text-muted-foreground ml-2 font-normal">- {release.date}</span>}
-                        </h3>
-                        {release.title && <p className="text-sm font-medium text-primary mt-0.5">{release.title}</p>}
-                        {Array.isArray(release.description) ? (
-                          <ul className="list-disc list-inside text-sm text-muted-foreground mt-1 space-y-0.5">
-                            {release.description.map((note, noteIndex) => (
-                              <li key={noteIndex}>{note}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p className="text-sm text-muted-foreground mt-1">{release.description}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-                <DialogFooter className="sm:justify-start mt-2">
-                  <DialogClose asChild>
-                    <Button type="button" variant="secondary" className="w-full sm:w-auto">
-                      Close
-                    </Button>
-                  </DialogClose>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          )}
+          {/* Release Notes Dialog Trigger - now visible for guests too */}
+          <Dialog open={isReleaseNotesOpen} onOpenChange={handleReleaseNotesToggle}>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "text-xs p-1 h-auto ml-0 mt-1 rounded-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 relative",
+                  "text-primary underline underline-offset-2",
+                  "hover:bg-transparent hover:text-primary/80" 
+                )}
+                aria-label={`App Version ${APP_VERSION}, click for release notes`}
+              >
+                {APP_VERSION}
+                {showNewReleaseIndicator && (
+                  <span
+                    className="absolute top-0.5 right-0.5 block h-2 w-2 rounded-full bg-red-500 border border-background"
+                    aria-hidden="true"
+                  />
+                )}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg bg-card text-card-foreground border-border">
+              <DialogHeader>
+                <DialogTitle className="font-headline text-xl flex items-center">
+                   <ScrollText className="mr-2 h-5 w-5" /> Release Notes
+                </DialogTitle>
+              </DialogHeader>
+              <ScrollArea className="max-h-[60vh] pr-2 -mr-2 py-2">
+                <div className="space-y-4">
+                  {releaseNotesData.map((release, index) => (
+                    <div key={index} className="pb-3 border-b border-border last:border-b-0">
+                      <h3 className="text-md font-semibold text-foreground">
+                        Version {release.version}
+                        {release.date && <span className="text-xs text-muted-foreground ml-2 font-normal">- {release.date}</span>}
+                      </h3>
+                      {release.title && <p className="text-sm font-medium text-primary mt-0.5">{release.title}</p>}
+                      {Array.isArray(release.description) ? (
+                        <ul className="list-disc list-inside text-sm text-muted-foreground mt-1 space-y-0.5">
+                          {release.description.map((note, noteIndex) => (
+                            <li key={noteIndex}>{note}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-sm text-muted-foreground mt-1">{release.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+              <DialogFooter className="sm:justify-start mt-2">
+                <DialogClose asChild>
+                  <Button type="button" variant="secondary" className="w-full sm:w-auto">
+                    Close
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
 
@@ -486,3 +485,4 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
     </header>
   );
 }
+
