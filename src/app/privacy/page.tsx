@@ -1,6 +1,8 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button'; // Import Button
+import { Home } from 'lucide-react'; // Import Home icon
 
 const PrivacyPage = () => {
   return (
@@ -105,6 +107,14 @@ const PrivacyPage = () => {
 
       <div className="mt-8 text-sm text-gray-500">
         <p>Last updated: July 31, 2024</p>
+      </div>
+
+      <div className="mt-12 text-center">
+        <Button asChild variant="outline">
+          <Link href="/?openDashboard=true">
+            <Home className="mr-2 h-4 w-4" /> Return to Dashboard
+          </Link>
+        </Button>
       </div>
     </div>
   );
