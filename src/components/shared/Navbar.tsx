@@ -228,8 +228,8 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
       <div className={cn("flex h-16 w-full items-center justify-between", "px-2 sm:px-4")}>
         <div className="flex items-center space-x-1 sm:space-x-2">
           <Link href="/" className="flex items-center space-x-2">
-            <div className={cn("flex h-9 w-9 items-center justify-center rounded-full border-2 p-1", "bg-primary border-primary")}>
-              <Image src="/Gutcheck_logo.png" alt="GutCheck Logo" width={28} height={28} className={cn("object-contain", isGuest ? "" : "filter brightness-0 invert" )} priority />
+            <div className={cn("flex h-12 w-12 items-center justify-center rounded-full border-2 p-1", "bg-primary border-primary")}>
+              <Image src="/Gutcheck_logo.png" alt="GutCheck Logo" width={39} height={39} className={cn("object-contain", isGuest ? "" : "filter brightness-0 invert" )} priority />
             </div>
             <span className={cn(appNameBaseClasses, 'text-current', 'hidden sm:inline-block')}>{APP_NAME}</span>
           </Link>
