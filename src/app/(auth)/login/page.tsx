@@ -54,7 +54,7 @@ export default function LoginPage() {
               </div>
             </div>
             <div className="mt-6">
-              <GoogleSignInButton className="w-full" />
+              <GoogleSignInButton className="w-full" size="lg" />
             </div>
           </div>
         </div>
