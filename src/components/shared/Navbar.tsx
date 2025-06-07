@@ -321,14 +321,12 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
             </div>
           ) : (
             <>
-              {/* "Add Entry" Button - Visible on all screen sizes for authenticated users if onMainActionClick is provided */}
               {!authLoading && authUser && onMainActionClick && (
-                <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10")} aria-label="Add Entry" onClick={onMainActionClick}>
+                <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-primary hover:text-primary/90 hover:bg-primary/10")} aria-label="Add Entry" onClick={onMainActionClick}>
                   <Plus className="h-5 w-5" />
                 </Button>
               )}
 
-              {/* Desktop Icons Group - Hidden on mobile, visible on md and up */}
               <div className="hidden md:flex items-center space-x-0.5 sm:space-x-1">
                 {!authLoading && authUser && (
                   <>
@@ -405,7 +403,6 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
                 )}
               </div>
 
-              {/* Mobile Menu Trigger - Hidden on md and up */}
               {!authLoading && authUser && (
                 <div className="md:hidden">
                   <DropdownMenu>
@@ -432,7 +429,6 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
                         </div>
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      {/* Items moved from direct display to mobile menu */}
                       {onOpenDashboardClick && (
                         <DropdownMenuItem onClick={onOpenDashboardClick} className="cursor-pointer">
                           <LayoutGrid className="mr-2 h-4 w-4" />
@@ -486,5 +482,3 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
     </header>
   );
 }
-
-    
