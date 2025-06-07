@@ -250,7 +250,7 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
               <DialogTrigger asChild>
                 <Button
                   variant="ghost"
-                  className={cn("text-xs text-muted-foreground hover:text-primary hover:underline underline-offset-2 p-1 h-auto ml-0 mt-1 rounded-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 relative")}
+                  className={cn("text-xs p-1 h-auto ml-0 mt-1 rounded-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 relative", "text-primary underline underline-offset-2 hover:text-primary/90")}
                   aria-label={`App Version ${APP_VERSION}, click for release notes`}
                 >
                   {APP_VERSION}
@@ -482,4 +482,3 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
     </header>
   );
 }
-
