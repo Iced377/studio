@@ -57,15 +57,15 @@ const DietaryFiberInfoSchema = z.object({
 }).describe("Information about the food item's estimated dietary fiber content.");
 
 const MicronutrientDetailSchema = z.object({
-  name: z.string().describe("Name of the micronutrient, e.g., 'Iron', 'Vitamin C', 'Calcium', 'Potassium', 'Magnesium', 'Vitamin B12'."),
-  amount: z.string().optional().describe("Estimated amount of the micronutrient in the portion, with units (e.g., '10 mg', '90 mcg', '50000 IU'). If the user input specified a quantity (e.g., 'Vitamin D3 50000 IU'), use that exact amount here."),
+  name: z.string().describe("Name of the micronutrient, e.g., 'Iron', 'Vitamin C', 'Calcium', 'Potassium', 'Magnesium', 'Vitamin B12', 'Vitamin D3', 'Omega-3', 'EPA', 'DHA'."),
+  amount: z.string().optional().describe("Estimated amount of the micronutrient in the portion, with units (e.g., '10 mg', '90 mcg', '50000 IU'). If the user input specified a quantity (e.g., 'Vitamin D3 50000 IU', 'Omega-3 800mg (480 EPA, 320 DHA)'), YOU MUST use that exact user-provided string or the correctly summed/transcribed value here (e.g., '50000 IU' for D3, or '800 mg' for Omega-3 if it's a sum of EPA/DHA)."),
   dailyValuePercent: z.number().optional().describe("Estimated percentage of Daily Value (%DV) for the micronutrient, if applicable and known for an average adult. If a specific amount was provided by the user (e.g. '50000 IU Vitamin D3') and you cannot confidently convert this to %DV, omit this field or set to null."),
   iconName: z.string().optional().describe("A suggested relevant lucide-react icon name based on the nutrient's primary **supported body part or physiological function**. Examples: 'Bone' for Calcium or Phosphorus, 'Activity' for Magnesium (muscle/nerve function), 'PersonStanding' for Zinc (growth), 'Eye' for Vitamin A, 'ShieldCheck' for Vitamin C & D (immune support), 'Droplet' for Potassium & Sodium (electrolyte balance), 'Wind' for Iron (oxygen transport), 'Brain' for B12 & Iodine, 'Baby' for Folate (development), 'Heart' for Vitamin K (blood clotting). Use generic names like 'Atom' or 'Sparkles' if a specific, intuitive functional icon is not available. If no good icon, omit."),
 }).describe("Details for a specific micronutrient.");
 
 const MicronutrientsInfoSchema = z.object({
-  notable: z.array(MicronutrientDetailSchema).optional().describe("Up to 3 most notable or abundant micronutrients in the food item for the given portion, or those particularly relevant (e.g., iron in red meat). Prioritize nutrients explicitly mentioned by the user with quantities."),
-  fullList: z.array(MicronutrientDetailSchema).optional().describe("Optionally, a more comprehensive list of micronutrients if readily available and concise, including any user-specified nutrients."),
+  notable: z.array(MicronutrientDetailSchema).optional().describe("Up to 3-5 most notable or abundant micronutrients in the food item for the given portion, OR THOSE EXPLICITLY MENTIONED BY THE USER WITH QUANTITIES. User-specified nutrients (like 'D3 50,000 IU') MUST appear here with their user-specified amounts."),
+  fullList: z.array(MicronutrientDetailSchema).optional().describe("Optionally, a more comprehensive list of micronutrients if readily available and concise, including any user-specified nutrients. Any user-specified nutrient with a quantity MUST be accurately represented here."),
 }).describe("Overview of key micronutrients in the food item.");
 
 const GutBacteriaImpactInfoSchema = z.object({
@@ -81,7 +81,7 @@ const KetoFriendlinessInfoSchema = z.object({
 
 const AISummariesSchema = z.object({
   fodmapSummary: z.string().optional().describe("Optional concise summary of FODMAP analysis if the main `reason` is very detailed. E.g., 'Mainly low FODMAP but watch portion of X'."),
-  micronutrientSummary: z.string().optional().describe("Brief (1-2 sentence) textual summary of key micronutrients. E.g., 'Good source of Vitamin C and Iron.' or 'Notable for Calcium content.' If specific user-provided nutrients like '50,000 IU D3' were included, mention them if they are significant."),
+  micronutrientSummary: z.string().optional().describe("Brief (1-2 sentence) textual summary of key micronutrients. E.g., 'Good source of Vitamin C and Iron.' or 'Notable for Calcium content.' If specific user-provided nutrients like '50,000 IU D3' were included, acknowledge these if they are significant (e.g., 'Primarily a high dose Vitamin D3 supplement as specified.')."),
   glycemicIndexSummary: z.string().optional().describe("Brief (1 sentence) textual summary of glycemic impact. E.g., 'Likely has a low glycemic impact based on its ingredients.'"),
   gutImpactSummary: z.string().optional().describe("Optional concise summary of gut bacteria impact if `gutBacteriaImpact.reasoning` is detailed."),
   ketoSummary: z.string().optional().describe("Brief (1-2 sentence) textual summary of keto-friendliness. E.g., 'Appears suitable for a strict keto diet.' or 'Too high in carbs for keto.'"),
@@ -137,48 +137,41 @@ You will receive a food item, its ingredients, and a portion size. Your task is 
     *   Provide a qualitative assessment (Low, Adequate, High) of fiber content for the portion. For a single item, <2g might be Low, 2-4g Adequate, >5g High.
 
 5.  **Micronutrients Overview (Portion-Specific):**
-    *   First, analyze the 'Ingredients: {{{ingredients}}}' list AND the 'Food Item: {{{foodItem}}}' description for any explicit mentions of vitamins or minerals and their specific quantities (e.g., "Vitamin D3 50,000 IU", "enriched with iron 10mg", "contains 800mg omega-3", "took a supplement of D3 50000IU and Omega-3 800mg").
-    *   If specific quantities ARE provided by the user in the input (like "50,000 IU D3" or "800mg omega-3"), YOU MUST use these exact quantities for the 'amount' field in the \`MicronutrientDetailSchema\` (e.g., amount: "50000 IU", amount: "800 mg"). These user-specified nutrients should be included in the 'notable' or 'fullList' arrays.
-    *   For these user-specified quantities, if you can confidently estimate a %DV based on standard dietary references for that amount and nutrient, provide it in 'dailyValuePercent'. If you *cannot* confidently estimate the %DV for a user-specified amount (e.g., for very high doses like "50,000 IU Vitamin D", or for substances like "omega-3" which don't have a standard %DV), OMIT the 'dailyValuePercent' field for that nutrient or set it to null. DO NOT default to a generic 100% DV if the user specified a quantity and you are unsure of the true %DV for that specific amount.
-    *   AVOID vague statements like "Varies, check label" or "Varies by dose" for the 'amount' field if quantitative information was provided in the input or can be reasonably estimated. If you absolutely cannot quantify a nutrient that was not specified with an amount by the user, you can omit it or state "Amount not specified".
-    *   After processing any user-specified nutrients, then identify up to 3 other notable micronutrients *naturally present* in the food item (based on general food databases for the given portion) if space allows in the 'notable' array, or list them in 'fullList'. For these, provide estimated 'amount' and 'dailyValuePercent' if readily available from databases.
-    *   Suggest a relevant lucide-react icon name for \`iconName\` field for each micronutrient, based on its primary **supported body part or physiological function**. Examples: 'Bone' for Calcium or Phosphorus, 'Activity' for Magnesium (muscle/nerve function), 'PersonStanding' for Zinc (growth), 'Eye' for Vitamin A, 'ShieldCheck' for Vitamin C & D (immune support), 'Droplet' for Potassium & Sodium (electrolyte balance), 'Wind' for Iron (oxygen transport), 'Brain' for B12 & Iodine, 'Baby' for Folate (development), 'Heart' for Vitamin K (blood clotting). Use generic names like 'Atom' or 'Sparkles' if a specific, intuitive functional icon is not available. If no good icon, omit.
+    *   **Crucial Rule for User-Specified Nutrients:** Examine the 'Ingredients: {{{ingredients}}}' and 'Food Item: {{{foodItem}}}' fields for any nutrients explicitly mentioned by the user ALONG WITH THEIR QUANTITIES (e.g., "Vitamin D3 50,000 IU", "Iron 10mg", "Omega-3 800mg (480 EPA, 320 DHA)", "D3 50000IU and Omega-3 800mg").
+    *   **If a user provides a specific quantity for a nutrient (e.g., "50,000 IU" for D3, or "480 EPA and 320 DHA" for Omega-3 components):**
+        *   YOU MUST use this exact user-provided quantity (or the correct sum if multiple components are given for one nutrient like EPA/DHA for Omega-3) for the 'amount' field of that nutrient in \`MicronutrientDetailSchema\`. For example, if user says "D3 50,000 IU", the amount for Vitamin D3 MUST be "50000 IU". If user says "480 EPA and 320 DHA", the amount for Omega-3 should be "800 mg" (or you can list EPA and DHA separately if the schema allows, but the total should reflect the input). DO NOT CHANGE, "CORRECT", OR ESTIMATE THE USER'S STATED AMOUNT. Your primary role here is to *record what the user logged*.
+        *   These user-specified nutrients, with their user-provided amounts, MUST be included in the 'notable' or 'fullList' arrays.
+        *   For these user-specified amounts, calculate 'dailyValuePercent' *only if you are highly confident in the conversion for that exact amount and nutrient*. For very high doses (e.g., "50,000 IU Vitamin D3") or complex supplements where a %DV is not standard for the specified components (e.g., specific EPA/DHA values), OMIT 'dailyValuePercent' or set it to null. DO NOT guess or use a generic %DV.
+    *   **Avoid Vague Statements:** For user-specified nutrients with quantities, do NOT output "Varies, check label" or "Varies by dose" for the 'amount'. Use the amount the user gave.
+    *   **Naturally Occurring Nutrients:** After accurately processing ALL user-specified nutrients as described above, then, if space allows and it's relevant, identify up to 3 other notable micronutrients *naturally present* in the food item (based on general food databases for the given portion). For these *naturally occurring* nutrients, provide estimated 'amount' and 'dailyValuePercent' if readily available from databases.
+    *   **Icons:** Suggest a relevant lucide-react icon name for \`iconName\` field for each micronutrient, based on its primary **supported body part or physiological function**. Examples: 'Bone' for Calcium, 'Activity' for Magnesium, 'Eye' for Vitamin A, 'ShieldCheck' for Vitamin C/D, 'Wind' for Iron. Use generic names like 'Atom' or 'Sparkles' if a specific functional icon is not available. If no good icon, omit.
 
 6.  **Gut Bacteria Impact (Portion-Specific):**
     *   Estimate the general impact on gut bacteria (Positive, Negative, Neutral, Unknown).
-    *   Provide brief reasoning in the \`gutBacteriaImpact.reasoning\` field (e.g., "Contains prebiotic fiber like inulin", "High in saturated fat, potentially negative for diversity", "Probiotic content from yogurt").
+    *   Provide brief reasoning in the \`gutBacteriaImpact.reasoning\` field.
 
 7.  **Keto-Friendliness (Portion-Specific):**
-    *   Assess the food item's suitability for a ketogenic diet, considering its ingredients and macronutrient profile for the given portion.
-    *   Provide a \`ketoFriendliness.score\` from: 'Strict Keto', 'Moderate Keto', 'Low Carb', 'Not Keto-Friendly', 'Unknown'.
-        *   'Strict Keto': Very low net carbs (e.g., <5-10g per typical serving, mostly fats/protein).
-        *   'Moderate Keto': Low net carbs (e.g., 10-20g per serving, can fit into a more liberal keto diet).
-        *   'Low Carb': Higher than moderate keto but still relatively low in carbs (e.g., 20-50g per serving).
-        *   'Not Keto-Friendly': High in carbs or sugars.
-        *   'Unknown': If assessment is difficult.
-    *   Provide brief \`ketoFriendliness.reasoning\` (e.g., "Primarily protein and fat, very low carb", "Contains X ingredient which is high in sugar", "Moderate net carbs, suitable for some keto plans").
-    *   Optionally, estimate \`ketoFriendliness.estimatedNetCarbs\` (Total Carbs - Fiber) if you have values for both.
+    *   Assess suitability for a ketogenic diet (score: 'Strict Keto', 'Moderate Keto', 'Low Carb', 'Not Keto-Friendly', 'Unknown').
+    *   Provide \`ketoFriendliness.reasoning\` and optionally \`ketoFriendliness.estimatedNetCarbs\`.
 
 8.  **Allergen Detection:**
-    *   Analyze the 'Ingredients: {{{ingredients}}}' list.
-    *   Identify any of the following common allergens: Milk, Eggs, Fish, Crustacean shellfish (e.g., crab, lobster, shrimp), Tree nuts (e.g., almonds, walnuts, pecans, cashews, hazelnuts, pistachios), Peanuts, Wheat, Soybeans, Sesame.
-    *   Populate the \`detectedAllergens\` array with the names of any allergens found. If none are found, this array can be empty or omitted. Be precise with allergen names.
+    *   Analyze 'Ingredients: {{{ingredients}}}' for common allergens (Milk, Eggs, Fish, Shellfish, Tree nuts, Peanuts, Wheat, Soy, Sesame).
+    *   Populate \`detectedAllergens\` array.
 
-9.  **AI Textual Summaries (for aiSummaries field):**
-    *   \`aiSummaries.fodmapSummary\`: (Optional) If the main \`reason\` field for overall FODMAP risk is very long or technical, provide a very concise 1-sentence summary here that's easier to understand. Otherwise, this can be omitted if \`reason\` is already concise and user-friendly.
-    *   \`aiSummaries.micronutrientSummary\`: Provide a brief (1-2 sentence) textual summary highlighting key micronutrient aspects. If the user provided specific high-dose supplements (e.g., "Vitamin D3 50000 IU"), acknowledge this if it's a dominant part of the micronutrient profile for this entry (e.g., "Primarily a high dose Vitamin D supplement."). Otherwise, summarize naturally occurring nutrients (e.g., "Good source of Vitamin C and Iron.").
-    *   \`aiSummaries.glycemicIndexSummary\`: Provide a brief (1 sentence) textual summary of the glycemic impact (e.g., "Likely has a low glycemic impact." or "May have a moderate effect on blood sugar due to X ingredient.").
-    *   \`aiSummaries.gutImpactSummary\`: (Optional) If the main \`gutBacteriaImpact.reasoning\` field is very technical or long, provide a very concise 1-sentence summary here. Otherwise, this can be omitted if the reasoning is already concise and user-friendly.
-    *   \`aiSummaries.ketoSummary\`: Provide a brief (1-2 sentence) textual summary of the keto-friendliness (e.g., "Good fit for a ketogenic diet." or "Contains too many carbs for keto.").
+9.  **AI Textual Summaries (\`aiSummaries\` field):**
+    *   \`aiSummaries.fodmapSummary\`: (Optional) Concise FODMAP summary if \`reason\` is long.
+    *   \`aiSummaries.micronutrientSummary\`: Brief textual summary. If user specified high-dose supplements (e.g., "Vitamin D3 50000 IU"), Acknowledge this (e.g., "Primarily a high dose Vitamin D3 supplement as specified."). Otherwise, summarize naturally occurring nutrients.
+    *   \`aiSummaries.glycemicIndexSummary\`: Brief textual GI summary.
+    *   \`aiSummaries.gutImpactSummary\`: (Optional) Concise gut impact summary if reasoning is long.
+    *   \`aiSummaries.ketoSummary\`: Brief textual keto-friendliness summary.
 
-Base your analysis on established FODMAP data (like Monash University's guidelines), general nutritional databases, and common knowledge about food properties. ALWAYS consider the specified portion size.
+Base your analysis on established FODMAP data, general nutritional databases, and food properties. ALWAYS consider the specified portion size.
 
 Food Item: {{{foodItem}}}
 Ingredients: {{{ingredients}}}
 Portion: {{{portionSize}}} {{{portionUnit}}}
 
-Output a JSON object adhering to the full output schema including all FODMAP details, nutritional estimates, glycemicIndexInfo, dietaryFiberInfo, micronutrientsInfo, gutBacteriaImpact, ketoFriendliness, detectedAllergens, and aiSummaries.
-If specific data for an optional field (e.g., a specific micronutrient amount, GI value) is not reasonably estimable or widely available, omit that specific sub-field or set to null, but try to provide the higher-level object if some information can be given (e.g., gutImpact.sentiment = 'Unknown'). For micronutrients, if none are particularly "notable", the 'notable' array can be empty or omitted. Ensure all requested summaries in \`aiSummaries\` are attempted if the base data is available.
+Output a JSON object adhering to the full output schema. If specific data for an optional field (e.g., a specific micronutrient amount for a *non-user-specified* nutrient) is not reasonably estimable, omit that specific sub-field or set to null. Ensure ALL user-specified nutrients with quantities are accurately reflected.
 `,
 });
 
