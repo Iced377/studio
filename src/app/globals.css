@@ -4,171 +4,74 @@
 @tailwind utilities;
 
 @layer base {
-  /* Default Light Mode Variables (Used by theme-black in light mode) */
-  :root, html:not(.dark) {
-    --background: 0 0% 98%; /* Almost white: #FAFAFA */
-    --foreground: 0 0% 20%; /* Dark Gray: #333333 */
+  /* FODMAPSafe Light Mode Variables */
+  :root {
+    --background: 216 100% 95.1%; /* Very Light Blue #E5F0FF */
+    --foreground: 212 52.9% 23.9%; /* Dark Blue #1C3A5E */
 
     --card: 0 0% 100%; /* White */
-    --card-foreground: 0 0% 20%; /* Dark Gray */
+    --card-foreground: 212 52.9% 23.9%; /* Dark Blue */
 
     --popover: 0 0% 100%; /* White */
-    --popover-foreground: 0 0% 20%; /* Dark Gray */
+    --popover-foreground: 212 52.9% 23.9%; /* Dark Blue */
 
-    --primary: 0 0% 30%; /* #4D4D4D - Darker Gray for general buttons */
-    --primary-foreground: 0 0% 100%; /* White text */
+    --primary: 210 100% 74.1%; /* Soft Blue #7AB4FF */
+    --primary-foreground: 0 0% 100%; /* White text on Soft Blue */
     
-    --secondary: 0 0% 90%; /* #E6E6E6 - Light Gray */
-    --secondary-foreground: 0 0% 20%; /* Dark Gray text */
+    --secondary: 210 100% 88%; /* Lighter Soft Blue */
+    --secondary-foreground: 212 52.9% 23.9%; /* Dark Blue */
 
-    --muted: 0 0% 95%; /* #F2F2F2 - Very Light Gray */
-    --muted-foreground: 0 0% 50%; /* #808080 - Mid Gray text */
+    --muted: 216 100% 90%; /* Slightly darker than background */
+    --muted-foreground: 212 30% 50%; /* Muted Dark Blue */
 
-    --accent: 0 0% 50%; /* #808080 - Mid Gray for accent lines */
-    --accent-foreground: 0 0% 100%; /* White text on mid-gray accent */
+    --accent: 259 47.1% 72.7%; /* Pale Violet #B19CD9 */
+    --accent-foreground: 0 0% 100%; /* White text on Pale Violet */
 
-    --destructive: 0 82% 63%; /* #EB5757 - Red */
-    --destructive-foreground: 0 0% 10%; /* Very Dark Gray/Black text for high contrast */
+    --destructive: 0 82% 63%; /* Red #EB5757 */
+    --destructive-foreground: 0 0% 100%; /* White text on Red */
 
-    --border: 0 0% 85%; /* #D9D9D9 - Light Gray border */
-    --input: 0 0% 93%; /* #EDEDED - Very Light Gray input background */
-    --ring: 0 0% 30%; /* #4D4D4D - Darker Gray for focus rings */
+    --border: 210 100% 85%; /* Lighter Soft Blue for borders */
+    --input: 0 0% 100%; /* White for inputs */
+    --ring: 210 100% 74.1%; /* Soft Blue for focus rings */
 
+    /* Success indicators, kept from previous theme as they are specific */
     --success-indicator-bg: 136 59% 50%;   /* #34C759 */
     --success-indicator-text: 0 0% 100%; /* White */
   }
 
-  /* Black Theme (Light Mode) - inherits from :root (light default) */
-  html:not(.dark).theme-black {
-    /* No overrides needed, inherits light defaults */
-  }
+  /* FODMAPSafe Dark Mode Variables */
+  html.dark {
+    --background: 212 50% 15%; /* Very Dark Blue */
+    --foreground: 216 100% 90%; /* Light Blue/Off-white */
 
-  /* Black Theme (Dark Mode) */
-  html.dark.theme-black {
-    --background: 0 0% 0%; /* #000000 */
-    --foreground: 0 0% 100%; /* #FFFFFF */
+    --card: 212 50% 20%; /* Dark Blue, slightly lighter than background */
+    --card-foreground: 216 100% 90%;
 
-    --card: 0 0% 8%; 
-    --card-foreground: 0 0% 100%;
+    --popover: 212 50% 18%; /* Dark Blue */
+    --popover-foreground: 216 100% 90%;
 
-    --popover: 0 0% 5%; 
-    --popover-foreground: 0 0% 100%;
-
-    --primary: 0 0% 80%; 
-    --primary-foreground: 0 0% 0%; 
+    --primary: 210 100% 74.1%; /* Soft Blue #7AB4FF */
+    --primary-foreground: 212 50% 10%; /* Very Dark Blue for contrast on primary button */
     
-    --secondary: 0 0% 20%; 
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 210 100% 60%; /* Slightly darker/muted Soft Blue */
+    --secondary-foreground: 212 50% 10%; /* Very Dark Blue for contrast on secondary */
 
-    --muted: 0 0% 15%; 
-    --muted-foreground: 0 0% 60%; 
+    --muted: 212 50% 25%; /* Muted Dark Blue */
+    --muted-foreground: 216 100% 75%; /* Muted Light Blue */
 
-    --accent: 0 0% 53%; 
-    --accent-foreground: 0 0% 100%; 
+    --accent: 259 47.1% 72.7%; /* Pale Violet #B19CD9 */
+    --accent-foreground: 259 50% 15%; /* Dark Violet for contrast on accent button */
 
-    --destructive: 0 75% 40%; /* Dark Red #B32424 for high contrast */
+    --destructive: 0 75% 55%; /* Darker Red for destructive actions */
     --destructive-foreground: 0 0% 100%; /* White text */
 
-    --border: 0 0% 20%; 
-    --input: 0 0% 10%; 
-    --ring: 0 0% 80%; 
-
+    --border: 210 100% 30%; /* Muted Blue border */
+    --input: 212 50% 22%; /* Dark blue for input background */
+    --ring: 210 100% 74.1%; /* Soft Blue for focus rings */
+    
+    /* Success indicators, kept from previous theme as they are specific */
     --success-indicator-bg: 136 59% 50%;
     --success-indicator-text: 0 0% 100%;
-  }
-
-  /* Orange Theme (Light Mode) */
-  html:not(.dark).theme-orange {
-    --background: 25 100% 97%; /* Very light, slightly orange: #FFF2E6 */
-    --foreground: 25 90% 25%;  /* Dark orange-brown for text: #6E3A0B */
-    /* Other variables inherit from :root (light default) */
-  }
-
-  /* Orange Theme (Dark Mode) */
-  html.dark.theme-orange {
-    --background: 25 10% 4%; 
-    --foreground: 25 80% 95%; 
-    /* Other variables inherit from .dark.theme-black */
-  }
-
-  /* Green Theme (Light Mode - Calo Inspired) */
-  html:not(.dark).theme-green {
-    --background: 0 0% 99%;            /* #FDFDFD */
-    --foreground: 0 0% 20%;          /* #333333 */
-
-    --card: 0 0% 100%;                 /* White */
-    --card-foreground: 0 0% 20%;      /* #333333 */
-
-    --popover: 0 0% 100%;              /* White */
-    --popover-foreground: 0 0% 20%;   /* #333333 */
-
-    --primary: 145 63% 42%;              /* Calo Brand Green: #27AE60 */
-    --primary-foreground: 0 0% 100%;     /* White text */
-    
-    --secondary: 145 63% 90%;            /* Very Light Calo Green: #D9F2E6 */
-    --secondary-foreground: 145 63% 30%;   /* Darker Calo Green text: #1A6F40 */
-
-    --muted: 0 0% 95%;                /* #F2F2F2 */
-    --muted-foreground: 0 0% 51%;     /* #828282 */
-
-    --accent: 145 63% 36%;               /* Calo Supportive Green: #219653 */
-    --accent-foreground: 0 0% 100%;      /* White text */
-
-    --destructive: 0 82% 63%;
-    --destructive-foreground: 0 0% 10%;
-
-    --border: 0 0% 87%;               /* Light Gray border: #DEDEDE */
-    --input: 0 0% 96%;                /* Very light gray input: #F5F5F5 */
-    --ring: 145 63% 42%;                 /* Calo Brand Green for focus */
-
-    --success-indicator-bg: 136 59% 50%;   /* #34C759 */
-    --success-indicator-text: 0 0% 100%; 
-  }
-
-  /* Green Theme (Dark Mode - Calo Inspired) */
-  html.dark.theme-green {
-    --background: 145 20% 8%;            /* Dark, desaturated Calo green */
-    --foreground: 145 50% 95%;          /* Light, slightly green-tinted white */
-
-    --card: 145 20% 12%;                 /* Slightly lighter dark green for cards */
-    --card-foreground: 145 50% 95%;      
-
-    --popover: 145 20% 10%;              /* Darker green for popovers */
-    --popover-foreground: 145 50% 95%;
-
-    --primary: 145 63% 42%;              /* Calo Brand Green: #27AE60 */
-    --primary-foreground: 0 0% 10%;     /* Very Dark Gray/Black text for high contrast */
-    
-    --secondary: 145 63% 36%;            /* Calo Supportive Green: #219653 */
-    --secondary-foreground: 0 0% 100%;   /* White text */
-
-    --muted: 145 20% 25%;                
-    --muted-foreground: 145 30% 70%;     
-
-    --accent: 145 63% 40%;               /* Calo Accent Green */
-    --accent-foreground: 0 0% 10%;      /* Very Dark Gray/Black text for high contrast */
-
-    --destructive: 0 75% 40%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 145 50% 30%;               
-    --input: 145 20% 15%;                
-    --ring: 145 63% 55%;                 
-
-    --success-indicator-bg: 136 59% 50%;   /* #34C759 */
-    --success-indicator-text: 0 0% 100%; 
-  }
-
-  /* Red Theme (Light Mode) */
-  html:not(.dark).theme-red {
-    --background: 2 100% 97%; /* Very light, slightly red: #FFECEB */
-    --foreground: 2 90% 25%;  /* Dark red-brown for text: #6E100B */
-  }
-  
-  /* Red Theme (Dark Mode) */
-  html.dark.theme-red {
-    --background: 2 20% 4%; 
-    --foreground: 2 80% 95%; 
   }
 
   /* Common variables for all themes (can be in :root or html) */
@@ -198,20 +101,20 @@
 /* Animations */
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 30px 10px rgba(var(--glow-color-rgb, 57, 255, 20), 0.7), 0 0 60px 18px rgba(var(--glow-color-rgb, 57, 255, 20), 0.5);
+    box-shadow: 0 0 30px 10px hsla(var(--primary), 0.7), 0 0 60px 18px hsla(var(--primary), 0.5);
   }
   50% {
-    box-shadow: 0 0 60px 18px rgba(var(--glow-color-rgb, 57, 255, 20), 1), 0 0 90px 25px rgba(var(--glow-color-rgb, 57, 255, 20), 0.8);
+    box-shadow: 0 0 60px 18px hsla(var(--primary), 1), 0 0 90px 25px hsla(var(--primary), 0.8);
   }
 }
 
 @keyframes neon-chevron-glow {
   0%, 100% {
-    filter: drop-shadow(0 0 2px rgba(57, 255, 20, 0.7));
+    filter: drop-shadow(0 0 2px hsla(var(--primary), 0.7));
     opacity: 0.7;
   }
   50% {
-    filter: drop-shadow(0 0 6px rgba(57, 255, 20, 1));
+    filter: drop-shadow(0 0 6px hsla(var(--primary), 1));
     opacity: 1;
   }
 }
@@ -226,6 +129,7 @@
 
 @layer utilities {
   .animate-pulse-glow {
+    /* --glow-color-rgb will be set by JS if needed, otherwise defaults to primary */
     animation: pulse-glow 3s infinite ease-in-out;
   }
   .animate-neon-chevron-pulse {

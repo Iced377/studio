@@ -4,8 +4,6 @@
 import type { ReactNode } from 'react';
 import { createContext, useContext, useEffect, useState, useMemo } from 'react';
 
-// Removed Theme type and related logic for multi-theme switching
-
 interface ThemeContextType {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
@@ -17,13 +15,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false); // Default to light mode
 
   useEffect(() => {
-    // Removed localStorage logic for 'app-theme'
     const storedDarkMode = localStorage.getItem('app-dark-mode');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
     if (storedDarkMode !== null) {
       setIsDarkMode(storedDarkMode === 'true');
     } else {
-      // If no stored preference, apply the default (light mode)
-      localStorage.setItem('app-dark-mode', 'false');
+      // If no stored preference, use system preference.
+      // Default to light if system preference cannot be determined.
+      setIsDarkMode(prefersDark); 
+      localStorage.setItem('app-dark-mode', String(prefersDark));
     }
   }, []);
 
@@ -37,20 +38,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
-    
-    // Ensure 'theme-black' is the only color theme class and remove others
-    const themesToRemove = ['theme-orange', 'theme-green', 'theme-red'];
+    // Remove any explicit theme classes like 'theme-black', 'theme-orange', etc.
+    // The FODMAPSafe theme is now defined by default :root and html.dark in globals.css.
+    const themesToRemove = ['theme-black', 'theme-orange', 'theme-green', 'theme-red'];
     themesToRemove.forEach(t => root.classList.remove(t));
-    if (!root.classList.contains('theme-black')) {
-        root.classList.add('theme-black');
-    }
 
     if (isDarkMode) {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
-  }, [isDarkMode]); // Dependency array now only includes isDarkMode
+  }, [isDarkMode]);
   
   const value = useMemo(() => ({ isDarkMode, toggleDarkMode }), [isDarkMode]);
 
