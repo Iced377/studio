@@ -41,7 +41,6 @@ import Navbar from '@/components/shared/Navbar';
 import GuestHomePage from '@/components/guest/GuestHomePage';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-// useTheme import removed as activeLightModeColorScheme logic is removed/simplified
 import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet'; 
 
 const TEMPORARILY_UNLOCK_ALL_FEATURES = true;
@@ -75,8 +74,6 @@ const initialGuestProfile: UserProfile = {
   premium: false,
 };
 
-// ButtonColorScheme and lightModeButtonColors removed
-
 
 export default function FoodTimelinePage() {
   const { toast } = useToast();
@@ -84,7 +81,6 @@ export default function FoodTimelinePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentPathname = usePathname();
-  // isDarkMode from useTheme removed as activeLightModeColorScheme logic is simplified
 
   const [userProfile, setUserProfile] = useState<UserProfile>(initialGuestProfile);
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
@@ -102,7 +98,6 @@ export default function FoodTimelinePage() {
   const [isAddManualMacroDialogOpen, setIsAddManualMacroDialogOpen] = useState(false);
   const [isLogPreviousMealDialogOpen, setIsLogPreviousMealDialogOpen] = useState(false);
   const [selectedLogDateForPreviousMeal, setSelectedLogDateForPreviousMeal] = useState<Date | undefined>(undefined);
-  // activeLightModeColorScheme state removed
 
 
   const [isDataLoading, setIsDataLoading] = useState(true);
@@ -116,9 +111,7 @@ export default function FoodTimelinePage() {
   const [editingItem, setEditingItem] = useState<LoggedFoodItem | null>(null);
 
   useEffect(() => {
-    // --glow-color-rgb is now managed by globals.css based on --primary HSL
-    // so no specific JS logic needed here to set it based on light/dark mode.
-  }, []); // Empty dependency to run once
+  }, []); 
 
  useEffect(() => {
     const setupUser = async () => {
@@ -1058,23 +1051,9 @@ export default function FoodTimelinePage() {
          onOpenDashboardClick={() => setIsPremiumDashboardOpen(true)}
        />
       <div className="flex-grow flex items-center justify-center">
+        {/* Popover and its content, controlled by Navbar's Plus icon */}
         <Popover open={isCentralPopoverOpen} onOpenChange={setIsCentralPopoverOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "rounded-full h-32 w-32 sm:h-40 sm:w-40 border-2 animate-pulse-glow focus:ring-offset-background focus:ring-offset-2",
-                "bg-primary border-primary hover:bg-primary/90 focus:ring-primary/50 text-primary-foreground"
-              )}
-              aria-label="Open Actions Menu"
-            >
-            <img
-               src="/Gutcheck_logo.png"
-               alt="GutCheck Logo"
-               className="h-36 w-36 object-contain"
-                />
-            </Button>
-          </PopoverTrigger>
+          {/* No PopoverTrigger (central button) rendered for authenticated users */}
           <PopoverContent
               side="top"
               align="center"
@@ -1188,7 +1167,7 @@ export default function FoodTimelinePage() {
       />
       {isAnyItemLoadingAi && (
           <div className="fixed bottom-20 right-4 bg-card text-card-foreground p-3 rounded-lg shadow-lg flex items-center space-x-2 z-50">
-          <Loader2 className="h-5 w-5 animate-spin text-primary" /> {/* Ensure spinner uses primary color */}
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
           <span>AI is analyzing...</span>
           </div>
       )}
