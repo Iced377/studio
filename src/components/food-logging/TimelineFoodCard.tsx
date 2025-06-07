@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { LoggedFoodItem } from '@/types';
@@ -77,7 +76,7 @@ export default function TimelineFoodCard({
           <p className="ml-2 text-white">AI Analyzing...</p>
         </div>
       )}
-      <CardHeader className="pb-2 pt-4 px-4">
+      <CardHeader className="px-4 py-3">
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className={cn("text-md sm:text-lg font-semibold font-headline break-words", primaryTextClass)}>{item.name}</CardTitle>
@@ -95,7 +94,7 @@ export default function TimelineFoodCard({
          )}
         <p className={cn("text-xs pt-1", mutedTextClass)}>Logged: {timeAgo}</p>
       </CardHeader>
-      <CardContent className="px-4 pb-2 pt-1 space-y-2">
+      <CardContent className="px-4 pt-2 pb-3 space-y-2">
         {item.isSimilarToSafe && !isManualMacroEntry && (
           <Badge
             variant="default"
@@ -203,7 +202,7 @@ export default function TimelineFoodCard({
         )}
       </CardContent>
       {!isGuestView && ( 
-        <CardFooter className="flex flex-wrap justify-between items-center px-4 pb-4 pt-2 gap-2 border-t border-border/50">
+        <CardFooter className="flex flex-wrap justify-between items-center px-4 pt-2 pb-3 gap-2 border-t border-border/50">
           <div className="flex gap-2 flex-wrap">
               {!isManualMacroEntry && onLogSymptoms && (
                 <Button
@@ -211,7 +210,7 @@ export default function TimelineFoodCard({
                     size="sm"
                     onClick={() => onLogSymptoms(item.id)}
                     disabled={isLoadingAi}
-                    className={cn("border-accent hover:bg-accent hover:text-accent-foreground text-sm px-2.5 py-1.5 h-auto", buttonTextClass)}
+                    className={cn("border-accent hover:bg-accent hover:text-accent-foreground", buttonTextClass)}
                     aria-label="Log Symptoms for this item"
                 >
                     <ListChecks className="mr-1.5 h-4 w-4" /> Log Symptoms
@@ -223,7 +222,7 @@ export default function TimelineFoodCard({
                       size="sm"
                       onClick={() => onEditIngredients(item)}
                       disabled={isLoadingAi}
-                      className={cn("border-accent hover:bg-accent hover:text-accent-foreground text-sm px-2.5 py-1.5 h-auto", buttonTextClass)}
+                      className={cn("border-accent hover:bg-accent hover:text-accent-foreground", buttonTextClass)}
                       aria-label="Edit this item"
                   >
                       <Edit3 className="mr-1.5 h-4 w-4" /> Edit
@@ -235,7 +234,7 @@ export default function TimelineFoodCard({
                   size="sm"
                   onClick={() => onRepeatMeal(item)}
                   disabled={isLoadingAi}
-                  className={cn("border-accent hover:bg-accent hover:text-accent-foreground text-sm px-2.5 py-1.5 h-auto", buttonTextClass)}
+                  className={cn("border-accent hover:bg-accent hover:text-accent-foreground", buttonTextClass)}
                   aria-label="Repeat this meal"
                 >
                   <Repeat className="mr-1.5 h-4 w-4" /> Repeat
@@ -274,7 +273,7 @@ export default function TimelineFoodCard({
                 </>
               )}
               {onRemoveItem && (
-                <Button variant="ghost" size="sm" onClick={() => onRemoveItem(item.id)} className="text-destructive hover:bg-destructive/20 text-sm px-2.5 py-1.5 h-auto"  disabled={isLoadingAi} aria-label="Remove this item">
+                <Button variant="ghost" size="sm" onClick={() => onRemoveItem(item.id)} className="text-destructive hover:bg-destructive/20"  disabled={isLoadingAi} aria-label="Remove this item">
                 <Trash2 className="mr-1.5 h-4 w-4" /> Remove
                 </Button>
               )}
