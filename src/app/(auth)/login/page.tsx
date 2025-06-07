@@ -3,10 +3,11 @@
 
 import { useEffect } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation'; // Import useRouter
 import LoginForm from '@/components/auth/LoginForm';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
-import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button'; // Import Button
+import { Loader2, ArrowLeft } from 'lucide-react'; // Import ArrowLeft
 
 export default function LoginPage() {
   const { user, loading } = useAuth();
@@ -27,10 +28,19 @@ export default function LoginPage() {
     );
   }
 
-  // If user is already loaded and present, the useEffect above would have redirected.
-  // This view is for when user is null and auth is not loading.
   return (
     <div className="flex min-h-full flex-col justify-center items-center py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md px-4 sm:px-0">
+        <Button 
+          variant="outline" 
+          onClick={() => router.back()} 
+          className="mb-6 flex items-center self-start"
+          aria-label="Go back"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
+      </div>
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <h1 className="font-headline text-3xl font-bold tracking-tight text-foreground">
           Welcome to GutCheck
