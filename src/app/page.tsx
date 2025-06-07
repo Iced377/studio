@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import type { LoggedFoodItem, UserProfile, TimelineEntry, Symptom, SymptomLog, SafeFood, DailyNutritionSummary } from '@/types';
 import { COMMON_SYMPTOMS } from '@/types';
-import { Loader2, PlusCircle, ListChecks, Pencil, CalendarDays, Edit3, ChevronUp, Repeat, Camera, LayoutGrid } from 'lucide-react'; 
+import { Loader2, PlusCircle, ListChecks, Pencil, CalendarDays, Edit3, ChevronUp, Repeat, Camera, LayoutGrid } from 'lucide-react';
 import { analyzeFoodItem, type AnalyzeFoodItemOutput, type FoodFODMAPProfile as DetailedFodmapProfileFromAI } from '@/ai/flows/fodmap-detection';
 import { isSimilarToSafeFoods, type FoodFODMAPProfile, type FoodSimilarityOutput } from '@/ai/flows/food-similarity';
 import { processMealDescription, type ProcessMealDescriptionOutput } from '@/ai/flows/process-meal-description-flow';
@@ -30,7 +30,7 @@ import {
 } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+// Popover imports removed from here as it's now in Navbar
 import AddFoodItemDialog, { type ManualEntryFormValues } from '@/components/food-logging/AddFoodItemDialog';
 import SimplifiedAddFoodDialog, { type SimplifiedFoodLogFormValues } from '@/components/food-logging/SimplifiedAddFoodDialog';
 import SymptomLoggingDialog from '@/components/food-logging/SymptomLoggingDialog';
@@ -41,7 +41,7 @@ import Navbar from '@/components/shared/Navbar';
 import GuestHomePage from '@/components/guest/GuestHomePage';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet'; 
+import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet';
 
 const TEMPORARILY_UNLOCK_ALL_FEATURES = true;
 
@@ -102,7 +102,7 @@ export default function FoodTimelinePage() {
 
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [isPremiumDashboardOpen, setIsPremiumDashboardOpen] = useState(false);
-  const [isCentralPopoverOpen, setIsCentralPopoverOpen] = useState(false);
+  // isCentralPopoverOpen state is removed as Navbar now manages its own action popover
 
   const [lastGuestFoodItem, setLastGuestFoodItem] = useState<LoggedFoodItem | null>(null);
   const [isGuestLogFoodDialogOpen, setIsGuestLogFoodDialogOpen] = useState(false);
@@ -111,7 +111,7 @@ export default function FoodTimelinePage() {
   const [editingItem, setEditingItem] = useState<LoggedFoodItem | null>(null);
 
   useEffect(() => {
-  }, []); 
+  }, []);
 
  useEffect(() => {
     const setupUser = async () => {
@@ -204,7 +204,7 @@ export default function FoodTimelinePage() {
         } finally {
             setIsDataLoading(false);
         }
-      } else { 
+      } else {
         setUserProfile(initialGuestProfile);
         setTimelineEntries([]);
         setLastGuestFoodItem(null);
@@ -214,10 +214,10 @@ export default function FoodTimelinePage() {
         setIsSymptomLogDialogOpen(false);
         setIsAddManualMacroDialogOpen(false);
         setIsLogPreviousMealDialogOpen(false);
-        setIsCentralPopoverOpen(false);
+        // isCentralPopoverOpen state removed
         setEditingItem(null);
-        setIsPremiumDashboardOpen(false); 
-        setIsGuestSheetOpen(false); 
+        setIsPremiumDashboardOpen(false);
+        setIsGuestSheetOpen(false);
         setIsDataLoading(false);
       }
     };
@@ -332,7 +332,7 @@ export default function FoodTimelinePage() {
         fat: fodmapAnalysis?.fat,
         entryType: 'food',
         userFeedback: editingItem ? editingItem.userFeedback : null,
-        macrosOverridden: false, 
+        macrosOverridden: false,
       };
 
       if (authUser && authUser.uid !== 'guest-user') {
@@ -679,9 +679,9 @@ export default function FoodTimelinePage() {
     if (itemToEdit.entryType === 'manual_macro') {
       setIsAddManualMacroDialogOpen(true);
     } else if (itemToEdit.entryType === 'food') {
-      if (itemToEdit.sourceDescription && !itemToEdit.sourceDescription.startsWith("Identified by photo")) { 
+      if (itemToEdit.sourceDescription && !itemToEdit.sourceDescription.startsWith("Identified by photo")) {
         setIsSimplifiedAddFoodDialogOpen(true);
-      } else { 
+      } else {
         setIsAddFoodDialogOpen(true);
       }
     }
@@ -746,18 +746,18 @@ export default function FoodTimelinePage() {
 
   const openSymptomDialog = (foodItemIds?: string[]) => {
     setIsSymptomLogDialogOpen(true);
-    setIsCentralPopoverOpen(false);
+    // isCentralPopoverOpen state removed
   };
 
 
   const handleSimplifiedLogFoodClick = () => {
-    setIsCentralPopoverOpen(false);
+    // isCentralPopoverOpen state removed
     setEditingItem(null);
     setIsSimplifiedAddFoodDialogOpen(true);
   };
 
   const handleIdentifyByPhotoClick = () => {
-    setIsCentralPopoverOpen(false);
+    // isCentralPopoverOpen state removed
     setEditingItem(null);
     setIsAddFoodDialogOpen(false);
     setIsSimplifiedAddFoodDialogOpen(false);
@@ -778,9 +778,9 @@ export default function FoodTimelinePage() {
 
 
   const handleOpenLogPreviousMealDialog = () => {
-    setIsCentralPopoverOpen(false);
+    // isCentralPopoverOpen state removed
     setEditingItem(null);
-    setSelectedLogDateForPreviousMeal(new Date()); 
+    setSelectedLogDateForPreviousMeal(new Date());
     setIsLogPreviousMealDialogOpen(true);
   };
 
@@ -891,18 +891,18 @@ export default function FoodTimelinePage() {
       const baseRepetitionData = {
         id: newItemId,
         timestamp: newTimestamp,
-        isSimilarToSafe: false, 
-        userFodmapProfile: undefined, 
-        calories: undefined, 
-        protein: undefined, 
-        carbs: undefined, 
-        fat: undefined, 
+        isSimilarToSafe: false,
+        userFodmapProfile: undefined,
+        calories: undefined,
+        protein: undefined,
+        carbs: undefined,
+        fat: undefined,
         entryType: 'food' as 'food',
-        userFeedback: null, 
+        userFeedback: null,
         macrosOverridden: itemToRepeat.macrosOverridden || false,
       };
 
-      if (itemToRepeat.sourceDescription && !itemToRepeat.sourceDescription.startsWith("Identified by photo")) { 
+      if (itemToRepeat.sourceDescription && !itemToRepeat.sourceDescription.startsWith("Identified by photo")) {
         mealDescriptionOutput = await processMealDescription({ mealDescription: itemToRepeat.sourceDescription });
         fodmapAnalysis = await analyzeFoodItem({
           foodItem: mealDescriptionOutput.primaryFoodItemForAnalysis,
@@ -947,9 +947,9 @@ export default function FoodTimelinePage() {
           fat: itemToRepeat.macrosOverridden ? itemToRepeat.fat : fodmapAnalysis?.fat,
         };
 
-      } else { 
+      } else {
         fodmapAnalysis = await analyzeFoodItem({
-          foodItem: itemToRepeat.originalName || itemToRepeat.name, 
+          foodItem: itemToRepeat.originalName || itemToRepeat.name,
           ingredients: itemToRepeat.ingredients,
           portionSize: itemToRepeat.portionSize,
           portionUnit: itemToRepeat.portionUnit,
@@ -976,12 +976,12 @@ export default function FoodTimelinePage() {
 
         processedFoodItem = {
           ...baseRepetitionData,
-          name: itemToRepeat.name, 
+          name: itemToRepeat.name,
           originalName: itemToRepeat.originalName || itemToRepeat.name,
           ingredients: itemToRepeat.ingredients,
           portionSize: itemToRepeat.portionSize,
           portionUnit: itemToRepeat.portionUnit,
-          sourceDescription: itemToRepeat.sourceDescription, 
+          sourceDescription: itemToRepeat.sourceDescription,
           fodmapData: fodmapAnalysis,
           isSimilarToSafe: similarityOutput?.isSimilar ?? false,
           userFodmapProfile: itemFodmapProfileForSimilarity,
@@ -1047,35 +1047,14 @@ export default function FoodTimelinePage() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden">
        <Navbar
-         onMainActionClick={() => setIsCentralPopoverOpen(true)}
          onOpenDashboardClick={() => setIsPremiumDashboardOpen(true)}
+         onLogFoodAIClick={handleSimplifiedLogFoodClick}
+         onIdentifyByPhotoClick={handleIdentifyByPhotoClick}
+         onLogSymptomsClick={() => openSymptomDialog()}
+         onLogPreviousMealClick={handleOpenLogPreviousMealDialog}
        />
       <div className="flex-grow flex items-center justify-center">
-        {/* Popover and its content, controlled by Navbar's Plus icon */}
-        <Popover open={isCentralPopoverOpen} onOpenChange={setIsCentralPopoverOpen}>
-          {/* No PopoverTrigger (central button) rendered for authenticated users */}
-          <PopoverContent
-              side="top"
-              align="center"
-              className="w-auto bg-card text-card-foreground border-border shadow-xl rounded-xl p-0"
-              onInteractOutside={() => setIsCentralPopoverOpen(false)}
-          >
-              <div className="flex flex-col gap-1 p-2">
-                    <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleSimplifiedLogFoodClick}>
-                      <PlusCircle className="mr-3 h-5 w-5" /> Log Food (AI Text)
-                  </Button>
-                  <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleIdentifyByPhotoClick}>
-                      <Camera className="mr-3 h-5 w-5" /> Identify by Photo
-                  </Button>
-                  <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => openSymptomDialog()}>
-                      <ListChecks className="mr-3 h-5 w-5" /> Log Symptoms
-                  </Button>
-                  <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleOpenLogPreviousMealDialog}>
-                      <CalendarDays className="mr-3 h-5 w-5" /> Log Previous Meal
-                  </Button>
-              </div>
-          </PopoverContent>
-        </Popover>
+        {/* Popover for actions is now handled within Navbar for authenticated users */}
       </div>
 
       <PremiumDashboardSheet

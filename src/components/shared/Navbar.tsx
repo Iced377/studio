@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X, ScrollText, LayoutGrid, Plus, Shield, Menu } from 'lucide-react';
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X, ScrollText, LayoutGrid, Plus, Shield, Menu, Camera, ListChecks, CalendarDays, PlusCircle } from 'lucide-react'; // Added Camera, ListChecks, CalendarDays, PlusCircle
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -19,6 +19,7 @@ import {
   DialogClose,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // Added Popover imports
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   DropdownMenu,
@@ -149,13 +150,25 @@ const releaseNotesData: ReleaseNote[] = [
 
 interface NavbarProps {
   isGuest?: boolean;
-  onMainActionClick?: () => void;
   onOpenDashboardClick?: () => void;
+
+  // Props for action popover handlers
+  onLogFoodAIClick?: () => void;
+  onIdentifyByPhotoClick?: () => void;
+  onLogSymptomsClick?: () => void;
+  onLogPreviousMealClick?: () => void;
 }
 
 const LOCALSTORAGE_LAST_SEEN_VERSION_KEY = 'lastSeenAppVersion';
 
-export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClick }: NavbarProps) {
+export default function Navbar({
+  isGuest,
+  onOpenDashboardClick,
+  onLogFoodAIClick,
+  onIdentifyByPhotoClick,
+  onLogSymptomsClick,
+  onLogPreviousMealClick,
+}: NavbarProps) {
   const { user: authUser, loading: authLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -164,6 +177,7 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
   const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState(false);
   const [isReleaseNotesOpen, setIsReleaseNotesOpen] = useState(false);
   const [showNewReleaseIndicator, setShowNewReleaseIndicator] = useState(false);
+  const [isActionPopoverOpen, setIsActionPopoverOpen] = useState(false);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -249,6 +263,11 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
   );
   const appNameBaseClasses = "font-bold font-headline text-xl";
 
+  const handleActionItemClick = (action?: () => void) => {
+    action?.();
+    setIsActionPopoverOpen(false);
+  };
+
   return (
     <header className={headerClasses}>
       <div className={cn("flex h-16 w-full items-center justify-between", "px-2 sm:px-4")}>
@@ -268,7 +287,7 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
                 className={cn(
                   "text-xs p-1 h-auto ml-0 mt-1 rounded-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 relative",
                   "text-primary underline underline-offset-2",
-                  "hover:bg-transparent hover:text-primary/80" 
+                  "hover:bg-transparent hover:text-primary/80"
                 )}
                 aria-label={`App Version ${APP_VERSION}, click for release notes`}
               >
@@ -339,10 +358,43 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
             </div>
           ) : (
             <>
-              {!authLoading && authUser && onMainActionClick && (
-                 <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-primary hover:text-primary/90 hover:bg-primary/10")} aria-label="Add Entry" onClick={onMainActionClick}>
-                  <Plus className="h-6 w-6" strokeWidth={3} />
-                </Button>
+              {!authLoading && authUser && (
+                <Popover open={isActionPopoverOpen} onOpenChange={setIsActionPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-primary hover:text-primary/90 hover:bg-primary/10")} aria-label="Add Entry">
+                      <Plus className="h-6 w-6" strokeWidth={3} />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    side="bottom"
+                    align="center"
+                    className="w-auto bg-card text-card-foreground border-border shadow-xl rounded-xl p-0"
+                    onInteractOutside={() => setIsActionPopoverOpen(false)}
+                  >
+                    <div className="flex flex-col gap-1 p-2">
+                      {onLogFoodAIClick && (
+                        <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => handleActionItemClick(onLogFoodAIClick)}>
+                          <PlusCircle className="mr-3 h-5 w-5" /> Log Food (AI Text)
+                        </Button>
+                      )}
+                      {onIdentifyByPhotoClick && (
+                        <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => handleActionItemClick(onIdentifyByPhotoClick)}>
+                          <Camera className="mr-3 h-5 w-5" /> Identify by Photo
+                        </Button>
+                      )}
+                      {onLogSymptomsClick && (
+                        <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => handleActionItemClick(onLogSymptomsClick)}>
+                          <ListChecks className="mr-3 h-5 w-5" /> Log Symptoms
+                        </Button>
+                      )}
+                      {onLogPreviousMealClick && (
+                        <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => handleActionItemClick(onLogPreviousMealClick)}>
+                          <CalendarDays className="mr-3 h-5 w-5" /> Log Previous Meal
+                        </Button>
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               )}
 
               <div className="hidden md:flex items-center space-x-0.5 sm:space-x-1">
