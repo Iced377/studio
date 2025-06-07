@@ -126,7 +126,7 @@ export default function PremiumDashboardSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[90vh] flex flex-col py-0 px-4 bg-background text-foreground border-t-2 border-border">
+      <SheetContent side="bottom" className="h-dvh flex flex-col py-0 px-4 bg-background text-foreground border-t-2 border-border">
         <SheetHeader className="p-0">
           <Navbar /> 
           <SheetTitle className="sr-only">Main Dashboard and Timeline</SheetTitle>
