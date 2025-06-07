@@ -40,7 +40,7 @@ import {
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.5.2";
+export const APP_VERSION = "Beta 3.5.3";
 
 interface ReleaseNote {
   version: string;
@@ -50,6 +50,15 @@ interface ReleaseNote {
 }
 
 const releaseNotesData: ReleaseNote[] = [
+  {
+    version: "Beta 3.5.3",
+    date: "July 30, 2024", // Or a more dynamic way to get current date if needed
+    title: "AI Micronutrient Handling Improvements",
+    description: [
+      "Further refined AI prompt instructions to more accurately process and record user-provided specific micronutrient quantities.",
+      "Aimed to prevent the AI from substituting or ignoring explicit dosage information provided by the user.",
+    ],
+  },
   {
     version: "Beta 3.5.2",
     date: "July 30, 2024",
