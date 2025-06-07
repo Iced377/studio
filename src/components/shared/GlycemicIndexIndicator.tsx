@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { GlycemicIndexInfo } from '@/types';
@@ -17,7 +16,7 @@ export default function GlycemicIndexIndicator({ giInfo }: GlycemicIndexIndicato
         <Tooltip>
           <TooltipTrigger asChild>
             <Badge variant="outline" className="text-xs border-muted-foreground/30 text-muted-foreground flex items-center gap-1">
-              <Flame className="h-3 w-3" /> GI: N/A
+              <Flame className="h-3.5 w-3.5" /> GI: N/A
             </Badge>
           </TooltipTrigger>
           <TooltipContent className="bg-popover text-popover-foreground border-border">
@@ -49,7 +48,7 @@ export default function GlycemicIndexIndicator({ giInfo }: GlycemicIndexIndicato
       <Tooltip>
         <TooltipTrigger asChild>
           <Badge variant="outline" className={`text-xs flex items-center gap-1 ${colorClass}`}>
-            <Flame className={`h-3 w-3 ${iconColor}`} /> GI: {level} {value && `(${value})`}
+            <Flame className={`h-3.5 w-3.5 ${iconColor}`} /> GI: {level} {value && `(${value})`}
           </Badge>
         </TooltipTrigger>
         <TooltipContent className="bg-popover text-popover-foreground border-border">

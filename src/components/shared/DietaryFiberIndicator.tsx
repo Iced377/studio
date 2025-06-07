@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { DietaryFiberInfo } from '@/types';
@@ -17,7 +16,7 @@ export default function DietaryFiberIndicator({ fiberInfo }: DietaryFiberIndicat
         <Tooltip>
           <TooltipTrigger asChild>
              <Badge variant="outline" className="text-xs border-muted-foreground/30 text-muted-foreground flex items-center gap-1">
-              <Leaf className="h-3 w-3" /> Fiber: N/A
+              <Leaf className="h-3.5 w-3.5" /> Fiber: N/A
             </Badge>
           </TooltipTrigger>
           <TooltipContent className="bg-popover text-popover-foreground border-border">
@@ -53,7 +52,7 @@ export default function DietaryFiberIndicator({ fiberInfo }: DietaryFiberIndicat
       <Tooltip>
         <TooltipTrigger asChild>
           <Badge variant="outline" className={`text-xs flex items-center gap-1 ${colorClass}`}>
-            <Leaf className={`h-3 w-3 ${iconColor}`} /> {amountGrams.toFixed(1)}g Fiber
+            <Leaf className={`h-3.5 w-3.5 ${iconColor}`} /> {amountGrams.toFixed(1)}g Fiber
           </Badge>
         </TooltipTrigger>
         <TooltipContent className="bg-popover text-popover-foreground border-border">

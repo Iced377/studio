@@ -85,7 +85,6 @@ export default function TimelineFoodCard({
             )}
             {!isManualMacroEntry && <p className={cn("text-sm", mutedTextClass)}>Portion: {item.portionSize} {item.portionUnit}</p>}
           </div>
-           {/* FODMAP Indicator removed from header */}
         </div>
          {item.sourceDescription && !isManualMacroEntry ? (
            <p className={cn("text-sm italic pt-1 break-words", mutedTextClass, "text-muted-foreground/70")}>{item.sourceDescription}</p>
@@ -136,7 +135,7 @@ export default function TimelineFoodCard({
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Badge variant="destructive" className="text-xs bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30 flex items-center gap-1 cursor-default">
-                                  <AlertCircle className="h-3 w-3" /> {allergen}
+                                  <AlertCircle className="h-3.5 w-3.5" /> {allergen}
                               </Badge>
                             </TooltipTrigger>
                             <TooltipContent className="bg-popover text-popover-foreground border-border">
@@ -255,7 +254,7 @@ export default function TimelineFoodCard({
                   )}
                   aria-label="Mark as Safe"
                 >
-                  <ThumbsUp className={`h-4.5 w-4.5 ${item.userFeedback === 'safe' ? 'fill-green-500/70' : ''}`} />
+                  <ThumbsUp className={`h-4 w-4 ${item.userFeedback === 'safe' ? 'fill-green-500/70' : ''}`} />
                 </Button>
                 <Button
                   variant="ghost"
@@ -268,7 +267,7 @@ export default function TimelineFoodCard({
                   )}
                   aria-label="Mark as Unsafe"
                 >
-                  <ThumbsDown className={`h-4.5 w-4.5 ${item.userFeedback === 'unsafe' ? 'fill-red-500/70' : ''}`} />
+                  <ThumbsDown className={`h-4 w-4 ${item.userFeedback === 'unsafe' ? 'fill-red-500/70' : ''}`} />
                 </Button>
                 </>
               )}

@@ -36,7 +36,7 @@ export default function TimelineSymptomCard({ item, onRemoveItem }: TimelineSymp
       </CardHeader>
       <CardContent className="px-4 pt-2 pb-3">
         <div className="mb-2">
-            <p className="text-base font-medium text-foreground">Reported Symptoms:</p>
+            <p className="text-sm font-medium text-foreground">Reported Symptoms:</p>
             <div className="flex flex-wrap gap-1 mt-1">
             {item.symptoms.map(symptom => (
                 <Badge key={symptom.id} variant="outline" className="border-accent text-foreground text-sm">
@@ -47,7 +47,7 @@ export default function TimelineSymptomCard({ item, onRemoveItem }: TimelineSymp
         </div>
         {item.notes && (
           <div>
-            <p className="text-base font-medium text-foreground">Notes:</p>
+            <p className="text-sm font-medium text-foreground">Notes:</p>
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">{item.notes}</p>
           </div>
         )}
