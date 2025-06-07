@@ -10,7 +10,7 @@ const PrivacyPage = () => {
       <section className="mb-6">
         <h2 className="text-2xl font-semibold mb-2">Introduction</h2>
         <p>
-          Welcome to GutCheck! We are committed to protecting your privacy and handling your data in an open and transparent manner. This privacy notice explains how we collect, use, share, and protect your personal information when you use our application.
+          Welcome to GutCheck! We are committed to protecting your privacy and handling your data in an open and transparent manner. This privacy notice explains how we collect, use, share, and protect your personal information when you use our application. Please note that this is a test project that is not currently intended for commercial use.
         </p>
       </section>
 
@@ -99,7 +99,7 @@ const PrivacyPage = () => {
       <section>
         <h2 className="text-2xl font-semibold mb-2">Contact Us</h2>
         <p>
-          If you have any questions or concerns about this privacy notice or our data practices, please contact us at <Link href="mailto:privacy@gutcheck.ai" className="text-blue-600 hover:underline">privacy@gutcheck.ai</Link>.
+          If you have any questions or concerns about this privacy notice or our data practices, please contact us via the green feedback button.
         </p>
       </section>
 
