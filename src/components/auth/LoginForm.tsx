@@ -101,7 +101,8 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md space-y-6">
+    // Removed w-full max-w-md space-y-6 from here, page will control max-width
+    <div className="space-y-6"> 
       <form onSubmit={loginForm.handleSubmit(handleEmailLogin)} className="space-y-4">
         <div>
           <Label htmlFor="email">Email</Label>
@@ -178,6 +179,8 @@ export default function LoginForm() {
           {loading ? 'Logging in...' : 'Login'}
         </Button>
       </form>
+      {/* "Don't have an account?" link moved to page level */}
+      {/* Google Sign In button and "Or continue with" also moved to page level */}
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{' '}
         <Link href="/signup" className="font-medium text-primary hover:underline">

@@ -1,20 +1,36 @@
 
 import LoginForm from '@/components/auth/LoginForm';
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton'; // Keep for the "Or continue with Google" part
 
 export default function LoginPage() {
   return (
     <div className="flex min-h-full flex-col justify-center items-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <h1 className="font-headline text-3xl font-bold tracking-tight text-foreground">
-          Welcome to GutCheck
+          Welcome to FODMAPSafe
         </h1>
         <p className="mt-2 text-muted-foreground">
           Sign in with your email and password or use Google.
         </p>
       </div>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-card py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-card py-8 px-4 shadow-lg sm:rounded-lg sm:px-10">
           <LoginForm />
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-card px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+            <div className="mt-6">
+              <GoogleSignInButton className="w-full" />
+            </div>
+          </div>
         </div>
       </div>
     </div>

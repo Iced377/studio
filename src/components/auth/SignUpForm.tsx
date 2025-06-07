@@ -9,11 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { signUpWithEmail } from '@/lib/firebase/auth'; // signInWithGoogle removed
+import { signUpWithEmail } from '@/lib/firebase/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { AuthError } from 'firebase/auth';
-// import { Chrome } from 'lucide-react'; // Chrome icon removed
 
 const signUpSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
@@ -44,7 +43,7 @@ export default function SignUpForm() {
     setLoading(true);
     const result = await signUpWithEmail(data.email, data.password);
     if ('user' in result) {
-      toast({ title: 'Sign Up Successful', description: 'Welcome to GutCheck!' });
+      toast({ title: 'Sign Up Successful', description: 'Welcome to FODMAPSafe!' });
       router.push('/');
     } else {
       toast({
@@ -56,10 +55,9 @@ export default function SignUpForm() {
     setLoading(false);
   };
   
-  // handleGoogleSignUp function removed
-
   return (
-    <div className="w-full max-w-md space-y-6">
+    // Removed w-full max-w-md space-y-6 from here, page will control max-width
+    <div className="space-y-6"> 
       <form onSubmit={form.handleSubmit(handleEmailSignUp)} className="space-y-4">
         <div>
           <Label htmlFor="email">Email</Label>
@@ -104,7 +102,8 @@ export default function SignUpForm() {
           {loading ? 'Signing up...' : 'Sign Up'}
         </Button>
       </form>
-      {/* "Or continue with" divider and Google signup button removed */}
+      {/* "Already have an account?" link moved to page level */}
+      {/* Google Sign In button and "Or continue with" also moved to page level */}
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{' '}
         <Link href="/login" className="font-medium text-primary hover:underline">
