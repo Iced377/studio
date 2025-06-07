@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X, ScrollText, LayoutGrid, Plus, Shield } from 'lucide-react';
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X, ScrollText, LayoutGrid, Plus, Shield, Menu } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -135,8 +135,8 @@ const releaseNotesData: ReleaseNote[] = [
 
 interface NavbarProps {
   isGuest?: boolean;
-  onMainActionClick?: () => void; 
-  onOpenDashboardClick?: () => void; 
+  onMainActionClick?: () => void;
+  onOpenDashboardClick?: () => void;
 }
 
 const LOCALSTORAGE_LAST_SEEN_VERSION_KEY = 'lastSeenAppVersion';
@@ -207,7 +207,7 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
     e.preventDefault();
     router.push(pathname === '/trends' ? '/?openDashboard=true' : '/trends');
   };
-  
+
   const micronutrientsLinkHandler = (e: React.MouseEvent) => {
     e.preventDefault();
     router.push(pathname === '/micronutrients' ? '/?openDashboard=true' : '/micronutrients');
@@ -231,7 +231,7 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
   const headerBaseClasses = "sticky top-0 z-50 w-full";
   const headerClasses = cn(
     headerBaseClasses,
-    "bg-card text-card-foreground border-b border-border" 
+    "bg-card text-card-foreground border-b border-border"
   );
   const appNameBaseClasses = "font-bold font-headline text-xl";
 
@@ -311,7 +311,7 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
                 onClick={() => router.push('/login')}
                 className={cn(
                   "h-9 px-3 sm:px-4 text-xs sm:text-sm",
-                  "bg-primary text-primary-foreground hover:bg-primary/90" 
+                  "bg-primary text-primary-foreground hover:bg-primary/90"
                 )}
                 variant={'default'}
               >
@@ -321,84 +321,167 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
             </div>
           ) : (
             <>
+              {/* Desktop Icons */}
+              <div className="hidden md:flex items-center space-x-0.5 sm:space-x-1">
+                {!authLoading && authUser && (
+                  <>
+                    {onMainActionClick && (
+                       <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10")} aria-label="Add Entry" onClick={onMainActionClick}>
+                        <Plus className="h-5 w-5" />
+                      </Button>
+                    )}
+                    {onOpenDashboardClick && (
+                      <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10")} aria-label="Open Dashboard" onClick={onOpenDashboardClick}>
+                        <LayoutGrid className="h-5 w-5" />
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/trends' ? 'bg-primary/10 text-primary' : 'text-current hover:text-current/80 hover:bg-current/10')} aria-label="Trends" onClick={trendsLinkHandler}>
+                      <BarChart3 className="h-5 w-5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/micronutrients' ? 'bg-primary/10 text-primary' : 'text-current hover:text-current/80 hover:bg-current/10')} aria-label="Micronutrients Progress" onClick={micronutrientsLinkHandler}>
+                      <Atom className="h-5 w-5" />
+                    </Button>
+                    <div className="relative">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/ai-insights' ? 'bg-primary/10 text-primary' : 'text-current hover:text-current/80 hover:bg-current/10')}
+                        aria-label="AI Insights"
+                        onClick={aiInsightsLinkHandler}
+                      >
+                        <Lightbulb className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  </>
+                )}
+
+                <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="h-8 w-8 text-current hover:text-current/80 hover:bg-current/10" aria-label="Toggle dark mode">
+                  {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                </Button>
+
+                {!authLoading && authUser && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="relative h-9 w-9 rounded-full border-2 border-current p-0">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={authUser.photoURL || undefined} alt={authUser.displayName || 'User'} />
+                          <AvatarFallback className="bg-muted text-muted-foreground">
+                              {authUser.photoURL ? getInitials(authUser.displayName) : <User className="h-4 w-4" />}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                      <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium leading-none text-foreground">{authUser.displayName || 'User'}</p>
+                          <p className="text-xs leading-none text-muted-foreground">{authUser.email}</p>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                       {isCurrentUserAdmin && (
+                         <DropdownMenuItem onClick={() => router.push('/admin/feedback')} className="cursor-pointer">
+                          <AdminIcon className="mr-2 h-4 w-4" />
+                          <span>Admin Dashboard</span>
+                        </DropdownMenuItem>
+                       )}
+                      <DropdownMenuItem onClick={() => router.push('/account/subscription')} className="cursor-pointer">
+                         <CreditCard className="mr-2 h-4 w-4" />
+                         <span>Subscription</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => router.push('/privacy')} className="cursor-pointer">
+                         <Shield className="mr-2 h-4 w-4" />
+                         <span>Privacy Notice</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Log out</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+
+              {/* Mobile Menu Trigger */}
               {!authLoading && authUser && (
-                <div className={cn("flex items-center", "space-x-0.5 sm:space-x-1")}>
-                  {onMainActionClick && ( 
-                     <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10")} aria-label="Add Entry" onClick={onMainActionClick}>
-                      <Plus className="h-5 w-5" />
-                    </Button>
-                  )}
-                  {onOpenDashboardClick && ( 
-                    <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10")} aria-label="Open Dashboard" onClick={onOpenDashboardClick}>
-                      <LayoutGrid className="h-5 w-5" />
-                    </Button>
-                  )}
-                  <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/trends' ? 'bg-primary/10 text-primary' : 'text-current hover:text-current/80 hover:bg-current/10')} aria-label="Trends" onClick={trendsLinkHandler}>
-                    <BarChart3 className="h-5 w-5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/micronutrients' ? 'bg-primary/10 text-primary' : 'text-current hover:text-current/80 hover:bg-current/10')} aria-label="Micronutrients Progress" onClick={micronutrientsLinkHandler}>
-                    <Atom className="h-5 w-5" />
-                  </Button>
-                  <div className="relative">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0", pathname === '/ai-insights' ? 'bg-primary/10 text-primary' : 'text-current hover:text-current/80 hover:bg-current/10')}
-                      aria-label="AI Insights"
-                      onClick={aiInsightsLinkHandler}
-                    >
-                      <Lightbulb className="h-5 w-5" />
-                    </Button>
-                  </div>
+                <div className="md:hidden">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-current hover:text-current/80 hover:bg-current/10" aria-label="Open menu">
+                        <Menu className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                      <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-1">
+                          <div className="flex items-center space-x-2">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={authUser.photoURL || undefined} alt={authUser.displayName || 'User'} />
+                              <AvatarFallback className="bg-muted text-muted-foreground">
+                                {authUser.photoURL ? getInitials(authUser.displayName) : <User className="h-4 w-4" />}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="text-sm font-medium leading-none text-foreground">{authUser.displayName || 'User'}</p>
+                              <p className="text-xs leading-none text-muted-foreground">{authUser.email}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {onMainActionClick && (
+                        <DropdownMenuItem onClick={onMainActionClick} className="cursor-pointer">
+                          <Plus className="mr-2 h-4 w-4" />
+                          <span>Add Entry</span>
+                        </DropdownMenuItem>
+                      )}
+                      {onOpenDashboardClick && (
+                        <DropdownMenuItem onClick={onOpenDashboardClick} className="cursor-pointer">
+                          <LayoutGrid className="mr-2 h-4 w-4" />
+                          <span>Dashboard</span>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem onClick={trendsLinkHandler} className="cursor-pointer">
+                        <BarChart3 className="mr-2 h-4 w-4" />
+                        <span>Trends</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={micronutrientsLinkHandler} className="cursor-pointer">
+                        <Atom className="mr-2 h-4 w-4" />
+                        <span>Micronutrients</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={aiInsightsLinkHandler} className="cursor-pointer">
+                        <Lightbulb className="mr-2 h-4 w-4" />
+                        <span>AI Insights</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={toggleDarkMode} className="cursor-pointer">
+                        {isDarkMode ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+                        <span>Toggle Theme</span>
+                      </DropdownMenuItem>
+                      {isCurrentUserAdmin && (
+                        <DropdownMenuItem onClick={() => router.push('/admin/feedback')} className="cursor-pointer">
+                          <AdminIcon className="mr-2 h-4 w-4" />
+                          <span>Admin Dashboard</span>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem onClick={() => router.push('/account/subscription')} className="cursor-pointer">
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        <span>Subscription</span>
+                      </DropdownMenuItem>
+                       <DropdownMenuItem onClick={() => router.push('/privacy')} className="cursor-pointer">
+                         <Shield className="mr-2 h-4 w-4" />
+                         <span>Privacy Notice</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Log out</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               )}
-
-              <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="h-8 w-8 text-current hover:text-current/80 hover:bg-current/10" aria-label="Toggle dark mode">
-                {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-              </Button>
-
-              {!authLoading && authUser ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-9 w-9 rounded-full border-2 border-current p-0">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={authUser.photoURL || undefined} alt={authUser.displayName || 'User'} />
-                        <AvatarFallback className="bg-muted text-muted-foreground">
-                            {authUser.photoURL ? getInitials(authUser.displayName) : <User className="h-4 w-4" />}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <DropdownMenuLabel className="font-normal">
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none text-foreground">{authUser.displayName || 'User'}</p>
-                        <p className="text-xs leading-none text-muted-foreground">{authUser.email}</p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                     {isCurrentUserAdmin && (
-                       <DropdownMenuItem onClick={() => router.push('/admin/feedback')} className="cursor-pointer">
-                        <AdminIcon className="mr-2 h-4 w-4" />
-                        <span>Admin Dashboard</span>
-                      </DropdownMenuItem>
-                     )}
-                    <DropdownMenuItem onClick={() => router.push('/account/subscription')} className="cursor-pointer">
-                       <CreditCard className="mr-2 h-4 w-4" />
-                       <span>Subscription</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => router.push('/privacy')} className="cursor-pointer">
-                       <Shield className="mr-2 h-4 w-4" />
-                       <span>Privacy Notice</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Log out</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : null}
             </>
           )}
         </div>
