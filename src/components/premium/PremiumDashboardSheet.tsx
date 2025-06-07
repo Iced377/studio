@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose, SheetFooter } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import Navbar from "@/components/shared/Navbar"
+// Navbar import removed
 import type { TimelineEntry, UserProfile, DailyNutritionSummary, LoggedFoodItem, MicronutrientDetail } from '@/types';
 import TimelineFoodCard from '@/components/food-logging/TimelineFoodCard';
 import TimelineSymptomCard from '@/components/food-logging/TimelineSymptomCard';
@@ -126,13 +126,13 @@ export default function PremiumDashboardSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-dvh flex flex-col py-0 px-4 bg-background text-foreground border-t-2 border-border">
+      <SheetContent side="bottom" className="h-dvh flex flex-col py-0 px-0 bg-background text-foreground border-t-2 border-border">
         <SheetHeader className="p-0">
-          <Navbar /> 
+          {/* Navbar removed from here */}
           <SheetTitle className="sr-only">Main Dashboard and Timeline</SheetTitle>
         </SheetHeader>
 
-        <div className="border-b border-border/50 py-3">
+        <div className="border-b border-border/50 py-3 px-4">
             <div className="flex flex-row flex-wrap justify-around items-center gap-x-2 sm:gap-x-3 gap-y-2 text-center">
                 <div className="flex flex-col items-center">
                   <Flame className="h-5 w-5 text-orange-400 mb-0.5" />
@@ -177,7 +177,7 @@ export default function PremiumDashboardSheet({
             </div>
         </div>
 
-        <ScrollArea className="flex-grow py-4">
+        <ScrollArea className="flex-grow py-4 px-4">
           {timelineEntries.length === 0 && !Object.values(isLoadingAi).some(Boolean) && (
             <div className="text-center py-12">
               <Utensils className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
@@ -216,7 +216,7 @@ export default function PremiumDashboardSheet({
             })}
           </div>
         </ScrollArea>
-         <SheetFooter className="p-2 border-t border-border">
+         <SheetFooter className="p-3 border-t border-border sticky bottom-0 bg-card">
             <SheetClose asChild>
                 <Button variant="outline" className="w-full">Close Dashboard</Button>
             </SheetClose>

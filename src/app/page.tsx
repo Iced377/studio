@@ -38,7 +38,6 @@ import SymptomLoggingDialog from '@/components/food-logging/SymptomLoggingDialog
 import AddManualMacroEntryDialog, { type ManualMacroFormValues } from '@/components/food-logging/AddManualMacroEntryDialog';
 import LogPreviousMealDialog from '@/components/food-logging/LogPreviousMealDialog';
 import IdentifyFoodByPhotoDialog, { type IdentifiedPhotoData } from '@/components/food-logging/IdentifyFoodByPhotoDialog';
-import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet';
 import Navbar from '@/components/shared/Navbar';
 import GuestHomePage from '@/components/guest/GuestHomePage';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
@@ -125,7 +124,6 @@ export default function FoodTimelinePage() {
   const [activeLightModeColorScheme, setActiveLightModeColorScheme] = useState<ButtonColorScheme>(lightModeButtonColors[0]);
 
 
-  const [symptomDialogContext, setSymptomDialogContext] = useState<{ foodItemIds?: string[] }>({});
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [isPremiumDashboardOpen, setIsPremiumDashboardOpen] = useState(false);
   const [isCentralPopoverOpen, setIsCentralPopoverOpen] = useState(false);
@@ -786,7 +784,6 @@ export default function FoodTimelinePage() {
   };
 
   const openSymptomDialog = (foodItemIds?: string[]) => {
-    setSymptomDialogContext({ foodItemIds });
     setIsSymptomLogDialogOpen(true);
     setIsCentralPopoverOpen(false);
   };
@@ -1090,6 +1087,7 @@ export default function FoodTimelinePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden">
+       <Navbar onMainActionClick={() => setIsCentralPopoverOpen(true)} /> {/* Include Navbar here */}
       <div className="flex-grow flex items-center justify-center">
         <Popover open={isCentralPopoverOpen} onOpenChange={setIsCentralPopoverOpen}>
           <PopoverTrigger asChild>
@@ -1134,32 +1132,6 @@ export default function FoodTimelinePage() {
         </Popover>
       </div>
 
-      <PremiumDashboardSheet
-          isOpen={isPremiumDashboardOpen}
-          onOpenChange={setIsPremiumDashboardOpen}
-          userProfile={userProfile}
-          timelineEntries={timelineEntries}
-          dailyNutritionSummary={dailyNutritionSummary}
-          isLoadingAi={isLoadingAi}
-          onSetFeedback={handleSetFoodFeedback}
-          onRemoveTimelineEntry={handleRemoveTimelineEntry}
-          onLogSymptomsForFood={openSymptomDialog}
-          onEditIngredients={handleEditTimelineEntry}
-          onRepeatMeal={handleRepeatMeal}
-      >
-       <div></div>
-      </PremiumDashboardSheet>
-
-      {!isPremiumDashboardOpen && (
-          <div
-            className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center cursor-pointer animate-bounce z-10 pb-2"
-            onClick={() => setIsPremiumDashboardOpen(true)}
-            aria-label="Open Dashboard"
-          >
-            <ChevronUp className="h-6 w-6 text-muted-foreground/70" />
-            <span className="text-xs text-muted-foreground/70">Swipe Up or Tap to View Dashboard</span>
-          </div>
-      )}
 
       <SimplifiedAddFoodDialog
         isOpen={isSimplifiedAddFoodDialogOpen}
@@ -1208,7 +1180,6 @@ export default function FoodTimelinePage() {
           isOpen={isSymptomLogDialogOpen}
           onOpenChange={setIsSymptomLogDialogOpen}
           onLogSymptoms={handleLogSymptoms}
-          context={symptomDialogContext}
           allSymptoms={COMMON_SYMPTOMS}
       />
       <AddManualMacroEntryDialog

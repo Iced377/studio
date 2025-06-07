@@ -40,7 +40,7 @@ import {
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.5.5";
+export const APP_VERSION = "Beta 3.5.6";
 
 interface ReleaseNote {
   version: string;
@@ -51,8 +51,14 @@ interface ReleaseNote {
 
 const releaseNotesData: ReleaseNote[] = [
   {
+    version: "Beta 3.5.6",
+    date: "June 07, 2025",
+    title: "Improved UI",
+    description: "Enhanced App Aesthetics. New colour theme.",
+  },
+  {
     version: "Beta 3.5.5",
-    date: "July 31, 2024",
+    date: "June 07, 2025",
     title: "Privacy Notice Page",
     description: [
       "Added a new Privacy Notice page accessible from the user dropdown menu.",
@@ -61,7 +67,7 @@ const releaseNotesData: ReleaseNote[] = [
   },
   {
     version: "Beta 3.5.4",
-    date: "July 30, 2024",
+    date: "June 06, 2025",
     title: "Improved Supplement Photo ID",
     description: [
       "Enhanced the 'Identify Food by Photo' feature to more accurately capture specific nutrient quantities (e.g., 'Vitamin D3 50,000 IU') when OCR'd from supplement labels.",
@@ -70,7 +76,7 @@ const releaseNotesData: ReleaseNote[] = [
   },
   {
     version: "Beta 3.5.3",
-    date: "July 30, 2024",
+    date: "June 06, 2025",
     title: "AI Micronutrient Handling Improvements",
     description: [
       "Further refined AI prompt instructions to more accurately process and record user-provided specific micronutrient quantities for text-based food logging.",
@@ -79,7 +85,7 @@ const releaseNotesData: ReleaseNote[] = [
   },
   {
     version: "Beta 3.5.2",
-    date: "July 30, 2024",
+    date: "June 06, 2025",
     title: "Food Card Enhancements & Indicator Reordering",
     description: [
       "Enhanced AI notes in food cards to include summaries for micronutrients and GI.",
@@ -91,7 +97,7 @@ const releaseNotesData: ReleaseNote[] = [
   },
   {
     version: "Beta 3.5.1",
-    date: "July 30, 2024",
+    date: "June 06, 2025",
     title: "Release Notes Feature & Admin Button",
     description: [
       "Made the app version in the navbar clickable.",
@@ -102,13 +108,13 @@ const releaseNotesData: ReleaseNote[] = [
   },
   {
     version: "Beta 3.5.0",
-    date: "July 29, 2024",
+    date: "June 05, 2024",
     title: "Admin Panel & UI Enhancements",
     description: "Iterative fixes for admin panel permissions. General UI polish.",
   },
   {
     version: "Beta 3.4.0",
-    date: "July 28, 2024",
+    date: "June 04, 2024",
     title: "Rule Refinements",
     description: "Refined Firestore security rules for better access control.",
   },
