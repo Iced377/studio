@@ -122,7 +122,7 @@ export default function SymptomLoggingDialog({
 
         
 
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 pt-2">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 pt-2">
           <div>
             <Label className="text-sm font-medium text-foreground">Symptoms Experienced</Label>
             <div className="mt-2 grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1 border border-input rounded-md">
