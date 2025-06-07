@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X, ScrollText, LayoutGrid, Plus, Home, Shield } from 'lucide-react'; // Added Shield
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X, ScrollText, LayoutGrid, Plus, Home, Shield } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -40,7 +40,7 @@ import {
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.5.5"; // Updated version
+export const APP_VERSION = "Beta 3.5.5";
 
 interface ReleaseNote {
   version: string;
@@ -125,6 +125,8 @@ interface NavbarProps {
   onMainActionClick?: () => void;
 }
 
+const LOCALSTORAGE_LAST_SEEN_VERSION_KEY = 'lastSeenAppVersion';
+
 export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }: NavbarProps) {
   const { user: authUser, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -133,6 +135,7 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState(false);
   const [isReleaseNotesOpen, setIsReleaseNotesOpen] = useState(false);
+  const [showNewReleaseIndicator, setShowNewReleaseIndicator] = useState(false);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -158,6 +161,15 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
       fetchUserProfile();
     }
   }, [authUser, authLoading]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const lastSeenVersion = localStorage.getItem(LOCALSTORAGE_LAST_SEEN_VERSION_KEY);
+      if (lastSeenVersion !== APP_VERSION) {
+        setShowNewReleaseIndicator(true);
+      }
+    }
+  }, []);
 
 
   const handleSignOut = async () => {
@@ -192,11 +204,21 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
     router.push(pathname === '/ai-insights' ? '/?openDashboard=true' : '/ai-insights');
   };
 
+  const handleReleaseNotesToggle = (open: boolean) => {
+    if (open) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(LOCALSTORAGE_LAST_SEEN_VERSION_KEY, APP_VERSION);
+      }
+      setShowNewReleaseIndicator(false);
+    }
+    setIsReleaseNotesOpen(open);
+  };
+
   const headerBaseClasses = "sticky top-0 z-50 w-full";
   const guestHeaderClasses = "bg-background text-foreground";
   const registeredUserHeaderClasses = cn(
-    "bg-secondary text-secondary-foreground", // For light mode
-    "dark:bg-card dark:text-card-foreground",    // For dark mode
+    "bg-secondary text-secondary-foreground",
+    "dark:bg-card dark:text-card-foreground",
     "border-b border-border/50"
   );
   const appNameBaseClasses = "font-bold font-headline text-xl";
@@ -218,14 +240,20 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
             )}
           </Link>
           {!isGuest && (
-            <Dialog open={isReleaseNotesOpen} onOpenChange={setIsReleaseNotesOpen}>
+            <Dialog open={isReleaseNotesOpen} onOpenChange={handleReleaseNotesToggle}>
               <DialogTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="text-xs text-muted-foreground hover:text-primary hover:underline underline-offset-2 p-1 h-auto ml-0 mt-1 rounded-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1"
+                  className="text-xs text-muted-foreground hover:text-primary hover:underline underline-offset-2 p-1 h-auto ml-0 mt-1 rounded-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 relative"
                   aria-label={`App Version ${APP_VERSION}, click for release notes`}
                 >
                   {APP_VERSION}
+                  {showNewReleaseIndicator && (
+                    <span
+                      className="absolute top-0.5 right-0.5 block h-2 w-2 rounded-full bg-red-500 border border-background"
+                      aria-hidden="true"
+                    />
+                  )}
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-lg bg-card text-card-foreground border-border">
@@ -356,7 +384,7 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
                        <CreditCard className="mr-2 h-4 w-4" />
                        <span>Subscription</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => router.push('/privacy')} className="cursor-pointer"> {/* Added Privacy Notice item */}
+                    <DropdownMenuItem onClick={() => router.push('/privacy')} className="cursor-pointer">
                        <Shield className="mr-2 h-4 w-4" />
                        <span>Privacy Notice</span>
                     </DropdownMenuItem>
@@ -376,4 +404,3 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
   );
 }
     
-
