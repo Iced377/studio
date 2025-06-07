@@ -1,28 +1,32 @@
-
 'use client';
 
 import { useState } from 'react';
-import { Button, type ButtonProps } from '@/components/ui/button'; // Import ButtonProps
+import { Button, type ButtonProps } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { signInWithGoogle } from '@/lib/firebase/auth';
 import { Chrome } from 'lucide-react'; 
 import type { UserCredential, AuthError } from 'firebase/auth';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation'; // Added useRouter
 
 interface GoogleSignInButtonProps extends Omit<ButtonProps, 'onClick' | 'disabled' | 'children'> {
-  variant?: ButtonProps['variant'] | 'guest'; // Allow 'guest' as a special variant
+  variant?: ButtonProps['variant'] | 'guest';
 }
 
 export default function GoogleSignInButton({ variant, className, ...props }: GoogleSignInButtonProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const router = useRouter(); // Initialized useRouter
 
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
       const result = await signInWithGoogle();
-      if (result && (result as UserCredential).user && variant !== 'guest') { // Only toast if not guest variant (handled by AuthProvider)
+      // This block primarily handles the popup flow result.
+      // For redirect flow, AuthProvider handles the result after page reload.
+      if (result && (result as UserCredential).user && variant !== 'guest') { 
         toast({ title: 'Login Successful', description: 'Welcome!' });
+        router.push('/'); // Redirect to home after successful Google popup
       }
     } catch (error) {
       console.error("Google login error:", error);
@@ -33,7 +37,8 @@ export default function GoogleSignInButton({ variant, className, ...props }: Goo
       });
       setLoading(false); 
     }
-    // setLoading(false) is tricky with redirects; AuthProvider handles loading state.
+    // For redirect flow, setLoading(false) might not execute before navigation.
+    // AuthProvider manages overall loading state.
   };
 
   const buttonClasses = variant === 'guest' 
@@ -42,7 +47,7 @@ export default function GoogleSignInButton({ variant, className, ...props }: Goo
 
   return (
     <Button
-      variant={variant === 'guest' ? 'outline' : 'outline'} // Shadcn variant
+      variant={variant === 'guest' ? 'outline' : 'outline'}
       className={cn(buttonClasses, className)}
       onClick={handleGoogleLogin}
       disabled={loading}

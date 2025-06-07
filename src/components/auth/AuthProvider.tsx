@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { ReactNode } from 'react';
@@ -30,25 +29,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [redirectLoading, setRedirectLoading] = useState(true);
   const [authLoading, setAuthLoading] = useState(true);
   const { toast } = useToast();
-  const router = useRouter(); // useRouter can only be used in client components
+  const router = useRouter(); 
 
   useEffect(() => {
     let unsub: ReturnType<typeof onAuthStateChanged>;
 
-    // Attempt to set persistence and then handle any redirect result
     setPersistence(auth, browserLocalPersistence)
       .then(() => {
-        // Check for redirect result only after persistence is set
         return getRedirectResult(auth);
       })
       .then((result) => {
         if (result?.user) {
-          // User signed in via redirect
-          setUser(result.user); // Set user state immediately from redirect
+          setUser(result.user); 
           toast({ title: 'Welcome back!', description: result.user.displayName || 'Successfully signed in.' });
-          // It's often good practice to redirect to a specific page after login,
-          // but ensure this doesn't conflict with other routing logic.
-          // Example: router.push('/');
+          router.push('/'); // Redirect to home after successful Google redirect
         }
       })
       .catch((error) => {
@@ -63,10 +57,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRedirectLoading(false);
       });
 
-    // Subscribe to auth state changes
     unsub = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser); // This will be null if logged out, or User object if logged in
-      setAuthLoading(false); // Auth state is now determined
+      setUser(firebaseUser); 
+      setAuthLoading(false); 
     });
 
     return () => {
@@ -74,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         unsub();
       }
     };
-  }, [toast, router]); // Added router and toast to dependency array as they are used in effect
+  }, [toast, router]); 
 
   const loading = redirectLoading || authLoading;
 
@@ -99,8 +92,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    // This check is technically not needed if createContext has a default value,
-    // but it's good practice if the default was undefined.
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
