@@ -40,7 +40,7 @@ import {
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.5.3";
+export const APP_VERSION = "Beta 3.5.4";
 
 interface ReleaseNote {
   version: string;
@@ -51,11 +51,20 @@ interface ReleaseNote {
 
 const releaseNotesData: ReleaseNote[] = [
   {
+    version: "Beta 3.5.4",
+    date: "July 30, 2024",
+    title: "Improved Supplement Photo ID",
+    description: [
+      "Enhanced the 'Identify Food by Photo' feature to more accurately capture specific nutrient quantities (e.g., 'Vitamin D3 50,000 IU') when OCR'd from supplement labels.",
+      "This ensures precise data from labels is passed to the main food analysis flow.",
+    ],
+  },
+  {
     version: "Beta 3.5.3",
-    date: "July 30, 2024", // Or a more dynamic way to get current date if needed
+    date: "July 30, 2024",
     title: "AI Micronutrient Handling Improvements",
     description: [
-      "Further refined AI prompt instructions to more accurately process and record user-provided specific micronutrient quantities.",
+      "Further refined AI prompt instructions to more accurately process and record user-provided specific micronutrient quantities for text-based food logging.",
       "Aimed to prevent the AI from substituting or ignoring explicit dosage information provided by the user.",
     ],
   },
@@ -272,7 +281,7 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
               {!authLoading && authUser && (
                 <div className="flex items-center space-x-1.5">
                   {onMainActionClick && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10" aria-label="Add Entry" onClick={onMainActionClick}>
+                     <Button variant="ghost" size="icon" className="h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-current hover:text-current/80 hover:bg-current/10" aria-label="Add Entry" onClick={onMainActionClick}>
                       <Plus className="h-5 w-5" />
                     </Button>
                   )}
@@ -354,3 +363,4 @@ export default function Navbar({ isGuest, guestButtonScheme, onMainActionClick }
   );
 }
     
+
