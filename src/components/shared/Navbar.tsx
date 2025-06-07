@@ -245,7 +245,7 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
                 <Image src="/Gutcheck_logo.png" alt="GutCheck Logo" width={39} height={39} className="object-contain filter brightness-0 invert" priority />
               </div>
             )}
-            <span className={cn(appNameBaseClasses, 'text-current', isGuest ? 'sm:inline-block' : 'hidden sm:inline-block')}>{APP_NAME}</span>
+            <span className={cn(appNameBaseClasses, 'text-current', 'sm:inline-block')}>{APP_NAME}</span>
           </Link>
           <Dialog open={isReleaseNotesOpen} onOpenChange={handleReleaseNotesToggle}>
             <DialogTrigger asChild>
@@ -310,7 +310,7 @@ export default function Navbar({ isGuest, onMainActionClick, onOpenDashboardClic
         <div className={cn("flex items-center", "space-x-0.5 sm:space-x-1")}>
           {isGuest ? (
             <div className="flex items-center space-x-2 sm:space-x-3">
-               <span className="hidden sm:inline text-sm text-foreground font-medium">Ready to track?</span>
+               <span className="hidden sm:inline text-sm text-foreground font-medium">Ready for More?</span>
               <Button
                 onClick={() => router.push('/login')}
                 className={cn(

@@ -22,7 +22,7 @@ export default function GuestHomePage({
   onLogFoodClick: () => void;
   lastLoggedItem: LoggedFoodItem | null;
   isSheetOpen: boolean;
-  onSheetOpenChange: (isOpen: boolean) => void;
+  onOpenChange: (isOpen: boolean) => void;
   onSetFeedback: (itemId: string, feedback: 'safe' | 'unsafe' | null) => void;
   onRemoveItem: (itemId: string) => void;
   isLoadingAiForItem: boolean;
@@ -44,28 +44,32 @@ export default function GuestHomePage({
       <Navbar isGuest={true} />
 
       <main className="flex-grow flex flex-col items-center justify-center p-4 relative text-center">
-        <div className="flex flex-col items-center space-y-3">
+        <div className="flex flex-col items-center space-y-6"> {/* Increased space-y for title */}
           <button
             onClick={handleMainButtonClick}
             className={cn(
-              "text-primary-foreground rounded-full h-36 w-36 sm:h-40 sm:w-40 flex items-center justify-center border-2 animate-pulse-glow focus:outline-none focus:ring-4 shadow-xl",
-              "bg-primary border-primary hover:bg-primary/90 focus:ring-primary/50",
-              "focus:ring-offset-background focus:ring-offset-2"
+              "text-primary-foreground rounded-full h-40 w-40 sm:h-48 sm:w-48 flex flex-col items-center justify-center",
+              "bg-gradient-to-br from-primary to-primary/70", // Gradient background
+              "border-4 border-white/30", // Light border for pop
+              "shadow-2xl", // More prominent shadow
+              "hover:scale-105 hover:shadow-[0_0_35px_10px_hsla(var(--primary),0.6)]", // Scale and enhanced glow on hover
+              "focus:outline-none focus:ring-4 focus:ring-primary/40 focus:ring-offset-2 focus:ring-offset-background",
+              "transition-all duration-300 ease-in-out" // Smooth transitions
             )}
-            aria-label="Check My Meal"
+            aria-label="Quick-Check Your Meal"
           >
+            <span className="text-xl font-semibold leading-tight mt-1">Quick-Check</span>
             <Image
               src="/Gutcheck_logo.png"
               alt="GutCheck Logo"
-              width={144}
-              height={144}
-              className="object-contain"
+              width={80} 
+              height={80}
+              className="object-contain my-1" // Adjusted margin
               priority
             />
+            <span className="text-lg font-medium leading-tight mb-1">Your Meal</span>
           </button>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-foreground font-headline mt-2">
-            Quick-Check Your Meal
-          </h1>
+          {/* Removed the h1 that was previously under the button */}
         </div>
       </main>
 
