@@ -57,11 +57,10 @@ const releaseNotesData: ReleaseNote[] = [
     title: "Landing Page Overhaul & UI Refinements",
     description: [
       "Centralized landing page content: now shared between guest and logged-in user views with view-specific CTAs and messages.",
-      "Added a 'Thank You & Beta Guidance' message on the landing page for newly registered beta users.",
       "Updated guest view: Hero section now features 'Quick-Check Your Meal' and 'Join the Beta' buttons side-by-side.",
       "Guest view final CTA updated to a heartwarming invitation to join the beta program.",
       "Implemented CSS-based reveal animations for cards on the landing page for a more dynamic experience.",
-      "Corrected app name from 'FODMAPSafe' to 'GutCheck' on the sign-up page.",
+      "Corrected app name to 'GutCheck' on the sign-up page.",
       "Adjusted spacing and alignment of elements on the landing page for improved visual flow in user view.",
     ],
   },
