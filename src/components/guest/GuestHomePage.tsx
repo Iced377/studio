@@ -48,27 +48,28 @@ export default function GuestHomePage({
           <button
             onClick={handleMainButtonClick}
             className={cn(
-              "text-primary-foreground rounded-full h-40 w-40 sm:h-48 sm:w-48 flex flex-col items-center justify-center",
-              "bg-gradient-to-br from-primary to-primary/70", 
-              "border-4 border-white/30", 
-              "drop-shadow-2xl", // Replaced shadow-2xl with drop-shadow-2xl for better floating effect
-              "hover:scale-105 hover:shadow-[0_0_35px_10px_hsla(var(--primary),0.6)]", 
+              "rounded-full h-40 w-40 sm:h-48 sm:w-48 flex items-center justify-center", // Removed flex-col, text-primary-foreground
+              "bg-gradient-to-br from-primary to-primary/70",
+              "border-4 border-white/30",
+              "drop-shadow-2xl",
+              "hover:scale-105 hover:shadow-[0_0_35px_10px_hsla(var(--primary),0.6)]",
               "focus:outline-none focus:ring-4 focus:ring-primary/40 focus:ring-offset-2 focus:ring-offset-background",
-              "transition-all duration-300 ease-in-out" 
+              "transition-all duration-300 ease-in-out"
             )}
             aria-label="Quick-Check Your Meal"
           >
-            <span className="text-xl font-semibold leading-tight mt-1">Quick-Check</span>
             <Image
               src="/Gutcheck_logo.png"
               alt="GutCheck Logo"
-              width={60} // Adjusted logo size
-              height={60}
-              className="object-contain my-1" 
+              width={100} // Increased logo size
+              height={100} // Increased logo size
+              className="object-contain"
               priority
             />
-            <span className="text-lg font-medium leading-tight mb-1">Your Meal</span>
           </button>
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground font-headline tracking-tight">
+            Quick-Check Your Meal
+          </h1>
         </div>
       </main>
 
