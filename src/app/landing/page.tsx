@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Camera, Edit, BarChart2, Brain, Lightbulb, CheckCircle, MessageSquareQuestion, Users, ShieldCheck, PieChart, Activity, Zap } from 'lucide-react'; // Added more icons
+import { Camera, Brain, BarChart2, Lightbulb, MessageSquareQuestion, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
@@ -25,14 +25,14 @@ export const metadata: Metadata = {
   },
 };
 
-const featureIcons = {
+const featureIcons: Record<string, React.ElementType> = {
   "Snap a Photo or Log a Meal": Camera,
   "Get Instant Deep Feedback": Brain,
   "Track Your Reactions": BarChart2,
   "Optimize with AI Recommendations": Lightbulb,
 };
 
-const howItWorksTooltips = {
+const howItWorksTooltips: Record<string, string> = {
   "Snap a Photo or Log a Meal": "Our AI can understand meal descriptions or analyze photos to identify ingredients.",
   "Get Instant Deep Feedback": "Receive insights on FODMAPs, micronutrients, potential gut impact, and glycemic load specific to your meal and portion.",
   "Track Your Reactions": "Correlate your logged symptoms with your meals to pinpoint personal sensitivities.",
@@ -65,7 +65,7 @@ export default function LandingPage() {
               layout="fill"
               objectFit="cover"
               className="opacity-75"
-              data-ai-hint="app interface food logging"
+              data-ai-hint="app logging infographic"
             />
             <div className="absolute inset-0 flex items-center justify-center bg-black/30">
               <p className="text-2xl font-semibold text-white">App Logging Infographic Placeholder</p>
@@ -85,8 +85,8 @@ export default function LandingPage() {
               { title: "Track Your Reactions", description: "Log your digestive symptoms and track correlations over time. The app learns what works for you." },
               { title: "Optimize with AI Recommendations", description: "Gutcheck identifies safe swaps, personalized patterns, and meals that support gut-friendly bacteria." },
             ].map((step, index) => {
-              const IconComponent = featureIcons[step.title as keyof typeof featureIcons] || CheckCircle;
-              const tooltipText = howItWorksTooltips[step.title as keyof typeof howItWorksTooltips] || "Learn more";
+              const IconComponent = featureIcons[step.title] || ShieldCheck;
+              const tooltipText = howItWorksTooltips[step.title] || "Learn more about this feature.";
               return (
                 <Card key={index} className="bg-card border-border shadow-lg hover:shadow-xl transition-shadow text-center p-6 rounded-xl">
                   <CardHeader className="p-0 mb-4 flex flex-col items-center">
@@ -149,7 +149,7 @@ export default function LandingPage() {
                 <CardHeader className="p-0 mb-4">
                   <div className="flex items-center mb-2">
                     <div className="relative w-12 h-12 rounded-full bg-muted mr-3 overflow-hidden">
-                       <Image src={`https://placehold.co/100x100.png`} alt={`User ${i}`} layout="fill" objectFit="cover" data-ai-hint="person face" />
+                       <Image src={'https://placehold.co/100x100.png'} alt={`User ${i}`} layout="fill" objectFit="cover" data-ai-hint="person face" />
                     </div>
                     <div>
                       <CardTitle className="text-lg font-semibold font-headline">User Name {i}</CardTitle>
