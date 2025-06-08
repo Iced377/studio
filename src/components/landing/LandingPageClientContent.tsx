@@ -28,11 +28,13 @@ const AccuracyTipIcon = HelpCircle;
 interface LandingPageClientContentProps {
   heroActionContent?: React.ReactNode;
   showHeroCTAButton?: boolean;
+  betaUserMessage?: React.ReactNode; // New prop
 }
 
 export default function LandingPageClientContent({
   heroActionContent,
   showHeroCTAButton = true,
+  betaUserMessage, // New prop
 }: LandingPageClientContentProps) {
   const placeholderFeedback = [
     {
@@ -60,16 +62,21 @@ export default function LandingPageClientContent({
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold font-headline mb-6 tracking-tight">
             Track your gut. <span className="text-primary">Transform your health.</span>
           </h1>
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
             Gutcheck helps you identify foods that trigger IBS and optimize your diet, effectively.
           </p>
+          {betaUserMessage && ( // Conditionally render the beta user message
+            <div className="mt-6"> {/* Adjusted margin for beta message */}
+              {betaUserMessage}
+            </div>
+          )}
           {heroActionContent && (
-            <div className="mb-10 flex justify-center">
+            <div className="mb-10 mt-6 flex justify-center"> {/* Added mt-6 here if betaUserMessage is not present */}
               {heroActionContent}
             </div>
           )}
           {showHeroCTAButton && (
-            <div className="mb-10">
+            <div className="mb-10 mt-6"> {/* Added mt-6 */}
               <Button size="lg" className="text-lg px-8 py-6 bg-primary hover:bg-primary/90 text-primary-foreground" asChild>
                 <Link href="/signup">Get Started Free</Link>
               </Button>
@@ -170,12 +177,14 @@ export default function LandingPageClientContent({
                     <div className="bg-primary/10 text-primary rounded-full p-2 mr-3">
                       <MessageSquare className="h-6 w-6" />
                     </div>
-                    <CardTitle className="text-lg font-semibold font-headline text-muted-foreground">{feedback.source}</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent className="p-0 text-muted-foreground flex-grow">
                   <p>"{feedback.text}"</p>
                 </CardContent>
+                 <CardFooter className="p-0 pt-4">
+                    <p className="text-sm font-medium text-muted-foreground">{feedback.source}</p>
+                  </CardFooter>
               </Card>
             ))}
           </div>
@@ -190,9 +199,11 @@ export default function LandingPageClientContent({
           <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto mb-8">
             Thank you for being a part of our beta program. Your insights and experiences are invaluable. Please continue to share your feedback through the widget!
           </p>
-          <Button size="lg" variant="default" className="text-lg px-8 py-6 bg-primary hover:bg-primary/80 text-primary-foreground" asChild>
-            <Link href="/?openDashboard=true">Go to Dashboard</Link>
-          </Button>
+          {showHeroCTAButton && ( // Only show if not explicitly hidden (e.g. for logged in user)
+            <Button size="lg" variant="default" className="text-lg px-8 py-6 bg-primary hover:bg-primary/80 text-primary-foreground" asChild>
+              <Link href="/?openDashboard=true">Go to Dashboard</Link>
+            </Button>
+          )}
         </div>
       </section>
 
