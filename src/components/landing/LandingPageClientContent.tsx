@@ -42,6 +42,7 @@ export default function LandingPageClientContent() {
               <Link href="/?openDashboard=true">Get Started Free</Link>
             </Button>
           </div>
+          {/* Infographic Placeholder - Commented out
           <div className="relative max-w-3xl mx-auto h-64 sm:h-96 bg-muted rounded-lg shadow-2xl overflow-hidden border border-border">
             <Image
               src="https://placehold.co/1200x600.png"
@@ -55,6 +56,7 @@ export default function LandingPageClientContent() {
               <p className="text-2xl font-semibold text-white">App Logging Infographic Placeholder</p>
             </div>
           </div>
+          */}
         </div>
       </section>
 

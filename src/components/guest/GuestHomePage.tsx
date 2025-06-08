@@ -48,7 +48,7 @@ export default function GuestHomePage({
           <button
             onClick={handleMainButtonClick}
             className={cn(
-              "rounded-full h-40 w-40 sm:h-48 sm:w-48 flex items-center justify-center", // Removed flex-col, text-primary-foreground
+              "rounded-full h-40 w-40 sm:h-48 sm:w-48 flex items-center justify-center", 
               "bg-gradient-to-br from-primary to-primary/70",
               "border-4 border-white/30",
               "drop-shadow-2xl",
@@ -61,14 +61,14 @@ export default function GuestHomePage({
             <Image
               src="/Gutcheck_logo.png"
               alt="GutCheck Logo"
-              width={100} // Increased logo size
-              height={100} // Increased logo size
+              width={120} // Increased logo size
+              height={120} // Increased logo size
               className="object-contain"
               priority
             />
           </button>
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground font-headline tracking-tight">
-            Quick-Check Your Meal
+            <span className="text-primary">Quick-Check</span> Your Meal
           </h1>
         </div>
       </main>
