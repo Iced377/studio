@@ -74,9 +74,11 @@ export default function LogPreviousMealDialog({
 
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-        if(!open) onDateSelect(undefined); 
-        onOpenChange(open);
+    <Dialog open={isOpen} onOpenChange={(openState) => {
+        // Do not reset selected date here.
+        // The parent component (page.tsx) handles resetting selectedLogDateForPreviousMeal
+        // when the *final* food logging dialog (SimplifiedAddFoodDialog, AddFoodItemDialog, etc.) closes.
+        onOpenChange(openState);
     }}>
       <DialogContent className="sm:max-w-md bg-card text-card-foreground border-border">
         <DialogHeader>
