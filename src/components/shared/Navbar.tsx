@@ -54,15 +54,9 @@ const releaseNotesData: ReleaseNote[] = [
   {
     version: "Beta 3.5.9",
     date: "June 08, 2025",
-    title: "Landing Page Content & Guest UI Updates",
+    title: "Landing Page Content Update",
     description: [
-      "Corrected 'suger spikes' typo to 'sugar spikes' in landing page text.",
-      "Changed testimonial section title from 'Loved by Users' to 'Beta Users are Already providing feedback'.",
-      "Updated testimonial cards on landing page: replaced user image placeholder with a `MessageSquare` icon and used more generic feedback text.",
-      "Hid the infographic placeholder on the landing page.",
-      "Increased the size of the logo inside the main action button in the guest view.",
-      "Styled 'Quick-Check' text in the guest view action button to be green (primary color).",
-      "Resolved previous module import errors and metadata export issues.",
+      "Created content for the landing page in the User view.",
     ],
   },
   {
@@ -566,3 +560,4 @@ export default function Navbar({
     </header>
   );
 }
+
