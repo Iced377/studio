@@ -30,7 +30,6 @@ import {
 } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
-// Popover imports removed from here as it's now in Navbar
 import AddFoodItemDialog, { type ManualEntryFormValues } from '@/components/food-logging/AddFoodItemDialog';
 import SimplifiedAddFoodDialog, { type SimplifiedFoodLogFormValues } from '@/components/food-logging/SimplifiedAddFoodDialog';
 import SymptomLoggingDialog from '@/components/food-logging/SymptomLoggingDialog';
@@ -42,6 +41,7 @@ import GuestHomePage from '@/components/guest/GuestHomePage';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet';
+import LandingPageClientContent from '@/components/landing/LandingPageClientContent'; // Updated import
 
 const TEMPORARILY_UNLOCK_ALL_FEATURES = true;
 
@@ -75,7 +75,7 @@ const initialGuestProfile: UserProfile = {
 };
 
 
-export default function FoodTimelinePage() {
+export default function RootPage() { 
   const { toast } = useToast();
   const { user: authUser, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -88,7 +88,6 @@ export default function FoodTimelinePage() {
 
   const [isAddFoodDialogOpenState, setIsAddFoodDialogOpenState] = useState(false);
   const setIsAddFoodDialogOpen = (val: boolean) => {
-    console.log("[Debug] setIsAddFoodDialogOpen called with:", val, "Stack:", new Error().stack?.substring(0, 500));
     setIsAddFoodDialogOpenState(val);
   }
 
@@ -102,7 +101,6 @@ export default function FoodTimelinePage() {
 
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [isPremiumDashboardOpen, setIsPremiumDashboardOpen] = useState(false);
-  // isCentralPopoverOpen state is removed as Navbar now manages its own action popover
 
   const [lastGuestFoodItem, setLastGuestFoodItem] = useState<LoggedFoodItem | null>(null);
   const [isGuestLogFoodDialogOpen, setIsGuestLogFoodDialogOpen] = useState(false);
@@ -111,15 +109,9 @@ export default function FoodTimelinePage() {
   const [editingItem, setEditingItem] = useState<LoggedFoodItem | null>(null);
 
   useEffect(() => {
-  }, []);
-
- useEffect(() => {
-    const setupUser = async () => {
+    const setupUserOrGuest = async () => {
       setIsDataLoading(true);
-
-      if (authLoading) {
-        return;
-      }
+      if (authLoading) return;
 
       if (authUser) {
         const userDocRef = doc(db, 'users', authUser.uid);
@@ -158,9 +150,9 @@ export default function FoodTimelinePage() {
             const twoDaysAgo = new Date();
             twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
             q = query(timelineEntriesColRef, orderBy('timestamp', 'desc'), where('timestamp', '>=', Timestamp.fromDate(twoDaysAgo)));
-             if (!TEMPORARILY_UNLOCK_ALL_FEATURES) {
-               toast({ title: "Data Retention Notice", description: "As a free user, your data is retained for 2 days.", variant: "default", duration: 10000 });
-             }
+            if (!TEMPORARILY_UNLOCK_ALL_FEATURES) {
+              toast({ title: "Data Retention Notice", description: "As a free user, your data is retained for 2 days.", variant: "default", duration: 10000 });
+            }
           }
 
           const querySnapshot = await getDocs(q);
@@ -176,58 +168,25 @@ export default function FoodTimelinePage() {
 
         } catch (error) {
           console.error("Error loading user data from Firestore:", error);
-          let errorDescription = "Could not fetch your saved data. Firestore rules or connection might be an issue.";
-           if (error instanceof Error) {
-            if (error.message.includes("Missing or insufficient permissions") || error.message.includes("permission-denied")) {
-              errorDescription = "Could not fetch data due to Firestore security rules. Please check your rules configuration.";
-            } else if (error.message.includes("Failed to get document because the client is offline")){
-              errorDescription = "You appear to be offline. Could not fetch data.";
-            } else if (error.message.includes("Function setDoc() called with invalid data")) {
-              errorDescription = "There was an error creating your profile. Please try again.";
-            } else if (error.message.includes("FirebaseError: Missing or insufficient permissions.")) {
-              errorDescription = "Action failed due to Firestore security rules. Please check your rules configuration.";
-            } else if (error.message.includes("Firebase: Error (auth/network-request-failed)")) {
-              errorDescription = "Network error during authentication. Please check your internet connection.";
-            } else if (error.message.toLowerCase().includes("api key not valid")) {
-                errorDescription = "Firebase API Key is not valid. Please check your .env configuration.";
-            }
-          }
-          toast({ title: "Data Load Error", description: errorDescription, variant: "destructive", duration: 9000 });
-           setUserProfile(prev => ({
-             ...prev,
-             uid: authUser.uid,
-             email: authUser.email,
-             displayName: authUser.displayName,
-             safeFoods: prev.uid === authUser.uid ? prev.safeFoods : [],
-             premium: prev.uid === authUser.uid ? prev.premium : false,
-           }));
+          
         } finally {
-            setIsDataLoading(false);
+          setIsDataLoading(false);
         }
-      } else {
+      } else { 
         setUserProfile(initialGuestProfile);
         setTimelineEntries([]);
         setLastGuestFoodItem(null);
-        setIsAddFoodDialogOpenState(false);
-        setIsSimplifiedAddFoodDialogOpen(false);
-        setIsIdentifyByPhotoDialogOpen(false);
-        setIsSymptomLogDialogOpen(false);
-        setIsAddManualMacroDialogOpen(false);
-        setIsLogPreviousMealDialogOpen(false);
-        // isCentralPopoverOpen state removed
-        setEditingItem(null);
-        setIsPremiumDashboardOpen(false);
-        setIsGuestSheetOpen(false);
         setIsDataLoading(false);
       }
     };
-    setupUser();
+    setupUserOrGuest();
   }, [authUser, authLoading, toast]);
 
-
+  
   useEffect(() => {
     if (searchParams.get('openDashboard') === 'true') {
       setIsPremiumDashboardOpen(true);
+      
       router.replace(currentPathname, { scroll: false });
     }
   }, [searchParams, router, currentPathname]);
@@ -355,22 +314,22 @@ export default function FoodTimelinePage() {
         addTimelineEntry(processedFoodItem);
       }
       if (customTimestamp) setSelectedLogDateForPreviousMeal(undefined);
+       setIsAddFoodDialogOpen(false);
+       setEditingItem(null);
 
     } catch (error: any) {
       console.error('AI analysis or food logging/updating failed:', error);
        toast({ title: 'Error Processing Food', description: `Could not ${editingItem ? 'update' : 'log'} food. AI analysis might have failed.`, variant: 'destructive' });
+      
       processedFoodItem = {
         ...foodItemData,
         id: currentItemId,
         timestamp: logTimestamp,
         isSimilarToSafe: similarityOutput?.isSimilar ?? false,
         entryType: 'food',
-        fodmapData: fodmapAnalysis,
-        userFodmapProfile: fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(foodItemData.name),
-        calories: fodmapAnalysis?.calories,
-        protein: fodmapAnalysis?.protein,
-        carbs: fodmapAnalysis?.carbs,
-        fat: fodmapAnalysis?.fat,
+        fodmapData: undefined, 
+        userFodmapProfile: generateFallbackFodmapProfile(foodItemData.name),
+        calories: undefined, protein: undefined, carbs: undefined, fat: undefined,
         userFeedback: editingItem ? editingItem.userFeedback : null,
         macrosOverridden: false,
       };
@@ -381,8 +340,6 @@ export default function FoodTimelinePage() {
       }
     } finally {
       setIsLoadingAi(prev => ({ ...prev, [currentItemId]: false }));
-      setIsAddFoodDialogOpen(false);
-      setEditingItem(null);
     }
   };
 
@@ -486,11 +443,14 @@ export default function FoodTimelinePage() {
         addTimelineEntry(processedFoodItem);
       }
       if (customTimestamp) setSelectedLogDateForPreviousMeal(undefined);
+      setIsSimplifiedAddFoodDialogOpen(false);
+      setEditingItem(null);
 
 
     } catch (error: any) {
       console.error('Full AI meal processing/updating failed:', error);
        toast({ title: 'Error Processing Meal', description: `Could not ${editingItem ? 'update' : 'log'} meal via AI.`, variant: 'destructive' });
+       
        processedFoodItem = {
             id: currentItemId,
             name: mealDescriptionOutput?.wittyName || editingItem?.name || "Meal (Analysis Failed)",
@@ -500,13 +460,13 @@ export default function FoodTimelinePage() {
             portionUnit: mealDescriptionOutput?.estimatedPortionUnit || editingItem?.portionUnit || "",
             sourceDescription: formData.mealDescription,
             timestamp: logTimestamp,
-            fodmapData: fodmapAnalysis,
+            fodmapData: undefined,
             isSimilarToSafe: similarityOutput?.isSimilar ?? false,
             userFodmapProfile: fodmapAnalysis?.detailedFodmapProfile || editingItem?.userFodmapProfile || generateFallbackFodmapProfile(mealDescriptionOutput?.primaryFoodItemForAnalysis || "fallback"),
-            calories: userDidOverrideMacros ? formData.calories : (editingItem ? editingItem.calories : fodmapAnalysis?.calories),
-            protein: userDidOverrideMacros ? formData.protein : (editingItem ? editingItem.protein : fodmapAnalysis?.protein),
-            carbs: userDidOverrideMacros ? formData.carbs : (editingItem ? editingItem.carbs : fodmapAnalysis?.carbs),
-            fat: userDidOverrideMacros ? formData.fat : (editingItem ? editingItem.fat : fodmapAnalysis?.fat),
+            calories: userDidOverrideMacros ? formData.calories : (editingItem ? editingItem.calories : undefined),
+            protein: userDidOverrideMacros ? formData.protein : (editingItem ? editingItem.protein : undefined),
+            carbs: userDidOverrideMacros ? formData.carbs : (editingItem ? editingItem.carbs : undefined),
+            fat: userDidOverrideMacros ? formData.fat : (editingItem ? editingItem.fat : undefined),
             entryType: 'food',
             userFeedback: editingItem ? editingItem.userFeedback : null,
             macrosOverridden: userDidOverrideMacros,
@@ -518,8 +478,6 @@ export default function FoodTimelinePage() {
         }
     } finally {
       setIsLoadingAi(prev => ({ ...prev, [currentItemId]: false }));
-      setIsSimplifiedAddFoodDialogOpen(false);
-      setEditingItem(null);
     }
   };
 
@@ -595,6 +553,7 @@ export default function FoodTimelinePage() {
 
       addTimelineEntry(processedFoodItem);
       if (customTimestamp) setSelectedLogDateForPreviousMeal(undefined);
+      setIsIdentifyByPhotoDialogOpen(false);
 
     } catch (error: any) {
       console.error('AI analysis or food logging from photo failed:', error);
@@ -608,12 +567,9 @@ export default function FoodTimelinePage() {
         timestamp: logTimestamp,
         isSimilarToSafe: similarityOutput?.isSimilar ?? false,
         entryType: 'food',
-        fodmapData: fodmapAnalysis,
+        fodmapData: undefined,
         userFodmapProfile: fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(photoData.name),
-        calories: fodmapAnalysis?.calories,
-        protein: fodmapAnalysis?.protein,
-        carbs: fodmapAnalysis?.carbs,
-        fat: fodmapAnalysis?.fat,
+        calories: undefined, protein: undefined, carbs: undefined, fat: undefined,
         userFeedback: null,
         macrosOverridden: false,
         sourceDescription: "Identified by photo (analysis partially failed)",
@@ -621,7 +577,6 @@ export default function FoodTimelinePage() {
       addTimelineEntry(processedFoodItem);
     } finally {
       setIsLoadingAi(prev => ({ ...prev, [currentItemId]: false }));
-      setIsIdentifyByPhotoDialogOpen(false);
     }
   };
 
@@ -736,7 +691,7 @@ export default function FoodTimelinePage() {
             toast({ title: "Entry Removed", description: "The timeline entry has been deleted from cloud." });
         } catch (error) {
             console.error("Error removing timeline entry from Firestore:", error);
-            if (entryToRemove) addTimelineEntry(entryToRemove);
+            if (entryToRemove) addTimelineEntry(entryToRemove); 
             toast({ title: "Error Removing Entry", description: "Could not remove entry from cloud. Removed locally.", variant: "destructive" });
         }
     } else {
@@ -746,41 +701,39 @@ export default function FoodTimelinePage() {
 
   const openSymptomDialog = (foodItemIds?: string[]) => {
     setIsSymptomLogDialogOpen(true);
-    // isCentralPopoverOpen state removed
   };
 
 
   const handleSimplifiedLogFoodClick = () => {
-    // isCentralPopoverOpen state removed
     setEditingItem(null);
     setIsSimplifiedAddFoodDialogOpen(true);
   };
 
   const handleIdentifyByPhotoClick = () => {
-    // isCentralPopoverOpen state removed
     setEditingItem(null);
-    setIsAddFoodDialogOpen(false);
-    setIsSimplifiedAddFoodDialogOpen(false);
     setIsIdentifyByPhotoDialogOpen(true);
   };
 
   const handleLogPreviousMealFlow = (logMethod: 'AI' | 'Manual' | 'Photo') => {
+    
+    setIsSimplifiedAddFoodDialogOpen(false);
+    setIsAddFoodDialogOpen(false);
+    setIsIdentifyByPhotoDialogOpen(false);
+    setEditingItem(null);
+
     if (logMethod === 'AI') {
       setIsSimplifiedAddFoodDialogOpen(true);
     } else if (logMethod === 'Manual') {
       setIsAddFoodDialogOpen(true);
     } else if (logMethod === 'Photo') {
-      setIsAddFoodDialogOpen(false);
-      setIsSimplifiedAddFoodDialogOpen(false);
       setIsIdentifyByPhotoDialogOpen(true);
     }
   };
 
 
   const handleOpenLogPreviousMealDialog = () => {
-    // isCentralPopoverOpen state removed
     setEditingItem(null);
-    setSelectedLogDateForPreviousMeal(new Date());
+    setSelectedLogDateForPreviousMeal(new Date()); 
     setIsLogPreviousMealDialogOpen(true);
   };
 
@@ -842,7 +795,7 @@ export default function FoodTimelinePage() {
         sourceDescription: formData.mealDescription,
         timestamp: new Date(),
         fodmapData: fodmapAnalysis,
-        isSimilarToSafe: false,
+        isSimilarToSafe: false, 
         userFodmapProfile: fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(mealDescriptionOutput.primaryFoodItemForAnalysis),
         calories: fodmapAnalysis?.calories,
         protein: fodmapAnalysis?.protein,
@@ -858,6 +811,7 @@ export default function FoodTimelinePage() {
     } catch (error: any) {
         console.error('Guest AI meal processing failed:', error);
         toast({ title: "Error Noting Meal", description: "Could not analyze meal.", variant: 'destructive' });
+        
     } finally {
       setIsLoadingAi(prev => ({ ...prev, [newItemId]: false }));
       setIsGuestLogFoodDialogOpen(false);
@@ -873,7 +827,7 @@ export default function FoodTimelinePage() {
   const handleGuestRemoveFoodItem = (itemId: string) => {
      if (lastGuestFoodItem && lastGuestFoodItem.id === itemId) {
         setLastGuestFoodItem(null);
-        setIsGuestSheetOpen(false);
+        setIsGuestSheetOpen(false); 
      }
   };
 
@@ -891,18 +845,16 @@ export default function FoodTimelinePage() {
       const baseRepetitionData = {
         id: newItemId,
         timestamp: newTimestamp,
-        isSimilarToSafe: false,
-        userFodmapProfile: undefined,
-        calories: undefined,
-        protein: undefined,
-        carbs: undefined,
-        fat: undefined,
+        isSimilarToSafe: false, 
+        userFodmapProfile: undefined, 
+        calories: undefined, protein: undefined, carbs: undefined, fat: undefined,
         entryType: 'food' as 'food',
-        userFeedback: null,
+        userFeedback: null, 
         macrosOverridden: itemToRepeat.macrosOverridden || false,
       };
 
       if (itemToRepeat.sourceDescription && !itemToRepeat.sourceDescription.startsWith("Identified by photo")) {
+        
         mealDescriptionOutput = await processMealDescription({ mealDescription: itemToRepeat.sourceDescription });
         fodmapAnalysis = await analyzeFoodItem({
           foodItem: mealDescriptionOutput.primaryFoodItemForAnalysis,
@@ -910,7 +862,7 @@ export default function FoodTimelinePage() {
           portionSize: mealDescriptionOutput.estimatedPortionSize,
           portionUnit: mealDescriptionOutput.estimatedPortionUnit,
         });
-
+        
         const itemFodmapProfileForSimilarity: FoodFODMAPProfile = fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(mealDescriptionOutput.primaryFoodItemForAnalysis);
         if (userProfile.safeFoods && userProfile.safeFoods.length > 0) {
           const safeFoodItemsForSimilarity = userProfile.safeFoods.map(sf => ({
@@ -932,7 +884,7 @@ export default function FoodTimelinePage() {
 
         processedFoodItem = {
           ...baseRepetitionData,
-          name: mealDescriptionOutput.wittyName,
+          name: mealDescriptionOutput.wittyName, 
           originalName: mealDescriptionOutput.primaryFoodItemForAnalysis,
           ingredients: mealDescriptionOutput.consolidatedIngredients,
           portionSize: mealDescriptionOutput.estimatedPortionSize,
@@ -947,7 +899,7 @@ export default function FoodTimelinePage() {
           fat: itemToRepeat.macrosOverridden ? itemToRepeat.fat : fodmapAnalysis?.fat,
         };
 
-      } else {
+      } else { 
         fodmapAnalysis = await analyzeFoodItem({
           foodItem: itemToRepeat.originalName || itemToRepeat.name,
           ingredients: itemToRepeat.ingredients,
@@ -973,10 +925,10 @@ export default function FoodTimelinePage() {
             userSafeFoodItems: safeFoodItemsForSimilarity,
           });
         }
-
+        
         processedFoodItem = {
           ...baseRepetitionData,
-          name: itemToRepeat.name,
+          name: itemToRepeat.name, 
           originalName: itemToRepeat.originalName || itemToRepeat.name,
           ingredients: itemToRepeat.ingredients,
           portionSize: itemToRepeat.portionSize,
@@ -1004,24 +956,39 @@ export default function FoodTimelinePage() {
     } catch (error: any) {
       console.error('Error repeating meal:', error);
       toast({ title: 'Error Repeating Meal', description: `Could not repeat the meal. AI analysis might have failed.`, variant: 'destructive' });
+       
+       processedFoodItem = {
+        ...baseRepetitionData,
+        name: itemToRepeat.name + " (Repeat Failed)",
+        originalName: itemToRepeat.originalName,
+        ingredients: itemToRepeat.ingredients,
+        portionSize: itemToRepeat.portionSize,
+        portionUnit: itemToRepeat.portionUnit,
+        sourceDescription: itemToRepeat.sourceDescription,
+        fodmapData: undefined,
+        userFodmapProfile: itemToRepeat.userFodmapProfile,
+        calories: itemToRepeat.calories, protein: itemToRepeat.protein, carbs: itemToRepeat.carbs, fat: itemToRepeat.fat,
+        macrosOverridden: itemToRepeat.macrosOverridden,
+      };
+      addTimelineEntry(processedFoodItem);
     } finally {
       setIsLoadingAi(prev => ({ ...prev, [newItemId]: false }));
     }
   };
 
 
-  if (authLoading || (isDataLoading && authUser)) {
+  if (authLoading || (isDataLoading && authUser) ) { 
      return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
          <p className="ml-4 text-lg text-foreground">
-            {authLoading ? "Authenticating..." : (authUser ? "Loading your personalized data..." : "Initializing App...")}
+            {authLoading ? "Authenticating..." : "Loading your GutCheck dashboard..."}
          </p>
       </div>
     );
   }
 
-  if (!authUser && !authLoading) {
+  if (!authUser && !authLoading) { 
     return (
       <>
         <GuestHomePage
@@ -1044,20 +1011,21 @@ export default function FoodTimelinePage() {
     );
   }
 
+  
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden">
-       <Navbar
-         onOpenDashboardClick={() => setIsPremiumDashboardOpen(true)}
-         onLogFoodAIClick={handleSimplifiedLogFoodClick}
-         onIdentifyByPhotoClick={handleIdentifyByPhotoClick}
-         onLogSymptomsClick={() => openSymptomDialog()}
-         onLogPreviousMealClick={handleOpenLogPreviousMealDialog}
- className="z-50"
-       />
+      <Navbar
+        onOpenDashboardClick={() => setIsPremiumDashboardOpen(true)}
+        onLogFoodAIClick={handleSimplifiedLogFoodClick}
+        onIdentifyByPhotoClick={handleIdentifyByPhotoClick}
+        onLogSymptomsClick={() => openSymptomDialog()}
+        onLogPreviousMealClick={handleOpenLogPreviousMealDialog}
+        className="z-50"
+      />
 
-      {/* Main content area */}
-      <div className="flex-grow flex items-center justify-center">
-        {/* Popover for actions is now handled within Navbar for authenticated users */}
+      
+      <div className="flex-grow flex flex-col items-center justify-start pt-0 overflow-y-auto">
+        <LandingPageClientContent />
       </div>
 
       <PremiumDashboardSheet
@@ -1072,25 +1040,18 @@ export default function FoodTimelinePage() {
         onLogSymptomsForFood={openSymptomDialog}
         onEditIngredients={handleEditTimelineEntry}
         onRepeatMeal={handleRepeatMeal}
- >
- {/* Placeholder message for logged-in users */}
- <div className="flex flex-col items-center justify-center h-full p-4 text-center text-muted-foreground">
- <h1 className="text-2xl font-bold mb-4 text-foreground">Welcome Back!</h1>
- <p className="text-lg">
-            Landing Page placeholder, click <PlusCircle className="inline-block h-5 w-5 text-primary align-text-bottom" /> button to start logging
- or select from the NavBar menu.
- </p>
- </div>
-
-        {/* Children can be passed here if PremiumDashboardSheet is designed to wrap content */}
+      >
+        
       </PremiumDashboardSheet>
 
 
+      
       <SimplifiedAddFoodDialog
         isOpen={isSimplifiedAddFoodDialogOpen}
         onOpenChange={(open) => {
           if (!open) {
             setEditingItem(null);
+            setSelectedLogDateForPreviousMeal(undefined);
           }
           setIsSimplifiedAddFoodDialogOpen(open);
         }}
@@ -1111,7 +1072,10 @@ export default function FoodTimelinePage() {
       />
       <IdentifyFoodByPhotoDialog
         isOpen={isIdentifyByPhotoDialogOpen}
-        onOpenChange={setIsIdentifyByPhotoDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) setSelectedLogDateForPreviousMeal(undefined);
+          setIsIdentifyByPhotoDialogOpen(open);
+        }}
         onFoodIdentified={(data) => handleProcessAndLogPhotoIdentification(data, selectedLogDateForPreviousMeal)}
       />
       <AddFoodItemDialog
@@ -1119,6 +1083,7 @@ export default function FoodTimelinePage() {
           onOpenChange={(open) => {
               if (!open) {
                 setEditingItem(null);
+                setSelectedLogDateForPreviousMeal(undefined);
               }
               setIsAddFoodDialogOpen(open);
           }}
@@ -1138,7 +1103,10 @@ export default function FoodTimelinePage() {
       <AddManualMacroEntryDialog
           isOpen={isAddManualMacroDialogOpen}
           onOpenChange={(open) => {
-              if (!open) setEditingItem(null);
+              if (!open) {
+                setEditingItem(null);
+                setSelectedLogDateForPreviousMeal(undefined);
+              }
               setIsAddManualMacroDialogOpen(open);
           }}
           onSubmitEntry={(data) => handleSubmitManualMacroEntry(data, selectedLogDateForPreviousMeal)}
