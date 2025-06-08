@@ -37,7 +37,7 @@ const processMealDescriptionGenkitPrompt = ai.definePrompt({
   input: { schema: ProcessMealDescriptionInputSchema },
   output: { schema: ProcessMealDescriptionOutputSchema },
   config: {
-    temperature: 0.2, // Lower temperature for more deterministic output
+    temperature: 0.5, // Increased temperature for better witty name generation
   },
   prompt: `You are an expert food analyst and a witty meal namer.
 Given a meal description, your tasks are to:

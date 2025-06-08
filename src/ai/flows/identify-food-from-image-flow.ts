@@ -38,6 +38,9 @@ const identifyFoodPrompt = ai.definePrompt({
   name: 'identifyFoodFromImagePrompt',
   input: { schema: IdentifyFoodFromImageInputSchema },
   output: { schema: IdentifyFoodFromImageOutputSchema },
+  config: {
+    temperature: 0.2, // Set low temperature for consistent identification
+  },
   prompt: `You are an expert food identification AI. Analyze the provided image.
 User's locale (optional, for context): {{{userLocale}}}
 Image: {{media url=imageDataUri}}
