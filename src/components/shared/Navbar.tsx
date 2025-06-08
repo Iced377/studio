@@ -361,7 +361,7 @@ export default function Navbar({
               {!authLoading && authUser && (
                 <Popover open={isActionPopoverOpen} onOpenChange={setIsActionPopoverOpen}>
                   <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-primary hover:text-primary/90 hover:bg-primary/10")} aria-label="Add Entry">
+                    <Button variant="ghost" size="icon" className={cn("h-8 w-8 focus-visible:ring-0 focus-visible:ring-offset-0 text-primary hover:text-primary/90 hover:bg-primary/10 animate-simple-pulse-wave")} aria-label="Add Entry">
                       <Plus className="h-6 w-6" strokeWidth={3} />
                     </Button>
                   </PopoverTrigger>

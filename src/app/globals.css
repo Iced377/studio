@@ -128,6 +128,18 @@
   4.166% { transform: translateY(-15%); animation-timing-function: cubic-bezier(0,0,0.2,1); } /* Peak 3 (smaller) */
 }
 
+@keyframes simple-pulse-wave {
+  0% {
+    box-shadow: 0 0 0 0px hsla(var(--primary), 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 12px hsla(var(--primary), 0);
+  }
+  100% {
+    box-shadow: 0 0 0 12px hsla(var(--primary), 0);
+  }
+}
+
 @layer utilities {
   .animate-pulse-glow {
     animation: pulse-glow 3s infinite ease-in-out;
@@ -137,5 +149,8 @@
   }
   .animate-custom-feedback-bounce {
     animation: custom-feedback-bounce 30s infinite;
+  }
+  .animate-simple-pulse-wave {
+    animation: simple-pulse-wave 2s infinite ease-out;
   }
 }
