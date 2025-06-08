@@ -41,7 +41,7 @@ import {
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.5.9";
+export const APP_VERSION = "Beta 3.6.0";
 
 interface ReleaseNote {
   version: string;
@@ -51,6 +51,20 @@ interface ReleaseNote {
 }
 
 const releaseNotesData: ReleaseNote[] = [
+  {
+    version: "Beta 3.6.0",
+    date: "June 08, 2025",
+    title: "Landing Page Overhaul & UI Refinements",
+    description: [
+      "Centralized landing page content: now shared between guest and logged-in user views with view-specific CTAs and messages.",
+      "Added a 'Thank You & Beta Guidance' message on the landing page for newly registered beta users.",
+      "Updated guest view: Hero section now features 'Quick-Check Your Meal' and 'Join the Beta' buttons side-by-side.",
+      "Guest view final CTA updated to a heartwarming invitation to join the beta program.",
+      "Implemented CSS-based reveal animations for cards on the landing page for a more dynamic experience.",
+      "Corrected app name from 'FODMAPSafe' to 'GutCheck' on the sign-up page.",
+      "Adjusted spacing and alignment of elements on the landing page for improved visual flow in user view.",
+    ],
+  },
   {
     version: "Beta 3.5.9",
     date: "June 08, 2025",
