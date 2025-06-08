@@ -5,7 +5,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import FeedbackWidget from '@/components/feedback/FeedbackWidget'; // Added FeedbackWidget import
+import FeedbackWidget from '@/components/feedback/FeedbackWidget';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -39,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -50,8 +50,7 @@ export default function RootLayout({
       <body className={`${inter.variable} font-body antialiased min-h-screen flex flex-col bg-background text-foreground`}>
         <AuthProvider>
           <ThemeProvider>
-            {/* Navbar is now rendered within page.tsx or PremiumDashboardSheet */}
-            <main className="flex-grow w-full"> {/* Removed container, mx-auto, and specific padding */}
+            <main className="flex-grow w-full">
               {children}
             </main>
             <Toaster />
