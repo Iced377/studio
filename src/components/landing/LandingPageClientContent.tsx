@@ -29,7 +29,7 @@ interface LandingPageClientContentProps {
   heroActionContent?: React.ReactNode;
   showHeroCTAButton?: boolean;
   betaUserMessage?: React.ReactNode;
-  finalCTAMessage?: React.ReactNode; // New prop for custom final CTA
+  finalCTAMessage?: React.ReactNode;
 }
 
 export default function LandingPageClientContent({
@@ -73,12 +73,12 @@ export default function LandingPageClientContent({
             </div>
           )}
           {heroActionContent && (
-            <div className="mb-10 mt-6 flex justify-center">
+            <div className="flex justify-center"> {/* Ensure buttons are centered */}
               {heroActionContent}
             </div>
           )}
           {showHeroCTAButton && (
-            <div className="mb-10 mt-6">
+            <div className="mt-8 mb-10">
               <Button size="lg" className="text-lg px-8 py-6 bg-primary hover:bg-primary/90 text-primary-foreground" asChild>
                 <Link href="/signup">Get Started Free</Link>
               </Button>
@@ -116,7 +116,11 @@ export default function LandingPageClientContent({
               const IconComponent = featureIcons[step.title] || ShieldCheck;
               const tooltipText = howItWorksTooltips[step.title] || "Learn more about this feature.";
               return (
-                <Card key={index} className="bg-card border-border shadow-lg hover:shadow-xl transition-shadow text-center p-6 rounded-xl">
+                <Card
+                  key={index}
+                  className="bg-card border-border shadow-lg hover:shadow-xl transition-shadow text-center p-6 rounded-xl card-reveal-animation"
+                  style={{ animationDelay: `${index * 0.15}s` }} // Staggered delay
+                >
                   <CardHeader className="p-0 mb-4 flex flex-col items-center">
                     <TooltipProvider>
                       <Tooltip>
@@ -206,11 +210,9 @@ export default function LandingPageClientContent({
             <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto mb-8">
               Thank you for being a part of our beta program. Your insights and experiences are invaluable. Please continue to share your feedback through the widget!
             </p>
-            {showHeroCTAButton && ( // Re-using showHeroCTAButton, though it's false for logged-in user at this point. This can be a separate prop if needed.
-              <Button size="lg" variant="default" className="text-lg px-8 py-6 bg-primary hover:bg-primary/80 text-primary-foreground" asChild>
+            <Button size="lg" variant="default" className="text-lg px-8 py-6 bg-primary hover:bg-primary/80 text-primary-foreground" asChild>
                 <Link href="/?openDashboard=true">Go to Dashboard</Link>
-              </Button>
-            )}
+            </Button>
           </div>
         </section>
       )}
