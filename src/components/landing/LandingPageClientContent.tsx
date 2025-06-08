@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'; // Added CardFooter
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Camera, Brain, BarChart2, Lightbulb, HelpCircle, ShieldCheck, MessageSquare } from 'lucide-react';
@@ -28,13 +28,13 @@ const AccuracyTipIcon = HelpCircle;
 interface LandingPageClientContentProps {
   heroActionContent?: React.ReactNode;
   showHeroCTAButton?: boolean;
-  betaUserMessage?: React.ReactNode; // New prop
+  betaUserMessage?: React.ReactNode;
 }
 
 export default function LandingPageClientContent({
   heroActionContent,
   showHeroCTAButton = true,
-  betaUserMessage, // New prop
+  betaUserMessage,
 }: LandingPageClientContentProps) {
   const placeholderFeedback = [
     {
@@ -65,18 +65,18 @@ export default function LandingPageClientContent({
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
             Gutcheck helps you identify foods that trigger IBS and optimize your diet, effectively.
           </p>
-          {betaUserMessage && ( // Conditionally render the beta user message
-            <div className="mt-6"> {/* Adjusted margin for beta message */}
+          {betaUserMessage && (
+            <div className="mt-6">
               {betaUserMessage}
             </div>
           )}
           {heroActionContent && (
-            <div className="mb-10 mt-6 flex justify-center"> {/* Added mt-6 here if betaUserMessage is not present */}
+            <div className="mb-10 mt-6 flex justify-center">
               {heroActionContent}
             </div>
           )}
           {showHeroCTAButton && (
-            <div className="mb-10 mt-6"> {/* Added mt-6 */}
+            <div className="mb-10 mt-6">
               <Button size="lg" className="text-lg px-8 py-6 bg-primary hover:bg-primary/90 text-primary-foreground" asChild>
                 <Link href="/signup">Get Started Free</Link>
               </Button>
@@ -199,7 +199,7 @@ export default function LandingPageClientContent({
           <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto mb-8">
             Thank you for being a part of our beta program. Your insights and experiences are invaluable. Please continue to share your feedback through the widget!
           </p>
-          {showHeroCTAButton && ( // Only show if not explicitly hidden (e.g. for logged in user)
+          {showHeroCTAButton && (
             <Button size="lg" variant="default" className="text-lg px-8 py-6 bg-primary hover:bg-primary/80 text-primary-foreground" asChild>
               <Link href="/?openDashboard=true">Go to Dashboard</Link>
             </Button>
