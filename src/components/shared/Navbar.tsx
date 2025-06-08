@@ -41,7 +41,7 @@ import {
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.5.8";
+export const APP_VERSION = "Beta 3.5.9";
 
 interface ReleaseNote {
   version: string;
@@ -51,6 +51,20 @@ interface ReleaseNote {
 }
 
 const releaseNotesData: ReleaseNote[] = [
+  {
+    version: "Beta 3.5.9",
+    date: "June 08, 2025",
+    title: "Landing Page Content & Guest UI Updates",
+    description: [
+      "Corrected 'suger spikes' typo to 'sugar spikes' in landing page text.",
+      "Changed testimonial section title from 'Loved by Users' to 'Beta Users are Already providing feedback'.",
+      "Updated testimonial cards on landing page: replaced user image placeholder with a `MessageSquare` icon and used more generic feedback text.",
+      "Hid the infographic placeholder on the landing page.",
+      "Increased the size of the logo inside the main action button in the guest view.",
+      "Styled 'Quick-Check' text in the guest view action button to be green (primary color).",
+      "Resolved previous module import errors and metadata export issues.",
+    ],
+  },
   {
     version: "Beta 3.5.8",
     date: "June 08, 2025",
@@ -278,7 +292,7 @@ export default function Navbar({
                 <Image src="/Gutcheck_logo.png" alt="GutCheck Logo" width={39} height={39} className="object-contain filter brightness-0 invert" priority />
               </div>
             )}
-            <span className={cn(appNameBaseClasses, 'text-current', 'sm:inline-block')}>{APP_NAME}</span>
+            <span className={cn(appNameBaseClasses, 'text-current', isGuest ? 'pl-2' : '', 'sm:inline-block')}>{APP_NAME}</span>
           </Link>
           <Dialog open={isReleaseNotesOpen} onOpenChange={handleReleaseNotesToggle}>
             <DialogTrigger asChild>
