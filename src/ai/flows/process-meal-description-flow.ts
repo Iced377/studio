@@ -36,6 +36,9 @@ const processMealDescriptionGenkitPrompt = ai.definePrompt({
   name: 'processMealDescriptionPrompt',
   input: { schema: ProcessMealDescriptionInputSchema },
   output: { schema: ProcessMealDescriptionOutputSchema },
+  config: {
+    temperature: 0.2, // Lower temperature for more deterministic output
+  },
   prompt: `You are an expert food analyst and a witty meal namer.
 Given a meal description, your tasks are to:
 1.  Generate a **witty, cheeky, or uniquely descriptive name** for the meal. Consider the ingredients, implied context (like portion size suggesting a large meal or a snack), and aim for a fun, memorable, or slightly edgy tone. Examples of witty names:
@@ -74,3 +77,4 @@ const processMealDescriptionFlow = ai.defineFlow(
     return output;
   }
 );
+

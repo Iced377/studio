@@ -115,6 +115,9 @@ const analyzeFoodItemPrompt = ai.definePrompt({
   name: 'analyzeFoodItemPrompt',
   input: {schema: AnalyzeFoodItemInputSchema},
   output: {schema: AnalyzeFoodItemOutputSchema}, // This schema now includes the new health indicators, allergens, and AI summaries
+  config: {
+    temperature: 0.2, // Lower temperature for more deterministic output
+  },
   prompt: `You are an expert AI assistant specialized in comprehensive food analysis for individuals with IBS, focusing on portion-specificity.
 You will receive a food item, its ingredients, and a portion size. Your task is to provide:
 
