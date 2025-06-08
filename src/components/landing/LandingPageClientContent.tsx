@@ -1,13 +1,12 @@
 
 "use client";
 
-import type { Metadata } from 'next'; // Not used here, but can keep if other parts are copy-pasted
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Camera, Brain, BarChart2, Lightbulb, HelpCircle, ShieldCheck } from 'lucide-react'; // Changed MessageSquareQuestion to HelpCircle
+import { Camera, Brain, BarChart2, Lightbulb, HelpCircle, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
 const featureIcons: Record<string, React.ElementType> = {
@@ -24,7 +23,7 @@ const howItWorksTooltips: Record<string, string> = {
   "Optimize with AI Recommendations": "Get suggestions for food swaps and discover patterns for a healthier gut.",
 };
 
-const AccuracyTipIcon = HelpCircle; // Using HelpCircle here
+const AccuracyTipIcon = HelpCircle;
 
 export default function LandingPageClientContent() {
   return (
