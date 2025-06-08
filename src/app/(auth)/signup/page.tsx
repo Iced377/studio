@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useRouter } from 'next/navigation';
 import SignUpForm from '@/components/auth/SignUpForm';
-import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
+// import GoogleSignInButton from '@/components/auth/GoogleSignInButton'; // Commented out
 import { Loader2 } from 'lucide-react';
 
 export default function SignUpPage() {
@@ -40,6 +40,7 @@ export default function SignUpPage() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-card py-8 px-4 shadow-lg sm:rounded-lg sm:px-10">
           <SignUpForm />
+           {/*
            <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -55,6 +56,7 @@ export default function SignUpPage() {
               <GoogleSignInButton className="w-full" />
             </div>
           </div>
+          */}
         </div>
       </div>
     </div>

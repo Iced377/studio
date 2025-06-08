@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useRouter } from 'next/navigation'; // Import useRouter
 import LoginForm from '@/components/auth/LoginForm';
-import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
+// import GoogleSignInButton from '@/components/auth/GoogleSignInButton'; // Commented out
 import { Button } from '@/components/ui/button'; // Import Button
 import { Loader2, ArrowLeft } from 'lucide-react'; // Import ArrowLeft
 
@@ -46,12 +46,13 @@ export default function LoginPage() {
           Welcome to GutCheck
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Sign in with your email and password or use Google.
+          Sign in with your email and password.
         </p>
       </div>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-card py-8 px-4 shadow-lg sm:rounded-lg sm:px-10">
           <LoginForm />
+          {/*
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -67,6 +68,7 @@ export default function LoginPage() {
               <GoogleSignInButton className="w-full" size="lg" />
             </div>
           </div>
+          */}
         </div>
       </div>
     </div>

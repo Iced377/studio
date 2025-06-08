@@ -1052,7 +1052,10 @@ export default function FoodTimelinePage() {
          onIdentifyByPhotoClick={handleIdentifyByPhotoClick}
          onLogSymptomsClick={() => openSymptomDialog()}
          onLogPreviousMealClick={handleOpenLogPreviousMealDialog}
+ className="z-50"
        />
+
+      {/* Main content area */}
       <div className="flex-grow flex items-center justify-center">
         {/* Popover for actions is now handled within Navbar for authenticated users */}
       </div>
@@ -1069,7 +1072,16 @@ export default function FoodTimelinePage() {
         onLogSymptomsForFood={openSymptomDialog}
         onEditIngredients={handleEditTimelineEntry}
         onRepeatMeal={handleRepeatMeal}
-      >
+ >
+ {/* Placeholder message for logged-in users */}
+ <div className="flex flex-col items-center justify-center h-full p-4 text-center text-muted-foreground">
+ <h1 className="text-2xl font-bold mb-4 text-foreground">Welcome Back!</h1>
+ <p className="text-lg">
+            Landing Page placeholder, click <PlusCircle className="inline-block h-5 w-5 text-primary align-text-bottom" /> button to start logging
+ or select from the NavBar menu.
+ </p>
+ </div>
+
         {/* Children can be passed here if PremiumDashboardSheet is designed to wrap content */}
       </PremiumDashboardSheet>
 
