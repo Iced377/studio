@@ -41,7 +41,7 @@ import GuestHomePage from '@/components/guest/GuestHomePage';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import PremiumDashboardSheet from '@/components/premium/PremiumDashboardSheet';
-import LandingPageClientContent from '@/components/landing/LandingPageClientContent'; // Updated import
+import LandingPageClientContent from '@/components/landing/LandingPageClientContent';
 
 const TEMPORARILY_UNLOCK_ALL_FEATURES = true;
 
@@ -1062,9 +1062,9 @@ export default function RootPage() {
 
 
       <div className="flex-grow flex flex-col items-center justify-start pt-0 overflow-y-auto">
-         <LandingPageClientContent 
-            showHeroCTAButton={false} 
-            betaUserMessage={betaUserMessageContent} 
+         <LandingPageClientContent
+            showHeroCTAButton={false}
+            betaUserMessage={betaUserMessageContent}
           />
       </div>
 

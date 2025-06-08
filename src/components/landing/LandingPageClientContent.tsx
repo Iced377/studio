@@ -3,10 +3,10 @@
 
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'; // Added CardFooter
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Camera, Brain, BarChart2, Lightbulb, HelpCircle, ShieldCheck, MessageSquare } from 'lucide-react';
+import { Camera, Brain, BarChart2, Lightbulb, HelpCircle, ShieldCheck, MessageSquare, Heart } from 'lucide-react';
 import Link from 'next/link';
 
 const featureIcons: Record<string, React.ElementType> = {
@@ -29,12 +29,14 @@ interface LandingPageClientContentProps {
   heroActionContent?: React.ReactNode;
   showHeroCTAButton?: boolean;
   betaUserMessage?: React.ReactNode;
+  finalCTAMessage?: React.ReactNode; // New prop for custom final CTA
 }
 
 export default function LandingPageClientContent({
   heroActionContent,
   showHeroCTAButton = true,
   betaUserMessage,
+  finalCTAMessage,
 }: LandingPageClientContentProps) {
   const placeholderFeedback = [
     {
@@ -191,21 +193,27 @@ export default function LandingPageClientContent({
         </div>
       </section>
 
-      {/* Enjoy the Beta Section */}
-      <section className="py-16 sm:py-20 text-center bg-primary/10">
-        <div className="container mx-auto px-4">
-          <ShieldCheck className="h-16 w-16 text-primary mx-auto mb-6" />
-          <h2 className="text-3xl sm:text-4xl font-bold mb-6 font-headline">Enjoy the Beta!</h2>
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto mb-8">
-            Thank you for being a part of our beta program. Your insights and experiences are invaluable. Please continue to share your feedback through the widget!
-          </p>
-          {showHeroCTAButton && (
-            <Button size="lg" variant="default" className="text-lg px-8 py-6 bg-primary hover:bg-primary/80 text-primary-foreground" asChild>
-              <Link href="/?openDashboard=true">Go to Dashboard</Link>
-            </Button>
-          )}
-        </div>
-      </section>
+      {/* Final CTA Section - Conditional Rendering */}
+      {finalCTAMessage ? (
+        <section className="py-16 sm:py-20 text-center bg-background"> {/* Using background for guest CTA */}
+          {finalCTAMessage}
+        </section>
+      ) : (
+        <section className="py-16 sm:py-20 text-center bg-primary/10">
+          <div className="container mx-auto px-4">
+            <ShieldCheck className="h-16 w-16 text-primary mx-auto mb-6" />
+            <h2 className="text-3xl sm:text-4xl font-bold mb-6 font-headline">Enjoy the Beta!</h2>
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto mb-8">
+              Thank you for being a part of our beta program. Your insights and experiences are invaluable. Please continue to share your feedback through the widget!
+            </p>
+            {showHeroCTAButton && ( // Re-using showHeroCTAButton, though it's false for logged-in user at this point. This can be a separate prop if needed.
+              <Button size="lg" variant="default" className="text-lg px-8 py-6 bg-primary hover:bg-primary/80 text-primary-foreground" asChild>
+                <Link href="/?openDashboard=true">Go to Dashboard</Link>
+              </Button>
+            )}
+          </div>
+        </section>
+      )}
 
       <footer className="py-8 bg-muted/30 text-center">
         <div className="container mx-auto px-4 text-sm text-muted-foreground">
