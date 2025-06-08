@@ -128,15 +128,16 @@
   4.166% { transform: translateY(-15%); animation-timing-function: cubic-bezier(0,0,0.2,1); } /* Peak 3 (smaller) */
 }
 
-@keyframes simple-pulse-wave {
+@keyframes wave-pulse-effect {
   0% {
-    box-shadow: 0 0 0 0px hsla(var(--primary), 0.5);
-  }
-  70% {
-    box-shadow: 0 0 0 12px hsla(var(--primary), 0);
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.7;
+    border-width: 3px;
   }
   100% {
-    box-shadow: 0 0 0 12px hsla(var(--primary), 0);
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+    border-width: 0px;
   }
 }
 
@@ -151,6 +152,29 @@
     animation: custom-feedback-bounce 30s infinite;
   }
   .animate-simple-pulse-wave {
-    animation: simple-pulse-wave 2s infinite ease-out;
+    position: relative; /* Required for pseudo-element positioning */
+    overflow: visible;  /* Ensures pseudo-element is not clipped */
+  }
+
+  .animate-simple-pulse-wave::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    /* transform translate is now part of the animation keyframes */
+    width: 100%;
+    height: 100%;
+    border-radius: 50%; /* Make the wave circular */
+    border-style: solid;
+    border-color: hsla(var(--primary), 0.7); /* Initial color of the wave's border */
+    animation: wave-pulse-effect 1.5s infinite cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1; /* Puts the wave behind the button's content */
+    pointer-events: none; /* The wave itself should not be interactive */
+  }
+
+  /* Ensure button content (like the icon) is on top of the pseudo-element wave */
+  .animate-simple-pulse-wave > * {
+    position: relative;
+    z-index: 1;
   }
 }
