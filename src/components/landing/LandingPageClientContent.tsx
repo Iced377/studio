@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Camera, Brain, BarChart2, Lightbulb, HelpCircle, ShieldCheck } from 'lucide-react';
+import { Camera, Brain, BarChart2, Lightbulb, HelpCircle, ShieldCheck, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 
 const featureIcons: Record<string, React.ElementType> = {
@@ -26,6 +26,24 @@ const howItWorksTooltips: Record<string, string> = {
 const AccuracyTipIcon = HelpCircle;
 
 export default function LandingPageClientContent() {
+  const placeholderFeedback = [
+    {
+      id: 1,
+      text: "The AI food analysis is surprisingly detailed! It's helping me understand portion sizes better.",
+      source: "Beta User A",
+    },
+    {
+      id: 2,
+      text: "Being able to quickly log symptoms and see potential links to my meals is a game-changer.",
+      source: "Beta User B",
+    },
+    {
+      id: 3,
+      text: "I appreciate the accuracy tips. Still learning, but this app makes it much easier than trying to guess everything.",
+      source: "Beta User C",
+    },
+  ];
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
@@ -42,7 +60,7 @@ export default function LandingPageClientContent() {
               <Link href="/?openDashboard=true">Get Started Free</Link>
             </Button>
           </div>
-          {/* Infographic Placeholder - Commented out
+          {/*
           <div className="relative max-w-3xl mx-auto h-64 sm:h-96 bg-muted rounded-lg shadow-2xl overflow-hidden border border-border">
             <Image
               src="https://placehold.co/1200x600.png"
@@ -67,7 +85,7 @@ export default function LandingPageClientContent() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               { title: "Snap a Photo or Log a Meal", description: "Use your camera or write a short meal description. Gutcheck’s AI analyzes ingredients and serving size." },
-              { title: "Get Instant Deep Feedback", description: "Gutcheck uses deep analysis to provide insights about your meals and their impact on your Micronutrients, Guthealth, suger spikes and more — adjusted to your portion." },
+              { title: "Get Instant Deep Feedback", description: "Gutcheck uses deep analysis to provide insights about your meals and their impact on your Micronutrients, Guthealth, sugar spikes and more — adjusted to your portion." },
               { title: "Track Your Reactions", description: "Log your digestive symptoms and track correlations over time. The app learns what works for you." },
               { title: "Optimize with AI Recommendations", description: "Gutcheck identifies safe swaps, personalized patterns, and meals that support gut-friendly bacteria." },
             ].map((step, index) => {
@@ -125,26 +143,23 @@ export default function LandingPageClientContent() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
+      {/* Feedback Section */}
       <section className="py-16 sm:py-20">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12 sm:mb-16 font-headline">Loved by Users</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12 sm:mb-16 font-headline">Beta Users are Already providing feedback</h2>
           <div className="grid md:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="bg-card border-border shadow-lg p-6 rounded-xl">
+            {placeholderFeedback.map((feedback) => (
+              <Card key={feedback.id} className="bg-card border-border shadow-lg p-6 rounded-xl flex flex-col">
                 <CardHeader className="p-0 mb-4">
                   <div className="flex items-center mb-2">
-                    <div className="relative w-12 h-12 rounded-full bg-muted mr-3 overflow-hidden">
-                       <Image src={'https://placehold.co/100x100.png'} alt={`User ${i}`} layout="fill" objectFit="cover" data-ai-hint="person face" />
+                    <div className="bg-primary/10 text-primary rounded-full p-2 mr-3">
+                      <MessageSquare className="h-6 w-6" />
                     </div>
-                    <div>
-                      <CardTitle className="text-lg font-semibold font-headline">User Name {i}</CardTitle>
-                      <p className="text-sm text-muted-foreground">GutCheck User</p>
-                    </div>
+                    <CardTitle className="text-lg font-semibold font-headline text-muted-foreground">{feedback.source}</CardTitle>
                   </div>
                 </CardHeader>
-                <CardContent className="p-0 text-muted-foreground">
-                  <p>"This is a placeholder testimonial. GutCheck has really helped me understand my body better. Highly recommend!"</p>
+                <CardContent className="p-0 text-muted-foreground flex-grow">
+                  <p>"{feedback.text}"</p>
                 </CardContent>
               </Card>
             ))}
