@@ -31,7 +31,7 @@ export default function SignUpPage() {
     <div className="flex min-h-full flex-col justify-center items-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
          <h1 className="font-headline text-3xl font-bold tracking-tight text-foreground">
-          Join FODMAPSafe Today
+          Join GutCheck Today
         </h1>
         <p className="mt-2 text-muted-foreground">
           Start logging your meals and understanding your body better.
