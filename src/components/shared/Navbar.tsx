@@ -41,7 +41,7 @@ import {
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.6.0";
+export const APP_VERSION = "Beta 3.6.1";
 
 interface ReleaseNote {
   version: string;
@@ -51,6 +51,15 @@ interface ReleaseNote {
 }
 
 const releaseNotesData: ReleaseNote[] = [
+  {
+    version: "Beta 3.6.1",
+    date: "June 08, 2025",
+    title: "AI Consistency & Date Logging Fixes",
+    description: [
+      "Improved consistency of AI meal analysis results by setting a lower temperature (0.2) for relevant AI flows, reducing variability for identical inputs.",
+      "Fixed a bug where logging meals for a previous date was incorrectly using the current date due to premature state reset in the 'Log Previous Meal' dialog.",
+    ],
+  },
   {
     version: "Beta 3.6.0",
     date: "June 08, 2025",
