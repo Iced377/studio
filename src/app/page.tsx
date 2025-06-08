@@ -1012,7 +1012,7 @@ export default function RootPage() {
   }
 
   const betaUserMessageContent = (
-    <div className="mt-8 mb-10 max-w-3xl mx-auto text-left sm:text-center bg-primary/5 p-6 rounded-lg border border-primary/20 shadow-sm">
+    <div className="mt-8 max-w-3xl mx-auto text-left sm:text-center bg-primary/5 p-6 rounded-lg border border-primary/20 shadow-sm">
       <h2 className="text-2xl font-semibold text-primary mb-4 font-headline">
         Hey there, GutChecker! 👋
       </h2>
@@ -1173,3 +1173,4 @@ export default function RootPage() {
     </div>
   );
 }
+
