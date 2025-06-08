@@ -25,7 +25,15 @@ const howItWorksTooltips: Record<string, string> = {
 
 const AccuracyTipIcon = HelpCircle;
 
-export default function LandingPageClientContent() {
+interface LandingPageClientContentProps {
+  heroActionContent?: React.ReactNode;
+  showHeroCTAButton?: boolean;
+}
+
+export default function LandingPageClientContent({
+  heroActionContent,
+  showHeroCTAButton = true,
+}: LandingPageClientContentProps) {
   const placeholderFeedback = [
     {
       id: 1,
@@ -55,11 +63,18 @@ export default function LandingPageClientContent() {
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
             Gutcheck helps you identify foods that trigger IBS and optimize your diet, effectively.
           </p>
-          <div className="mb-10">
-            <Button size="lg" className="text-lg px-8 py-6 bg-primary hover:bg-primary/90 text-primary-foreground" asChild>
-              <Link href="/?openDashboard=true">Get Started Free</Link>
-            </Button>
-          </div>
+          {heroActionContent && (
+            <div className="mb-10 flex justify-center">
+              {heroActionContent}
+            </div>
+          )}
+          {showHeroCTAButton && (
+            <div className="mb-10">
+              <Button size="lg" className="text-lg px-8 py-6 bg-primary hover:bg-primary/90 text-primary-foreground" asChild>
+                <Link href="/signup">Get Started Free</Link>
+              </Button>
+            </div>
+          )}
           {/*
           <div className="relative max-w-3xl mx-auto h-64 sm:h-96 bg-muted rounded-lg shadow-2xl overflow-hidden border border-border">
             <Image

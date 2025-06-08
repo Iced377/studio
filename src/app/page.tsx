@@ -75,7 +75,7 @@ const initialGuestProfile: UserProfile = {
 };
 
 
-export default function RootPage() { 
+export default function RootPage() {
   const { toast } = useToast();
   const { user: authUser, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -168,11 +168,11 @@ export default function RootPage() {
 
         } catch (error) {
           console.error("Error loading user data from Firestore:", error);
-          
+
         } finally {
           setIsDataLoading(false);
         }
-      } else { 
+      } else {
         setUserProfile(initialGuestProfile);
         setTimelineEntries([]);
         setLastGuestFoodItem(null);
@@ -182,11 +182,11 @@ export default function RootPage() {
     setupUserOrGuest();
   }, [authUser, authLoading, toast]);
 
-  
+
   useEffect(() => {
     if (searchParams.get('openDashboard') === 'true') {
       setIsPremiumDashboardOpen(true);
-      
+
       router.replace(currentPathname, { scroll: false });
     }
   }, [searchParams, router, currentPathname]);
@@ -320,14 +320,14 @@ export default function RootPage() {
     } catch (error: any) {
       console.error('AI analysis or food logging/updating failed:', error);
        toast({ title: 'Error Processing Food', description: `Could not ${editingItem ? 'update' : 'log'} food. AI analysis might have failed.`, variant: 'destructive' });
-      
+
       processedFoodItem = {
         ...foodItemData,
         id: currentItemId,
         timestamp: logTimestamp,
         isSimilarToSafe: similarityOutput?.isSimilar ?? false,
         entryType: 'food',
-        fodmapData: undefined, 
+        fodmapData: undefined,
         userFodmapProfile: generateFallbackFodmapProfile(foodItemData.name),
         calories: undefined, protein: undefined, carbs: undefined, fat: undefined,
         userFeedback: editingItem ? editingItem.userFeedback : null,
@@ -450,7 +450,7 @@ export default function RootPage() {
     } catch (error: any) {
       console.error('Full AI meal processing/updating failed:', error);
        toast({ title: 'Error Processing Meal', description: `Could not ${editingItem ? 'update' : 'log'} meal via AI.`, variant: 'destructive' });
-       
+
        processedFoodItem = {
             id: currentItemId,
             name: mealDescriptionOutput?.wittyName || editingItem?.name || "Meal (Analysis Failed)",
@@ -691,7 +691,7 @@ export default function RootPage() {
             toast({ title: "Entry Removed", description: "The timeline entry has been deleted from cloud." });
         } catch (error) {
             console.error("Error removing timeline entry from Firestore:", error);
-            if (entryToRemove) addTimelineEntry(entryToRemove); 
+            if (entryToRemove) addTimelineEntry(entryToRemove);
             toast({ title: "Error Removing Entry", description: "Could not remove entry from cloud. Removed locally.", variant: "destructive" });
         }
     } else {
@@ -715,7 +715,7 @@ export default function RootPage() {
   };
 
   const handleLogPreviousMealFlow = (logMethod: 'AI' | 'Manual' | 'Photo') => {
-    
+
     setIsSimplifiedAddFoodDialogOpen(false);
     setIsAddFoodDialogOpen(false);
     setIsIdentifyByPhotoDialogOpen(false);
@@ -733,7 +733,7 @@ export default function RootPage() {
 
   const handleOpenLogPreviousMealDialog = () => {
     setEditingItem(null);
-    setSelectedLogDateForPreviousMeal(new Date()); 
+    setSelectedLogDateForPreviousMeal(new Date());
     setIsLogPreviousMealDialogOpen(true);
   };
 
@@ -795,7 +795,7 @@ export default function RootPage() {
         sourceDescription: formData.mealDescription,
         timestamp: new Date(),
         fodmapData: fodmapAnalysis,
-        isSimilarToSafe: false, 
+        isSimilarToSafe: false,
         userFodmapProfile: fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(mealDescriptionOutput.primaryFoodItemForAnalysis),
         calories: fodmapAnalysis?.calories,
         protein: fodmapAnalysis?.protein,
@@ -811,7 +811,7 @@ export default function RootPage() {
     } catch (error: any) {
         console.error('Guest AI meal processing failed:', error);
         toast({ title: "Error Noting Meal", description: "Could not analyze meal.", variant: 'destructive' });
-        
+
     } finally {
       setIsLoadingAi(prev => ({ ...prev, [newItemId]: false }));
       setIsGuestLogFoodDialogOpen(false);
@@ -827,7 +827,7 @@ export default function RootPage() {
   const handleGuestRemoveFoodItem = (itemId: string) => {
      if (lastGuestFoodItem && lastGuestFoodItem.id === itemId) {
         setLastGuestFoodItem(null);
-        setIsGuestSheetOpen(false); 
+        setIsGuestSheetOpen(false);
      }
   };
 
@@ -845,16 +845,16 @@ export default function RootPage() {
       const baseRepetitionData = {
         id: newItemId,
         timestamp: newTimestamp,
-        isSimilarToSafe: false, 
-        userFodmapProfile: undefined, 
+        isSimilarToSafe: false,
+        userFodmapProfile: undefined,
         calories: undefined, protein: undefined, carbs: undefined, fat: undefined,
         entryType: 'food' as 'food',
-        userFeedback: null, 
+        userFeedback: null,
         macrosOverridden: itemToRepeat.macrosOverridden || false,
       };
 
       if (itemToRepeat.sourceDescription && !itemToRepeat.sourceDescription.startsWith("Identified by photo")) {
-        
+
         mealDescriptionOutput = await processMealDescription({ mealDescription: itemToRepeat.sourceDescription });
         fodmapAnalysis = await analyzeFoodItem({
           foodItem: mealDescriptionOutput.primaryFoodItemForAnalysis,
@@ -862,7 +862,7 @@ export default function RootPage() {
           portionSize: mealDescriptionOutput.estimatedPortionSize,
           portionUnit: mealDescriptionOutput.estimatedPortionUnit,
         });
-        
+
         const itemFodmapProfileForSimilarity: FoodFODMAPProfile = fodmapAnalysis?.detailedFodmapProfile || generateFallbackFodmapProfile(mealDescriptionOutput.primaryFoodItemForAnalysis);
         if (userProfile.safeFoods && userProfile.safeFoods.length > 0) {
           const safeFoodItemsForSimilarity = userProfile.safeFoods.map(sf => ({
@@ -884,7 +884,7 @@ export default function RootPage() {
 
         processedFoodItem = {
           ...baseRepetitionData,
-          name: mealDescriptionOutput.wittyName, 
+          name: mealDescriptionOutput.wittyName,
           originalName: mealDescriptionOutput.primaryFoodItemForAnalysis,
           ingredients: mealDescriptionOutput.consolidatedIngredients,
           portionSize: mealDescriptionOutput.estimatedPortionSize,
@@ -899,7 +899,7 @@ export default function RootPage() {
           fat: itemToRepeat.macrosOverridden ? itemToRepeat.fat : fodmapAnalysis?.fat,
         };
 
-      } else { 
+      } else {
         fodmapAnalysis = await analyzeFoodItem({
           foodItem: itemToRepeat.originalName || itemToRepeat.name,
           ingredients: itemToRepeat.ingredients,
@@ -925,10 +925,10 @@ export default function RootPage() {
             userSafeFoodItems: safeFoodItemsForSimilarity,
           });
         }
-        
+
         processedFoodItem = {
           ...baseRepetitionData,
-          name: itemToRepeat.name, 
+          name: itemToRepeat.name,
           originalName: itemToRepeat.originalName || itemToRepeat.name,
           ingredients: itemToRepeat.ingredients,
           portionSize: itemToRepeat.portionSize,
@@ -956,7 +956,7 @@ export default function RootPage() {
     } catch (error: any) {
       console.error('Error repeating meal:', error);
       toast({ title: 'Error Repeating Meal', description: `Could not repeat the meal. AI analysis might have failed.`, variant: 'destructive' });
-       
+
        processedFoodItem = {
         ...baseRepetitionData,
         name: itemToRepeat.name + " (Repeat Failed)",
@@ -977,7 +977,7 @@ export default function RootPage() {
   };
 
 
-  if (authLoading || (isDataLoading && authUser) ) { 
+  if (authLoading || (isDataLoading && authUser) ) {
      return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -988,7 +988,7 @@ export default function RootPage() {
     );
   }
 
-  if (!authUser && !authLoading) { 
+  if (!authUser && !authLoading) {
     return (
       <>
         <GuestHomePage
@@ -1011,7 +1011,7 @@ export default function RootPage() {
     );
   }
 
-  
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden">
       <Navbar
@@ -1023,9 +1023,9 @@ export default function RootPage() {
         className="z-50"
       />
 
-      
+
       <div className="flex-grow flex flex-col items-center justify-start pt-0 overflow-y-auto">
-        <LandingPageClientContent />
+         <LandingPageClientContent showHeroCTAButton={false} />
       </div>
 
       <PremiumDashboardSheet
@@ -1041,11 +1041,11 @@ export default function RootPage() {
         onEditIngredients={handleEditTimelineEntry}
         onRepeatMeal={handleRepeatMeal}
       >
-        
+
       </PremiumDashboardSheet>
 
 
-      
+
       <SimplifiedAddFoodDialog
         isOpen={isSimplifiedAddFoodDialogOpen}
         onOpenChange={(open) => {
