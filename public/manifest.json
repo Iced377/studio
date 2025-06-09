@@ -1,7 +1,8 @@
+
 {
   "name": "GutCheck",
   "short_name": "GutCheck",
-  "description": "Your AI companion for easy food logging and meaningful insights.",
+  "description": "Your Ai companion for easy food logging and meaningful insights.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#27AE60",
