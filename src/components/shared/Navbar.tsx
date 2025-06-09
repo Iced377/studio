@@ -41,7 +41,7 @@ import {
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.6.1";
+export const APP_VERSION = "Beta 3.6.2";
 
 interface ReleaseNote {
   version: string;
@@ -51,6 +51,16 @@ interface ReleaseNote {
 }
 
 const releaseNotesData: ReleaseNote[] = [
+  {
+    version: "Beta 3.6.2",
+    date: "June 08, 2025",
+    title: "AI Logging Accuracy Enhancements",
+    description: [
+      "Improved accuracy for image-based food identification, including better portion estimation (e.g., counting eggs) and more general naming for ambiguous cooking methods.",
+      "Enhanced nutritional analysis (macros & micronutrients) for text-based food logging, ensuring quantities in descriptions (e.g., '4 eggs') are better accounted for.",
+      "Corrected a minor import path in an AI development utility file.",
+    ],
+  },
   {
     version: "Beta 3.6.1",
     date: "June 08, 2025",
