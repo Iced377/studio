@@ -29,10 +29,10 @@ export type FoodFODMAPProfile = z.infer<typeof DetailedFoodFODMAPProfileSchema>;
 
 
 const AnalyzeFoodItemInputSchema = z.object({
-  foodItem: z.string().describe('The name of the food item to analyze.'),
+  foodItem: z.string().describe('The name of the food item to analyze. This may include quantities, e.g., "4 eggs and 2 slices of toast".'),
   ingredients: z.string().describe('A comma-separated list of ingredients in the food item.'),
-  portionSize: z.string().describe('The size of the portion, e.g., "100", "0.5", "1".'),
-  portionUnit: z.string().describe('The unit for the portion, e.g., "g", "cup", "medium apple".'),
+  portionSize: z.string().describe('The size of the portion, e.g., "100", "0.5", "1". This refers to the overall meal portion if foodItem is complex.'),
+  portionUnit: z.string().describe('The unit for the portion, e.g., "g", "cup", "medium apple", "meal". This refers to the overall meal portion unit.'),
 });
 export type AnalyzeFoodItemInput = z.infer<typeof AnalyzeFoodItemInputSchema>;
 
@@ -119,17 +119,20 @@ const analyzeFoodItemPrompt = ai.definePrompt({
     temperature: 0.2, // Lower temperature for more deterministic output
   },
   prompt: `You are an expert AI assistant specialized in comprehensive food analysis for individuals with IBS, focusing on portion-specificity.
-You will receive a food item, its ingredients, and a portion size. Your task is to provide:
+You will receive a food item, its ingredients, and a portion size. The 'Food Item: {{{foodItem}}}' field may contain specific quantities of items (e.g., "4 eggs", "2 slices of toast"). YOU MUST use these quantities in your analysis.
+
+Your task is to provide:
 
 1.  **FODMAP Analysis (Portion-Specific):**
-    *   Analyze each ingredient for its FODMAP content.
-    *   Determine an overall FODMAP risk (Green, Yellow, Red) for the *specified portion*.
+    *   Analyze each ingredient listed in 'Ingredients: {{{ingredients}}}' for its FODMAP content.
+    *   Determine an overall FODMAP risk (Green, Yellow, Red) for the *specified overall portion* ('Portion: {{{portionSize}}} {{{portionUnit}}}').
     *   Provide a detailed explanation for the overall risk in the \`reason\` field.
-    *   If possible, estimate a detailed FODMAP profile (fructans, GOS, lactose, excess fructose, sorbitol, mannitol) for the given portion.
+    *   If possible, estimate a detailed FODMAP profile (fructans, GOS, lactose, excess fructose, sorbitol, mannitol) for the given overall portion.
 
-2.  **Nutritional Estimation (Portion-Specific):**
-    *   Estimate total calories.
-    *   Estimate total macronutrients: protein (g), carbohydrates (g), and fat (g).
+2.  **Nutritional Estimation (Portion-Specific and Quantity-Aware):**
+    *   **Crucially, estimate total calories for the entire meal as described in 'Food Item: {{{foodItem}}}' considering the overall 'Portion: {{{portionSize}}} {{{portionUnit}}}'. If the 'Food Item' field specifies quantities (e.g., "4 eggs", "2 slices toast"), ensure your nutritional estimates reflect those specific quantities for those components within the overall meal.**
+    *   Similarly, estimate total macronutrients: protein (g), carbohydrates (g), and fat (g) for the entire specified meal, portion, and taking into account any quantities mentioned in the 'Food Item' field.
+    *   When estimating nutrition for a multi-component meal (e.g., '4 eggs and 2 slices of toast'), consider the nutritional contribution of each major component based on the provided ingredients and the quantities mentioned in the 'Food Item' field.
 
 3.  **Glycemic Index (GI) (Portion-Specific):**
     *   Estimate the Glycemic Index (GI) value if commonly known for the item or its main ingredients.
@@ -139,15 +142,15 @@ You will receive a food item, its ingredients, and a portion size. Your task is 
     *   Estimate the total dietary fiber in grams.
     *   Provide a qualitative assessment (Low, Adequate, High) of fiber content for the portion. For a single item, <2g might be Low, 2-4g Adequate, >5g High.
 
-5.  **Micronutrients Overview (Portion-Specific):**
-    *   **ABSOLUTE CRITICAL INSTRUCTION FOR USER-SPECIFIED NUTRIENTS:** Your TOP PRIORITY for micronutrients is to IDENTIFY and ACCURATELY RECORD any nutrient explicitly mentioned by the user in 'Ingredients: {{{ingredients}}}' or 'Food Item: {{{foodItem}}}' ALONG WITH ITS EXACT QUANTITY (e.g., "Vitamin D3 50,000 IU", "Iron 10mg", "Omega-3 800mg (480 EPA, 320 DHA)").
-    *   **IF A USER PROVIDES AN EXACT QUANTITY (e.g., "D3 50,000 IU", "Omega-3 800mg (480 EPA + 320 DHA)"):**
-        *   **YOU MUST USE THE USER'S EXACT PROVIDED QUANTITY STRING** for the 'amount' field in \`MicronutrientDetailSchema\`. For example, if user input includes "D3 50,000 IU", the 'amount' for Vitamin D3 MUST be exactly "50000 IU". If input is "Omega-3 800mg (480 EPA and 320 DHA)", the 'amount' for Omega-3 MUST be "800 mg" (or you can list EPA and DHA with their respective amounts if the schema allows, ensuring the total reflects the user input).
-        *   **DO NOT, UNDER ANY CIRCUMSTANCES, CHANGE, "CORRECT", ESTIMATE, OR OVERRIDE THE USER'S STATED AMOUNT.** Your function is to record what the user logged, not to verify it against external databases or general knowledge for these specific entries.
-        *   **STRICTLY AVOID VAGUE STATEMENTS:** For these user-specified nutrients with quantities, you are PROHIBITED from outputting "Varies, check label", "Varies by brand", "Varies by dose", "Depends on serving" or any similar vague phrase for the 'amount' field. YOU MUST use the exact amount the user provided.
-        *   These user-specified nutrients, with their user-provided amounts, MUST be listed in the 'notable' or 'fullList' arrays.
-        *   For these user-specified amounts, calculate 'dailyValuePercent' *only if you are extremely confident* in the conversion for that exact amount and nutrient. For very high doses (e.g., "50,000 IU Vitamin D3") or complex supplements, if unsure, OMIT 'dailyValuePercent' or set it to null. DO NOT GUESS.
-    *   **Naturally Occurring Nutrients:** *After* accurately processing ALL user-specified nutrients as described above, then, if relevant, identify other notable micronutrients *naturally present* in the food item (based on general food databases for the given portion). For these *naturally occurring* nutrients, provide estimated 'amount' and 'dailyValuePercent' if readily available.
+5.  **Micronutrients Overview (Portion-Specific and Quantity-Aware):**
+    *   **ABSOLUTE CRITICAL INSTRUCTION FOR USER-SPECIFIED NUTRIENTS IN INGREDIENTS LIST:** Your TOP PRIORITY for micronutrients is to IDENTIFY and ACCURATELY RECORD any nutrient explicitly mentioned by the user in 'Ingredients: {{{ingredients}}}' ALONG WITH ITS EXACT QUANTITY (e.g., "Vitamin D3 50,000 IU", "Iron 10mg", "Omega-3 800mg (480 EPA, 320 DHA)").
+    *   **IF A USER PROVIDES AN EXACT QUANTITY IN INGREDIENTS (e.g., "D3 50,000 IU", "Omega-3 800mg (480 EPA + 320 DHA)"):**
+        *   **YOU MUST USE THE USER'S EXACT PROVIDED QUANTITY STRING** for the 'amount' field in \`MicronutrientDetailSchema\`.
+        *   **DO NOT CHANGE OR OVERRIDE THE USER'S STATED AMOUNT** from the ingredients list.
+        *   **AVOID VAGUE STATEMENTS:** For these user-specified nutrients with quantities from the ingredients list, you are PROHIBITED from outputting "Varies, check label" or similar for the 'amount' field.
+        *   These user-specified nutrients from the ingredients list, with their user-provided amounts, MUST be listed in the 'notable' or 'fullList' arrays.
+        *   For these user-specified amounts from ingredients, calculate 'dailyValuePercent' *only if you are extremely confident*. OMIT if unsure.
+    *   **NATURALLY OCCURRING MICRONUTRIENTS & QUANTITIES FROM FOOD ITEM NAME:** *After* processing nutrients from the ingredients list, consider the 'Food Item: {{{foodItem}}}' (e.g., "4 eggs", "1 banana"). For common whole foods or distinct components described here, AIM TO PROVIDE A REASONABLE ESTIMATE FOR AT LEAST 2-3 KEY MICRONUTRIENTS present in significant amounts for the described portion and quantities. For example, for "4 eggs", provide key micronutrients for four eggs.
     *   **Icons:** Suggest a relevant lucide-react icon name for \`iconName\` field for each micronutrient, based on its primary **supported body part or physiological function**. Examples: 'Bone' for Calcium, 'Activity' for Magnesium, 'Eye' for Vitamin A, 'ShieldCheck' for Vitamin C/D, 'Wind' for Iron. Use generic names like 'Atom' or 'Sparkles' if a specific functional icon is not available. If no good icon, omit.
 
 6.  **Gut Bacteria Impact (Portion-Specific):**
@@ -164,18 +167,18 @@ You will receive a food item, its ingredients, and a portion size. Your task is 
 
 9.  **AI Textual Summaries (\`aiSummaries\` field):**
     *   \`aiSummaries.fodmapSummary\`: (Optional) Concise FODMAP summary if \`reason\` is long.
-    *   \`aiSummaries.micronutrientSummary\`: Brief textual summary. If user specified high-dose supplements (e.g., "Vitamin D3 50000 IU"), Acknowledge this (e.g., "Primarily a high dose Vitamin D3 supplement as specified."). Otherwise, summarize naturally occurring nutrients.
+    *   \`aiSummaries.micronutrientSummary\`: Brief textual summary. Acknowledge user-specified high-dose supplements (from ingredients) or significant natural sources based on the 'Food Item' name.
     *   \`aiSummaries.glycemicIndexSummary\`: Brief textual GI summary.
     *   \`aiSummaries.gutImpactSummary\`: (Optional) Concise gut impact summary if reasoning is long.
     *   \`aiSummaries.ketoSummary\`: Brief textual keto-friendliness summary.
 
-Base your analysis on established FODMAP data, general nutritional databases, and food properties. ALWAYS consider the specified portion size.
+Base your analysis on established FODMAP data, general nutritional databases, and food properties. ALWAYS consider the specified overall portion and any quantities mentioned in the 'Food Item' name.
 
 Food Item: {{{foodItem}}}
 Ingredients: {{{ingredients}}}
 Portion: {{{portionSize}}} {{{portionUnit}}}
 
-Output a JSON object adhering to the full output schema. If specific data for an optional field (e.g., a specific micronutrient amount for a *non-user-specified* nutrient) is not reasonably estimable, omit that specific sub-field or set to null. Ensure ALL user-specified nutrients with quantities are accurately reflected.
+Output a JSON object adhering to the full output schema. If specific data for an optional field is not reasonably estimable, omit that specific sub-field or set to null. Ensure ALL user-specified nutrients with quantities (from ingredients) are accurately reflected, and nutritional estimates (macros, calories, natural micros) correctly account for quantities mentioned in the 'Food Item' field.
 `,
 });
 
