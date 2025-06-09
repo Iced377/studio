@@ -21,7 +21,7 @@ export type ProcessMealDescriptionInput = z.infer<typeof ProcessMealDescriptionI
 
 const ProcessMealDescriptionOutputSchema = z.object({
   wittyName: z.string().describe('A witty, cheeky, or descriptive name for the meal, generated based on the input. Examples: "That Massive Bowl of Greek Purity", "The Huge Mofo Chicken Wrap of Destiny", "The Midnight Mistake", "Crisp Sadness".'),
-  primaryFoodItemForAnalysis: z.string().describe('The main identified food item or concept from the description, suitable as a "name" for a subsequent FODMAP analysis (e.g., "Oatmeal with blueberries"). This should be a relatively concise and factual summary of the meal.'),
+  primaryFoodItemForAnalysis: z.string().describe('The main identified food item or concept from the description, suitable as a "name" for a subsequent FODMAP analysis (e.g., "Oatmeal with blueberries"). This should be a relatively concise and factual summary of the meal. CRITICAL: If the user description includes quantities (e.g., "4 eggs", "50g toast"), these MUST be preserved here.'),
   consolidatedIngredients: z.string().describe('A comma-separated list of all significant ingredients identified in the meal description (e.g., "rolled oats, water, blueberries, honey").'),
   estimatedPortionSize: z.string().describe('An estimated single, representative portion size number for the entire described meal (e.g., "1", "1.5", "200"). This is an approximation for overall analysis.'),
   estimatedPortionUnit: z.string().describe('The unit for the estimated portion size (e.g., "serving", "bowl", "plate", "g", "ml"). This accompanies the estimatedPortionSize.'),
@@ -37,7 +37,7 @@ const processMealDescriptionGenkitPrompt = ai.definePrompt({
   input: { schema: ProcessMealDescriptionInputSchema },
   output: { schema: ProcessMealDescriptionOutputSchema },
   config: {
-    temperature: 0.5, // Increased temperature for better witty name generation
+    temperature: 0.5, 
   },
   prompt: `You are an expert food analyst and a witty meal namer.
 Given a meal description, your tasks are to:
@@ -47,7 +47,7 @@ Given a meal description, your tasks are to:
     *   "Fries + Ice Cream, late night" -> "The Midnight Mistake"
     *   "Just lettuce" -> "Crisp Sadness"
     *   "Oatmeal with 1/2 cup oats, 1 cup water, blueberries, honey" -> "Berry-Good Morning Fuel" or "Oatally Delicious Start"
-2.  Identify a concise, factual **primary food item name** that summarizes the meal for a follow-up FODMAP/nutritional analysis. This should be what the meal IS, not the witty name. (e.g., "Oatmeal with blueberries and honey", "Chicken and Rice Bowl").
+2.  Identify a concise, factual **primary food item name** that summarizes the meal for a follow-up FODMAP/nutritional analysis. This should be what the meal IS, not the witty name. **Crucially, if the user's description includes specific quantities for items (e.g., "4 eggs", "50g toast", "1/2 cup oats"), these quantities MUST be preserved and included in this 'primaryFoodItemForAnalysis' field.** For example, for "4 eggs and 50g toast", the output for 'primaryFoodItemForAnalysis' MUST be "4 eggs and 50g toast". For "Oatmeal with 1/2 cup oats...", it MUST be "Oatmeal with 1/2 cup oats...".
 3.  Create a **consolidated, comma-separated list of all significant ingredients** mentioned. (e.g., "rolled oats, water, blueberries, honey, chicken, rice, soy sauce").
 4.  Estimate a single, representative **overall portion size (numeric value)** for the entire meal described.
 5.  Estimate a single, representative **overall portion unit** for the entire meal described (e.g., "serving", "bowl", "g", "ml", "plate").
@@ -56,7 +56,7 @@ The user described their meal as:
 "{{{mealDescription}}}"
 
 Focus on extracting the core components for the factual fields and be creative with the witty name.
-For 'primaryFoodItemForAnalysis', be descriptive but not overly long. It's the "common name" for the meal.
+For 'primaryFoodItemForAnalysis', be descriptive but not overly long, and critically, PRESERVE USER-STATED QUANTITIES. It's the "common name" for the meal.
 For 'consolidatedIngredients', list distinct ingredients.
 For 'estimatedPortionSize' and 'estimatedPortionUnit', provide a sensible overall estimate for the entire meal content described.
 `,
