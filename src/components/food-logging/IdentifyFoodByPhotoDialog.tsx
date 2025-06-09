@@ -13,7 +13,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Camera, Upload, Loader2, AlertTriangle, CheckCircle, PackageCheck, Library, ImageUp, Info } from 'lucide-react';
+import { Camera, Upload, Loader2, AlertTriangle, CheckCircle, PackageCheck, Library, ImageUp, Info, Apple, Leaf, Sparkles } from 'lucide-react'; // Added Apple, Leaf, Sparkles
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -164,8 +164,13 @@ export default function IdentifyFoodByPhotoDialog({
               </div>
             )}
             {isLoading && (
-              <div className="mt-2 text-center text-muted-foreground flex items-center justify-center px-4"> {/* Added px-4 here */}
-                <Loader2 className="animate-spin h-5 w-5 inline mr-2" /> {imagePreview ? "Analyzing..." : "Processing..."}
+              <div className="mt-2 text-center text-muted-foreground flex flex-col items-center justify-center px-4 space-y-2">
+                <div className="flex items-center justify-center space-x-2">
+                  <Apple className="h-6 w-6 text-primary animate-icon-pulse-1" />
+                  <Leaf className="h-6 w-6 text-primary animate-icon-pulse-2" />
+                  <Sparkles className="h-6 w-6 text-primary animate-icon-pulse-3" />
+                </div>
+                <p>{imagePreview ? "Our AI is examining your meal..." : "Processing..."}</p>
               </div>
             )}
 
@@ -217,5 +222,7 @@ export default function IdentifyFoodByPhotoDialog({
     </Dialog>
   );
 }
+
+    
 
     

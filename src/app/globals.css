@@ -160,6 +160,17 @@
   animation-timing-function: ease-out;
 }
 
+@keyframes icon-pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
 
 @layer utilities {
   .animate-pulse-glow {
@@ -197,4 +208,15 @@
     position: relative;
     z-index: 1;
   }
+  .animate-icon-pulse-1 {
+    animation: icon-pulse 1.8s infinite ease-in-out;
+  }
+  .animate-icon-pulse-2 {
+    animation: icon-pulse 1.8s infinite ease-in-out 0.3s; /* Delay for second icon */
+  }
+  .animate-icon-pulse-3 {
+    animation: icon-pulse 1.8s infinite ease-in-out 0.6s; /* Delay for third icon */
+  }
 }
+
+    
