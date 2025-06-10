@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import FeedbackWidget from '@/components/feedback/FeedbackWidget';
+import CookieConsentBanner from '@/components/shared/CookieConsentBanner'; // Added import
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -57,6 +58,7 @@ export default function RootLayout({
             </main>
             <Toaster />
             <FeedbackWidget />
+            <CookieConsentBanner /> {/* Added CookieConsentBanner */}
           </ThemeProvider>
         </AuthProvider>
       </body>
