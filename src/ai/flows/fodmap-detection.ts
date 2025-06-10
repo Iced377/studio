@@ -119,7 +119,7 @@ const analyzeFoodItemPrompt = ai.definePrompt({
     temperature: 0.2,
   },
   prompt: `You are an expert AI assistant specialized in comprehensive food analysis for individuals with IBS, focusing on portion-specificity.
-You will receive a food item, its ingredients, and a portion size. The 'Food Item: {{{foodItem}}}' field may contain specific quantities of items (e.g., "4 eggs", "2 slices of toast", "50g bread"). YOU MUST use these quantities in your analysis.
+You will receive a food item, its ingredients, and a portion size. The 'Food Item: {{{foodItem}}}' field may contain specific quantities of items (e.g., "4 eggs", "2 slices of toast", "50g bread", "Sausage McMuffin with egg, 1 extra egg, 1 hashbrown"). YOU MUST use these quantities in your analysis.
 
 Your task is to provide:
 
@@ -130,10 +130,15 @@ Your task is to provide:
     *   If possible, estimate a detailed FODMAP profile (fructans, GOS, lactose, excess fructose, sorbitol, mannitol) for the given overall portion.
 
 2.  **Nutritional Estimation (Portion-Specific and Quantity-Aware):**
-    *   **HIGHEST PRIORITY: Quantities from 'Food Item' Field:** The 'Food Item: {{{foodItem}}}' field is your PRIMARY source for item-specific quantities (e.g., "4 eggs", "2 slices toast", "100g chicken", "50g bread"). If such quantities are present for components of the meal, YOU MUST use these specific quantities when calculating nutritional information (calories, macros, micronutrients) for those components. The 'Portion: {{{portionSize}}} {{{portionUnit}}}' fields refer to the *overall meal* but should NOT override explicit quantities mentioned in the 'Food Item' field for individual components for which specific quantities ARE provided in 'Food Item: {{{foodItem}}}'.
+    *   **HIGHEST PRIORITY: Quantities from 'Food Item' Field:** The 'Food Item: {{{foodItem}}}' field is your PRIMARY source for item-specific quantities (e.g., "4 eggs", "2 slices toast", "100g chicken", "50g bread", "1 extra egg", "1 hashbrown"). If such quantities are present for components of the meal, YOU MUST use these specific quantities when calculating nutritional information (calories, macros, micronutrients) for those components. The 'Portion: {{{portionSize}}} {{{portionUnit}}}' fields refer to the *overall meal* but should NOT override explicit quantities mentioned in the 'Food Item' field for individual components for which specific quantities ARE provided in 'Food Item: {{{foodItem}}}'.
+    *   **Handling Composite Meals & Branded Items:**
+        *   If 'Food Item: {{{foodItem}}}' describes a meal with multiple distinct components (e.g., "Sausage McMuffin with Egg, 1 extra egg, and 1 hashbrown"), identify each component (e.g., Component 1: "Sausage McMuffin with Egg"; Component 2: "1 extra egg"; Component 3: "1 hashbrown").
+        *   For recognizable branded menu items (e.g., "Sausage McMuffin with Egg", "Big Mac", "Starbucks Latte"), use your general knowledge to estimate their *typical* nutritional values (calories, protein, carbs, fat, and key micronutrients often listed on official sites or common databases) as a baseline for THAT COMPONENT.
+        *   For added components (e.g., "1 extra egg", "1 hashbrown", "side salad"), estimate their nutrition separately based on typical values for those items in the specified quantity.
+        *   **YOUR FINAL NUTRITIONAL OUTPUT (calories, protein, carbs, fat, and micronutrientsInfo) MUST BE THE SUM TOTAL FOR ALL IDENTIFIED COMPONENTS OF THE ENTIRE MEAL.** For example, if a "Sausage McMuffin with Egg" is typically X calories and Y protein, an "extra egg" is A calories and B protein, and a "hashbrown" is C calories and D protein, then the total output calories should be X+A+C and total protein Y+B+D.
     *   **Crucially, estimate total calories for the entire meal as described in 'Food Item: {{{foodItem}}}' considering the overall 'Portion: {{{portionSize}}} {{{portionUnit}}}'. If the 'Food Item' field specifies quantities (e.g., "4 eggs", "2 slices toast", "50g bread"), ensure your nutritional estimates reflect those specific quantities for those components within the overall meal.**
     *   Similarly, estimate total macronutrients: protein (g), carbohydrates (g), and fat (g) for the entire specified meal, portion, and taking into account any quantities mentioned in the 'Food Item' field. Ensure your estimates accurately reflect any quantities directly specified in the 'Food Item: {{{foodItem}}}' field (e.g., if '4 eggs' is stated, calculate protein for 4 eggs).
-    *   When estimating nutrition for a multi-component meal (e.g., '4 eggs and 2 slices of toast', 'chicken and 50g bread'), consider the nutritional contribution of each major component based on the provided ingredients and the quantities mentioned in the 'Food Item' field.
+    *   When estimating nutrition for a multi-component meal (e.g., '4 eggs and 2 slices of toast', 'chicken and 50g bread', 'Sausage McMuffin with egg and a hashbrown'), consider the nutritional contribution of each major component based on the provided ingredients and the quantities mentioned in the 'Food Item' field.
 
 3.  **Glycemic Index (GI) (Portion-Specific):**
     *   Estimate the Glycemic Index (GI) value if commonly known for the item or its main ingredients.
@@ -152,6 +157,7 @@ Your task is to provide:
         *   These user-specified nutrients from the ingredients list, with their user-provided amounts, MUST be listed in the 'notable' or 'fullList' arrays.
         *   For these user-specified amounts from ingredients, calculate 'dailyValuePercent' *only if you are extremely confident*. OMIT if unsure.
     *   **NATURALLY OCCURRING MICRONUTRIENTS & QUANTITIES FROM FOOD ITEM NAME:** *After* processing nutrients from the ingredients list, consider the 'Food Item: {{{foodItem}}}' (e.g., "4 eggs", "1 banana", "50g bread"). For common whole foods or distinct components described here WITH QUANTITIES, AIM TO PROVIDE A REASONABLE ESTIMATE FOR AT LEAST 2-3 KEY MICRONUTRIENTS present in significant amounts for the described portion and quantities. For example, for "4 eggs", provide key micronutrients for four eggs. For "50g bread", provide key micronutrients for 50g of that type of bread.
+    *   **FOR COMPOSITE MEALS (like a McMuffin combo):** List notable micronutrients from EACH significant component (e.g., the McMuffin itself, the extra egg, the hashbrown). Aim for a combined list reflecting the whole meal. For instance, eggs provide B vitamins and selenium; potatoes (like hashbrowns) provide Vitamin C and Potassium. Ensure your \`micronutrientsInfo\` output reflects a broader range of expected micronutrients for such a meal, not just one or two.
     *   **Icons:** Suggest a relevant lucide-react icon name for \`iconName\` field for each micronutrient, based on its primary **supported body part or physiological function**. Examples: 'Bone' for Calcium, 'Activity' for Magnesium, 'Eye' for Vitamin A, 'ShieldCheck' for Vitamin C/D, 'Wind' for Iron. Use generic names like 'Atom' or 'Sparkles' if a specific functional icon is not available. If no good icon, omit.
 
 6.  **Gut Bacteria Impact (Portion-Specific):**
@@ -168,7 +174,7 @@ Your task is to provide:
 
 9.  **AI Textual Summaries (\`aiSummaries\` field):**
     *   \`aiSummaries.fodmapSummary\`: (Optional) Concise FODMAP summary if \`reason\` is long.
-    *   \`aiSummaries.micronutrientSummary\`: Brief textual summary. Acknowledge user-specified high-dose supplements (from ingredients) or significant natural sources based on the 'Food Item' name.
+    *   \`aiSummaries.micronutrientSummary\`: Brief textual summary. Acknowledge user-specified high-dose supplements (from ingredients) or significant natural sources based on the 'Food Item' name. Mention key micronutrients from the overall meal.
     *   \`aiSummaries.glycemicIndexSummary\`: Brief textual GI summary.
     *   \`aiSummaries.gutImpactSummary\`: (Optional) Concise gut impact summary if reasoning is long.
     *   \`aiSummaries.ketoSummary\`: Brief textual keto-friendliness summary.
@@ -179,7 +185,7 @@ Food Item: {{{foodItem}}}
 Ingredients: {{{ingredients}}}
 Portion: {{{portionSize}}} {{{portionUnit}}}
 
-Output a JSON object adhering to the full output schema. If specific data for an optional field is not reasonably estimable, omit that specific sub-field or set to null. Ensure ALL user-specified nutrients with quantities (from ingredients) are accurately reflected, and nutritional estimates (macros, calories, natural micros) correctly account for quantities mentioned in the 'Food Item' field.
+Output a JSON object adhering to the full output schema. If specific data for an optional field is not reasonably estimable, omit that specific sub-field or set to null. Ensure ALL user-specified nutrients with quantities (from ingredients) are accurately reflected, and nutritional estimates (macros, calories, natural micros) correctly account for quantities mentioned in the 'Food Item' field. For composite meals, ensure nutritional information is a sum of components and micronutrient lists are comprehensive for the combined meal.
 `,
 });
 
@@ -198,4 +204,5 @@ const analyzeFoodItemFlow = ai.defineFlow(
 // Ensure the detailed profile type is exported if it's used elsewhere, though now the main output is extended.
 // The ExtendedAnalyzeFoodItemOutput from @/types is the primary export type for this flow's result.
 export type { FoodFODMAPProfile as DetailedFodmapProfileFromAI };
+
 
