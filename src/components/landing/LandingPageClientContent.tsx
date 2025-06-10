@@ -1,4 +1,3 @@
-
 "use client";
 
 import Image from 'next/image';
@@ -6,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Camera, Brain, BarChart2, Lightbulb, HelpCircle, ShieldCheck, MessageSquare, Heart, Lock, Network, FileLock2, Smartphone, DatabaseZap, RefreshCw, Shield } from 'lucide-react'; // Added new icons
+import { Camera, Brain, BarChart2, Lightbulb, HelpCircle, ShieldCheck, MessageSquare, Heart, Lock, Network, FileLock2, Smartphone, DatabaseZap, Shield } from 'lucide-react'; // Removed RefreshCw
 import Link from 'next/link';
 
 const featureIcons: Record<string, React.ElementType> = {
@@ -71,14 +70,9 @@ const DataSecuritySection = () => (
             Icon: FileLock2,
           },
            {
-            title: "Regular Updates & Monitoring",
-            description: "We proactively monitor and update our systems to address emerging security threats and apply best practices.",
-            Icon: RefreshCw,
-          },
-           {
             title: "Principle of Least Privilege",
             description: "Our systems are designed to ensure components only have access to the resources necessary for their function.",
-            Icon: DatabaseZap, // Placeholder, could be Shield
+            Icon: DatabaseZap, 
           },
            {
             title: "Secure Cloud Infrastructure",
@@ -276,7 +270,7 @@ export default function LandingPageClientContent({
         </div>
       </section>
 
-      {/* Data Security Section - NEW */}
+      {/* Data Security Section */}
       <DataSecuritySection />
 
       {/* Final CTA Section - Conditional Rendering */}

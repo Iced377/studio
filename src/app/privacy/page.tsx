@@ -87,9 +87,6 @@ const PrivacyPage = () => {
           <li>
             <strong>Principle of Least Privilege:</strong> Our system architecture adheres to the principle of least privilege, meaning components and services are granted only the minimum access necessary to perform their functions, reducing potential impact from any compromised component.
           </li>
-          <li>
-            <strong>Regular Updates and Monitoring:</strong> We are committed to regularly updating our software dependencies and monitoring our systems for potential vulnerabilities and suspicious activities to proactively address security threats.
-          </li>
         </ul>
         <p className="mt-2">
           Despite these measures, no system is completely secure, and we cannot guarantee the absolute security of your information. We continuously strive to enhance our security practices.
