@@ -106,6 +106,24 @@ const AnalyzeFoodItemOutputSchema = z.object({
 });
 // The AnalyzeFoodItemOutput type is now imported from @/types where it's defined as ExtendedAnalyzeFoodItemOutput
 
+const defaultErrorOutput: AnalyzeFoodItemOutput = {
+  ingredientFodmapScores: [],
+  overallRisk: 'Red',
+  reason: 'AI analysis failed to complete. Please try again or check your input.',
+  detailedFodmapProfile: undefined,
+  calories: undefined,
+  protein: undefined,
+  carbs: undefined,
+  fat: undefined,
+  glycemicIndexInfo: { level: 'Unknown' },
+  dietaryFiberInfo: { quality: 'Low' },
+  micronutrientsInfo: { notable: [{ name: "Error", amount: "Analysis incomplete" }] },
+  gutBacteriaImpact: { sentiment: 'Unknown', reasoning: 'Analysis incomplete.' },
+  ketoFriendliness: { score: 'Unknown', reasoning: 'Analysis incomplete.' },
+  detectedAllergens: [],
+  aiSummaries: { fodmapSummary: 'Analysis failed.', micronutrientSummary: 'Analysis failed.' },
+};
+
 
 export async function analyzeFoodItem(input: AnalyzeFoodItemInput): Promise<AnalyzeFoodItemOutput> {
   return analyzeFoodItemFlow(input);
@@ -198,16 +216,35 @@ const analyzeFoodItemFlow = ai.defineFlow(
     inputSchema: AnalyzeFoodItemInputSchema,
     outputSchema: AnalyzeFoodItemOutputSchema, // Ensure this matches the extended schema for the prompt
   },
-  async input => {
-    const {output} = await analyzeFoodItemPrompt(input);
-    return output! as AnalyzeFoodItemOutput; // Cast to the extended type
+  async (input): Promise<AnalyzeFoodItemOutput> => {
+    try {
+      const {output} = await analyzeFoodItemPrompt(input);
+      if (!output) {
+        console.warn('[AnalyzeFoodItemFlow] AI prompt returned no output. Falling back to default error response.');
+        return {
+          ...defaultErrorOutput,
+          reason: `AI analysis failed for item: "${input.foodItem}". No output from prompt.`,
+          aiSummaries: {
+            ...defaultErrorOutput.aiSummaries,
+            fodmapSummary: `Analysis failed for "${input.foodItem}".`,
+          }
+        };
+      }
+      return output! as AnalyzeFoodItemOutput; // Cast to the extended type
+    } catch (error: any) {
+      console.error('[AnalyzeFoodItemFlow] Error during AI processing:', error);
+      return {
+        ...defaultErrorOutput,
+        reason: `Error during AI analysis for "${input.foodItem}": ${error.message || 'Unknown error'}.`,
+        aiSummaries: {
+            ...defaultErrorOutput.aiSummaries,
+            fodmapSummary: `Analysis error for "${input.foodItem}": ${error.message || 'Unknown error'}.`,
+        }
+      };
+    }
   }
 );
 
 // Ensure the detailed profile type is exported if it's used elsewhere, though now the main output is extended.
 // The ExtendedAnalyzeFoodItemOutput from @/types is the primary export type for this flow's result.
 export type { FoodFODMAPProfile as DetailedFodmapProfileFromAI };
-
-
-
-    

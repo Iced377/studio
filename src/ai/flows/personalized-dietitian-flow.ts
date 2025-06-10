@@ -146,25 +146,29 @@ const personalizedDietitianFlow = ai.defineFlow(
     outputSchema: PersonalizedDietitianOutputSchema,
   },
   async (input) => {
-    // Data transformation: Convert Date objects to ISO strings if they are not already.
-    // This is mostly a safeguard; Firestore retrieval should give serializable data,
-    // but direct Date objects might come from client-side construction.
-    const transformedInput = {
-        ...input,
-        foodLog: input.foodLog.map(item => ({
-            ...item,
-            timestamp: typeof item.timestamp === 'string' ? item.timestamp : new Date(item.timestamp).toISOString(),
-        })),
-        symptomLog: input.symptomLog.map(item => ({
-            ...item,
-            timestamp: typeof item.timestamp === 'string' ? item.timestamp : new Date(item.timestamp).toISOString(),
-        })),
-    };
+    try {
+      const transformedInput = {
+          ...input,
+          foodLog: input.foodLog.map(item => ({
+              ...item,
+              timestamp: typeof item.timestamp === 'string' ? item.timestamp : new Date(item.timestamp).toISOString(),
+          })),
+          symptomLog: input.symptomLog.map(item => ({
+              ...item,
+              timestamp: typeof item.timestamp === 'string' ? item.timestamp : new Date(item.timestamp).toISOString(),
+          })),
+      };
 
-    const { output } = await personalizedDietitianPrompt(transformedInput);
-    if (!output || !output.aiResponse) {
-      return { aiResponse: "I apologize, I couldn't generate a response at this time. Please try asking in a different way or check back later." };
+      const { output } = await personalizedDietitianPrompt(transformedInput);
+      if (!output || !output.aiResponse) {
+        return { aiResponse: "I apologize, the AI dietitian couldn't generate a specific response at this time. This might be due to a temporary issue or the nature of the query. Please try rephrasing or check back later." };
+      }
+      return output;
+    } catch (error: any) {
+      console.error('[PersonalizedDietitianFlow] Error during AI processing:', error);
+      return { 
+        aiResponse: `An error occurred while consulting the AI dietitian: ${error.message || 'Unknown AI error'}. Please try again later. If the issue persists, ensure your API key for the AI service is correctly configured.` 
+      };
     }
-    return output;
   }
 );

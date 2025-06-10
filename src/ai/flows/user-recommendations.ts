@@ -24,6 +24,10 @@ const UserRecommendationOutputSchema = z.object({
 });
 export type UserRecommendationOutput = z.infer<typeof UserRecommendationOutputSchema>;
 
+const defaultErrorOutput: UserRecommendationOutput = {
+  recommendationText: "Could not generate a recommendation at this time. Keep logging to get personalized tips!",
+};
+
 export async function getUserRecommendation(input: UserRecommendationInput): Promise<UserRecommendationOutput> {
   return userRecommendationFlow(input);
 }
@@ -62,9 +66,19 @@ const userRecommendationFlow = ai.defineFlow(
     outputSchema: UserRecommendationOutputSchema,
   },
   async (input) => {
-    const { output } = await userRecommendationPrompt(input);
-    // The prompt is designed to output the text directly that fits the schema.
-    return output!;
+    try {
+      const { output } = await userRecommendationPrompt(input);
+      if (!output || !output.recommendationText) {
+        console.warn('[UserRecommendationFlow] AI prompt returned no or invalid output. Falling back to default error response.');
+        return defaultErrorOutput;
+      }
+      return output!;
+    } catch (error: any) {
+      console.error('[UserRecommendationFlow] Error during AI processing:', error);
+      return {
+        ...defaultErrorOutput,
+        recommendationText: `Could not generate a recommendation: ${error.message || 'Unknown error'}. Keep logging for future tips!`,
+      };
+    }
   }
 );
-

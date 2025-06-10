@@ -11,7 +11,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z}from 'genkit';
 
 // Define input structures based on types/index.ts
 const LoggedFoodItemSchema = z.object({
@@ -47,7 +47,7 @@ const SymptomCorrelationInputSchema = z.object({
 export type SymptomCorrelationInput = z.infer<typeof SymptomCorrelationInputSchema>;
 
 const InsightSchema = z.object({
-  type: z.enum(['potential_trigger', 'potential_safe', 'observation', 'no_clear_pattern']).describe("Type of insight."),
+  type: z.enum(['potential_trigger', 'potential_safe', 'observation', 'no_clear_pattern', 'error']).describe("Type of insight."),
   title: z.string().describe("A concise title for the insight card."),
   description: z.string().describe("Detailed explanation of the insight or pattern found."),
   relatedFoodNames: z.array(z.string()).optional().describe("Names of food items related to this insight."),
@@ -61,6 +61,15 @@ const SymptomCorrelationOutputSchema = z.object({
   insights: z.array(InsightSchema).describe("A list of insights derived from correlating food and symptom logs. Examples: 'Bloating reported 4 times after eating onion >15g.' or 'You’ve had no symptoms after 3 lentil meals under 30g. Mark as safe?'"),
 });
 export type SymptomCorrelationOutput = z.infer<typeof SymptomCorrelationOutputSchema>;
+
+const defaultErrorOutput: SymptomCorrelationOutput = {
+  insights: [{
+    type: 'error',
+    title: 'Analysis Error',
+    description: 'Could not complete symptom correlation analysis due to an internal error. Please try again later.',
+    confidence: 'low',
+  }]
+};
 
 export async function getSymptomCorrelations(input: SymptomCorrelationInput): Promise<SymptomCorrelationOutput> {
   // Basic validation: ensure there's enough data to analyze
@@ -125,8 +134,22 @@ const symptomCorrelationFlow = ai.defineFlow(
     outputSchema: SymptomCorrelationOutputSchema, // Uses internal schema
   },
   async (input: SymptomCorrelationInput): Promise<SymptomCorrelationOutput> => {
-    const {output} = await symptomCorrelationPrompt(input);
-    return output!;
+    try {
+      const {output} = await symptomCorrelationPrompt(input);
+      if (!output || !output.insights) {
+        console.warn('[SymptomCorrelationFlow] AI prompt returned no or invalid output. Falling back to default error response.');
+        return {
+          ...defaultErrorOutput,
+          insights: [{ ...defaultErrorOutput.insights[0], description: "Symptom correlation analysis did not produce a valid result."}]
+        };
+      }
+      return output!;
+    } catch (error: any) {
+      console.error('[SymptomCorrelationFlow] Error during AI processing:', error);
+      return {
+        ...defaultErrorOutput,
+        insights: [{ ...defaultErrorOutput.insights[0], description: `Error during symptom correlation: ${error.message || 'Unknown error'}.`}]
+      };
+    }
   }
 );
-

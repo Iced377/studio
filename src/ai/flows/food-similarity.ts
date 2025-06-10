@@ -67,6 +67,11 @@ const FoodSimilarityOutputSchema = z.object({
 
 export type FoodSimilarityOutput = z.infer<typeof FoodSimilarityOutputSchema>;
 
+const defaultErrorOutput: FoodSimilarityOutput = {
+  isSimilar: false,
+  similarityReason: 'Could not complete similarity analysis due to an internal error.',
+};
+
 export async function isSimilarToSafeFoods(input: FoodSimilarityInput): Promise<FoodSimilarityOutput> {
   if (!input.userSafeFoodItems || input.userSafeFoodItems.length === 0) {
     return { isSimilar: false, similarityReason: "No safe foods defined by the user to compare against." };
@@ -109,23 +114,36 @@ const foodSimilarityFlow = ai.defineFlow(
     outputSchema: FoodSimilarityOutputSchema,
   },
   async (input: FoodSimilarityInput): Promise<FoodSimilarityOutput> => { // Typed with original input
-    // Transform input for the prompt: stringify FODMAP profiles
-    const promptInputData = {
-      currentFoodItem: {
-        ...input.currentFoodItem,
-        fodmapProfile: JSON.stringify(input.currentFoodItem.fodmapProfile),
-      },
-      userSafeFoodItems: input.userSafeFoodItems.map(item => ({
-        ...item,
-        fodmapProfile: JSON.stringify(item.fodmapProfile),
-      })),
-    };
+    try {
+      const promptInputData = {
+        currentFoodItem: {
+          ...input.currentFoodItem,
+          fodmapProfile: JSON.stringify(input.currentFoodItem.fodmapProfile),
+        },
+        userSafeFoodItems: input.userSafeFoodItems.map(item => ({
+          ...item,
+          fodmapProfile: JSON.stringify(item.fodmapProfile),
+        })),
+      };
 
-    const {output} = await foodSimilarityPrompt(promptInputData); // Pass transformed input to the prompt
-    return output!;
+      const {output} = await foodSimilarityPrompt(promptInputData); // Pass transformed input to the prompt
+      if (!output) {
+        console.warn('[FoodSimilarityFlow] AI prompt returned no output. Falling back to default error response.');
+        return {
+          ...defaultErrorOutput,
+          similarityReason: `Similarity analysis failed for "${input.currentFoodItem.name}". No output from prompt.`,
+        };
+      }
+      return output!;
+    } catch (error: any) {
+      console.error('[FoodSimilarityFlow] Error during AI processing:', error);
+      return {
+        ...defaultErrorOutput,
+        similarityReason: `Error during similarity analysis for "${input.currentFoodItem.name}": ${error.message || 'Unknown error'}.`,
+      };
+    }
   }
 );
 
 // Export the detailed profile type for use in fodmap-detection or other places
 export type { DetailedFodmapProfileFromAI };
-

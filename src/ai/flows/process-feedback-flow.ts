@@ -61,6 +61,19 @@ const ProcessedFeedbackOutputSchema = z.object({
 });
 export type ProcessedFeedbackOutput = z.infer<typeof ProcessedFeedbackOutputSchema>;
 
+const defaultErrorOutput: ProcessedFeedbackOutput = {
+  aiSuggestedCategory: 'Other Technical Issue',
+  summaryTitle: 'Feedback Analysis Failed',
+  detailedSummary: 'The AI could not process this feedback due to an internal error.',
+  sentiment: 'Neutral',
+  feasibility: 'Unknown',
+  validity: 'Unclear',
+  recommendedNextAction: 'Investigate Technical Issue',
+  isBug: false,
+  isFeatureRequest: false,
+  keywords: ['error', 'analysis-failed'],
+};
+
 export async function processFeedback(input: ProcessFeedbackInput): Promise<ProcessedFeedbackOutput> {
   return processFeedbackFlow(input);
 }
@@ -104,10 +117,23 @@ const processFeedbackFlow = ai.defineFlow(
     outputSchema: ProcessedFeedbackOutputSchema,
   },
   async (input) => {
-    const { output } = await processFeedbackGenkitPrompt(input);
-    if (!output) {
-      throw new Error("AI failed to process feedback and provide structured output.");
+    try {
+      const { output } = await processFeedbackGenkitPrompt(input);
+      if (!output) {
+        console.warn('[ProcessFeedbackFlow] AI prompt returned no output. Falling back to default error response.');
+        return {
+          ...defaultErrorOutput,
+          detailedSummary: `AI analysis failed for feedback: "${input.feedbackText.substring(0, 50)}..."`,
+        };
+      }
+      return output;
+    } catch (error: any) {
+      console.error('[ProcessFeedbackFlow] Error during AI processing:', error);
+      return {
+        ...defaultErrorOutput,
+        summaryTitle: 'Feedback Analysis Error',
+        detailedSummary: `AI analysis failed: ${error.message || 'Unknown error'}. Original feedback: "${input.feedbackText.substring(0, 50)}..."`,
+      };
     }
-    return output;
   }
 );

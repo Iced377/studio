@@ -28,6 +28,14 @@ const ProcessMealDescriptionOutputSchema = z.object({
 });
 export type ProcessMealDescriptionOutput = z.infer<typeof ProcessMealDescriptionOutputSchema>;
 
+const defaultErrorOutput: ProcessMealDescriptionOutput = {
+  wittyName: 'Analysis Failed',
+  primaryFoodItemForAnalysis: 'Could not analyze description due to an error.',
+  consolidatedIngredients: 'N/A',
+  estimatedPortionSize: 'N/A',
+  estimatedPortionUnit: 'N/A',
+};
+
 export async function processMealDescription(input: ProcessMealDescriptionInput): Promise<ProcessMealDescriptionOutput> {
   return processMealDescriptionFlow(input);
 }
@@ -78,11 +86,22 @@ const processMealDescriptionFlow = ai.defineFlow(
     outputSchema: ProcessMealDescriptionOutputSchema,
   },
   async (input) => {
-    const { output } = await processMealDescriptionGenkitPrompt(input);
-    if (!output) {
-      throw new Error("AI failed to process meal description and provide structured output.");
+    try {
+      const { output } = await processMealDescriptionGenkitPrompt(input);
+      if (!output) {
+        console.warn('[ProcessMealDescriptionFlow] AI prompt returned no output. Falling back to default error response.');
+        return {
+          ...defaultErrorOutput,
+          primaryFoodItemForAnalysis: `Could not analyze: "${input.mealDescription.substring(0,50)}..."`,
+        };
+      }
+      return output;
+    } catch (error: any) {
+      console.error('[ProcessMealDescriptionFlow] Error during AI processing:', error);
+      return {
+        ...defaultErrorOutput,
+        primaryFoodItemForAnalysis: `Error analyzing: ${error.message || 'Unknown error'}. Input: "${input.mealDescription.substring(0,50)}..."`,
+      };
     }
-    return output;
   }
 );
-
