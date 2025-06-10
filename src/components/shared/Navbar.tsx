@@ -1,8 +1,9 @@
+
 'use client';
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X, ScrollText, LayoutGrid, Plus, Shield, Menu, Camera, ListChecks, CalendarDays, PlusCircle } from 'lucide-react'; // Added Camera, ListChecks, CalendarDays, PlusCircle
+import { LogOut, LogIn, Sun, Moon, BarChart3, UserPlus, User, Atom, CreditCard, ShieldCheck as AdminIcon, Lightbulb, X, ScrollText, LayoutGrid, Plus, Shield, Menu, Camera, ListChecks, CalendarDays, PlusCircle } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -18,7 +19,7 @@ import {
   DialogClose,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // Added Popover imports
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   DropdownMenu,
@@ -218,8 +219,6 @@ const releaseNotesData: ReleaseNote[] = [
 interface NavbarProps {
   isGuest?: boolean;
   onOpenDashboardClick?: () => void;
-
-  // Props for action popover handlers
   onLogFoodAIClick?: () => void;
   onIdentifyByPhotoClick?: () => void;
   onLogSymptomsClick?: () => void;
@@ -330,10 +329,15 @@ export default function Navbar({
   );
   const appNameBaseClasses = "font-bold font-headline text-xl";
 
-  const handleActionItemClick = (action?: () => void) => {
-    action?.();
+  const handleGenericActionItemClick = (passedHandler?: () => void, redirectQueryParam?: string) => {
+    if (passedHandler) {
+      passedHandler();
+    } else if (redirectQueryParam) {
+      router.push(`/?openDialog=${redirectQueryParam}`);
+    }
     setIsActionPopoverOpen(false);
   };
+
 
   return (
     <header className={headerClasses}>
@@ -439,26 +443,18 @@ export default function Navbar({
                     onInteractOutside={() => setIsActionPopoverOpen(false)}
                   >
                     <div className="flex flex-col gap-1 p-2">
-                      {onLogFoodAIClick && (
-                        <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => handleActionItemClick(onLogFoodAIClick)}>
-                          <PlusCircle className="mr-3 h-5 w-5" /> Log Food (AI Text)
-                        </Button>
-                      )}
-                      {onIdentifyByPhotoClick && (
-                        <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => handleActionItemClick(onIdentifyByPhotoClick)}>
-                          <Camera className="mr-3 h-5 w-5" /> Identify by Photo
-                        </Button>
-                      )}
-                      {onLogSymptomsClick && (
-                        <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => handleActionItemClick(onLogSymptomsClick)}>
-                          <ListChecks className="mr-3 h-5 w-5" /> Log Symptoms
-                        </Button>
-                      )}
-                      {onLogPreviousMealClick && (
-                        <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => handleActionItemClick(onLogPreviousMealClick)}>
-                          <CalendarDays className="mr-3 h-5 w-5" /> Log Previous Meal
-                        </Button>
-                      )}
+                      <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => handleGenericActionItemClick(onLogFoodAIClick, 'logFoodAI')}>
+                        <PlusCircle className="mr-3 h-5 w-5" /> Log Food (AI Text)
+                      </Button>
+                      <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => handleGenericActionItemClick(onIdentifyByPhotoClick, 'logPhoto')}>
+                        <Camera className="mr-3 h-5 w-5" /> Identify by Photo
+                      </Button>
+                      <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => handleGenericActionItemClick(onLogSymptomsClick, 'logSymptoms')}>
+                        <ListChecks className="mr-3 h-5 w-5" /> Log Symptoms
+                      </Button>
+                      <Button variant="ghost" className="justify-start w-full text-base py-3 px-4 text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => handleGenericActionItemClick(onLogPreviousMealClick, 'logPrevious')}>
+                        <CalendarDays className="mr-3 h-5 w-5" /> Log Previous Meal
+                      </Button>
                     </div>
                   </PopoverContent>
                 </Popover>
@@ -619,4 +615,3 @@ export default function Navbar({
     </header>
   );
 }
-

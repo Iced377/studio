@@ -108,6 +108,15 @@ export default function RootPage() {
 
   const [editingItem, setEditingItem] = useState<LoggedFoodItem | null>(null);
 
+  const openSimplifiedAddFoodDialog = useCallback(() => setIsSimplifiedAddFoodDialogOpen(true), []);
+  const openIdentifyByPhotoDialog = useCallback(() => setIsIdentifyByPhotoDialogOpen(true), []);
+  const openSymptomLogDialog = useCallback(() => setIsSymptomLogDialogOpen(true), []);
+  const openLogPreviousMealDialog = useCallback(() => {
+    setSelectedLogDateForPreviousMeal(new Date()); // Set default date when opening
+    setIsLogPreviousMealDialogOpen(true);
+  }, []);
+
+
   useEffect(() => {
     const setupUserOrGuest = async () => {
       setIsDataLoading(true);
@@ -186,10 +195,26 @@ export default function RootPage() {
   useEffect(() => {
     if (searchParams.get('openDashboard') === 'true') {
       setIsPremiumDashboardOpen(true);
-
       router.replace(currentPathname, { scroll: false });
     }
-  }, [searchParams, router, currentPathname]);
+
+    const dialogToOpen = searchParams.get('openDialog');
+    if (dialogToOpen) {
+      if (dialogToOpen === 'logFoodAI') {
+        openSimplifiedAddFoodDialog();
+      } else if (dialogToOpen === 'logPhoto') {
+        openIdentifyByPhotoDialog();
+      } else if (dialogToOpen === 'logSymptoms') {
+        openSymptomLogDialog();
+      } else if (dialogToOpen === 'logPrevious') {
+        openLogPreviousMealDialog();
+      }
+      // Remove the query param to prevent re-triggering after dialog handled
+      const newSearchParams = new URLSearchParams(searchParams.toString());
+      newSearchParams.delete('openDialog');
+      router.replace(`${currentPathname}?${newSearchParams.toString()}`, { scroll: false });
+    }
+  }, [searchParams, router, currentPathname, openSimplifiedAddFoodDialog, openIdentifyByPhotoDialog, openSymptomLogDialog, openLogPreviousMealDialog]);
 
 
   const addTimelineEntry = (entry: TimelineEntry) => {
@@ -699,20 +724,6 @@ export default function RootPage() {
     }
   };
 
-  const openSymptomDialog = (foodItemIds?: string[]) => {
-    setIsSymptomLogDialogOpen(true);
-  };
-
-
-  const handleSimplifiedLogFoodClick = () => {
-    setEditingItem(null);
-    setIsSimplifiedAddFoodDialogOpen(true);
-  };
-
-  const handleIdentifyByPhotoClick = () => {
-    setEditingItem(null);
-    setIsIdentifyByPhotoDialogOpen(true);
-  };
 
   const handleLogPreviousMealFlow = (logMethod: 'AI' | 'Manual' | 'Photo') => {
 
@@ -722,20 +733,14 @@ export default function RootPage() {
     setEditingItem(null);
 
     if (logMethod === 'AI') {
-      setIsSimplifiedAddFoodDialogOpen(true);
+      openSimplifiedAddFoodDialog();
     } else if (logMethod === 'Manual') {
       setIsAddFoodDialogOpen(true);
     } else if (logMethod === 'Photo') {
-      setIsIdentifyByPhotoDialogOpen(true);
+      openIdentifyByPhotoDialog();
     }
   };
 
-
-  const handleOpenLogPreviousMealDialog = () => {
-    setEditingItem(null);
-    setSelectedLogDateForPreviousMeal(new Date());
-    setIsLogPreviousMealDialogOpen(true);
-  };
 
   const isAnyItemLoadingAi = Object.values(isLoadingAi).some(loading => loading);
 
@@ -1053,10 +1058,10 @@ export default function RootPage() {
     <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden">
       <Navbar
         onOpenDashboardClick={() => setIsPremiumDashboardOpen(true)}
-        onLogFoodAIClick={handleSimplifiedLogFoodClick}
-        onIdentifyByPhotoClick={handleIdentifyByPhotoClick}
-        onLogSymptomsClick={() => openSymptomDialog()}
-        onLogPreviousMealClick={handleOpenLogPreviousMealDialog}
+        onLogFoodAIClick={openSimplifiedAddFoodDialog}
+        onIdentifyByPhotoClick={openIdentifyByPhotoDialog}
+        onLogSymptomsClick={openSymptomLogDialog}
+        onLogPreviousMealClick={openLogPreviousMealDialog}
         className="z-50"
       />
 
@@ -1077,7 +1082,7 @@ export default function RootPage() {
         isLoadingAi={isLoadingAi}
         onSetFeedback={handleSetFoodFeedback}
         onRemoveTimelineEntry={handleRemoveTimelineEntry}
-        onLogSymptomsForFood={openSymptomDialog}
+        onLogSymptomsForFood={openSymptomLogDialog}
         onEditIngredients={handleEditTimelineEntry}
         onRepeatMeal={handleRepeatMeal}
       >
@@ -1173,4 +1178,3 @@ export default function RootPage() {
     </div>
   );
 }
-
