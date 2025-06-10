@@ -5,11 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Camera, Brain, BarChart2, Lightbulb, HelpCircle, ShieldCheck, MessageSquare, Heart, Lock, Network, FileLock2, Smartphone, DatabaseZap, Shield } from 'lucide-react'; // Removed RefreshCw
+import { ScrollText, Brain, BarChart2, Lightbulb, HelpCircle, ShieldCheck, MessageSquare, Heart, Lock, Network, FileLock2, Smartphone, DatabaseZap, Shield } from 'lucide-react'; // Changed JournalText to ScrollText
 import Link from 'next/link';
 
 const featureIcons: Record<string, React.ElementType> = {
-  "Snap a Photo or Log a Meal": Camera,
+  "Snap a Photo or Log a Meal": ScrollText, // Changed from JournalText
   "Get Instant Deep Feedback": Brain,
   "Track Your Reactions": BarChart2,
   "Optimize with AI Recommendations": Lightbulb,
