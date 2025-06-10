@@ -52,6 +52,7 @@ Given a meal description, your tasks are to:
 3.  Create a **consolidated, comma-separated list of all significant ingredients** mentioned. (e.g., "rolled oats, water, blueberries, honey, chicken, rice, soy sauce").
 4.  Estimate a single, representative **overall portion size (numeric value)** for the entire meal described.
 5.  Estimate a single, representative **overall portion unit** for the entire meal described (e.g., "serving", "bowl", "g", "ml", "plate").
+    **When the meal description seems to refer to a standard single serving of a meal or a typical fast-food combo (e.g., 'Sausage McMuffin with egg and a hashbrown', 'Big Mac meal'), 'estimatedPortionSize' should default to '1' and 'estimatedPortionUnit' should default to 'serving' or 'meal', unless the user's description explicitly indicates multiple servings (e.g., 'two Sausage McMuffin meals').**
 
 The user described their meal as:
 "{{{mealDescription}}}"
