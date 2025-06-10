@@ -41,7 +41,7 @@ import {
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.6.3";
+export const APP_VERSION = "Beta 3.6.4";
 
 interface ReleaseNote {
   version: string;
@@ -51,6 +51,16 @@ interface ReleaseNote {
 }
 
 const releaseNotesData: ReleaseNote[] = [
+  {
+    version: "Beta 3.6.4",
+    date: "June 08, 2025",
+    title: "Enhanced Data Security Information",
+    description: [
+      "Added a comprehensive 'Data Security' section to the landing page (visible to both guest and logged-in users), detailing key security measures like reCAPTCHA, Google Authentication, SSL, AppCheck, Premium DNS, and Firestore Security Rules.",
+      "Expanded the 'Data Security' information within the Privacy Notice page to provide more formal and detailed explanations of these measures.",
+      "Removed 'Regular Updates & Monitoring' from data security points to focus on inherent system protections."
+    ],
+  },
   {
     version: "Beta 3.6.3",
     date: "June 08, 2025",
