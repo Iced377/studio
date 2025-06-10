@@ -47,8 +47,14 @@ Given a meal description, your tasks are to:
     *   "Fries + Ice Cream, late night" -> "The Midnight Mistake"
     *   "Just lettuce" -> "Crisp Sadness"
     *   "Oatmeal with 1/2 cup oats, 1 cup water, blueberries, honey" -> "Berry-Good Morning Fuel" or "Oatally Delicious Start"
-2.  Identify a concise, factual **primary food item name** that summarizes the meal for a follow-up FODMAP/nutritional analysis. This should be what the meal IS, not the witty name. 
-    **CRITICAL: Ensure 'primaryFoodItemForAnalysis' accurately reflects ALL components and quantities mentioned in '{{{mealDescription}}}'. If the description is 'Sausage McMuffin with egg, plus an extra egg and a hashbrown', then 'primaryFoodItemForAnalysis' MUST be 'Sausage McMuffin with egg, 1 extra egg, and 1 hashbrown' or similar, preserving all distinct parts and their counts/quantities.** It should be a factual summary of the meal components. If the user's description includes other specific quantities (e.g., "4 eggs", "50g toast", "1/2 cup oats"), these MUST also be preserved.
+2.  Identify a concise, factual **primary food item name** that summarizes the meal for a follow-up FODMAP/nutritional analysis. This should be what the meal IS, not the witty name.
+    **CRITICAL for 'primaryFoodItemForAnalysis':**
+    1.  Accurately list ALL components and quantities mentioned in '{{{mealDescription}}}'.
+    2.  If the meal description names a standard item that *already includes* a component (e.g., "Egg McMuffin" includes an egg, "Sausage McMuffin with Egg" includes an egg), DO NOT add that component again unless the user explicitly states "extra [component]", "additional [component]", or provides a separate count for it.
+    3.  Example 1: User input "Sausage McMuffin with egg, plus an extra egg and a hashbrown". Output for 'primaryFoodItemForAnalysis' MUST be "Sausage McMuffin with egg, 1 extra egg, and 1 hashbrown".
+    4.  Example 2: User input "McDonald's Egg Sausage McMuffin with a hashbrown". Output for 'primaryFoodItemForAnalysis' should be "McDonald's Egg Sausage McMuffin and 1 hashbrown" (or similar, ensuring "Egg Sausage McMuffin" itself is treated as the item containing egg, and not adding another one).
+    5.  Example 3: User input "4 eggs and 50g toast". Output for 'primaryFoodItemForAnalysis' MUST be "4 eggs and 50g toast".
+    6.  This field must be a factual summary suitable for subsequent detailed nutritional analysis.
 3.  Create a **consolidated, comma-separated list of all significant ingredients** mentioned. (e.g., "rolled oats, water, blueberries, honey, chicken, rice, soy sauce").
 4.  Estimate a single, representative **overall portion size (numeric value)** for the entire meal described.
 5.  Estimate a single, representative **overall portion unit** for the entire meal described (e.g., "serving", "bowl", "g", "ml", "plate").
@@ -58,7 +64,7 @@ The user described their meal as:
 "{{{mealDescription}}}"
 
 Focus on extracting the core components for the factual fields and be creative with the witty name.
-For 'primaryFoodItemForAnalysis', be descriptive but not overly long, and critically, PRESERVE USER-STATED QUANTITIES AND ADDITIONS. It's the "common name" for the meal.
+For 'primaryFoodItemForAnalysis', be descriptive but not overly long, and critically, PRESERVE USER-STATED QUANTITIES AND ADDITIONS while AVOIDING DUPLICATION OF IMPLIED COMPONENTS. It's the "common name" for the meal.
 For 'consolidatedIngredients', list distinct ingredients.
 For 'estimatedPortionSize' and 'estimatedPortionUnit', provide a sensible overall estimate for the entire meal content described.
 `,
