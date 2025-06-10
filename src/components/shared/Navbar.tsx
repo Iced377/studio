@@ -41,7 +41,7 @@ import {
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.6.2";
+export const APP_VERSION = "Beta 3.6.3";
 
 interface ReleaseNote {
   version: string;
@@ -51,6 +51,17 @@ interface ReleaseNote {
 }
 
 const releaseNotesData: ReleaseNote[] = [
+  {
+    version: "Beta 3.6.3",
+    date: "June 08, 2025",
+    title: "AI Meal Interpretation & Branded Item Accuracy",
+    description: [
+      "Improved AI text logging to correctly interpret standard meal descriptions (e.g., 'Sausage McMuffin with hashbrown') as a single serving, not 1.5 servings.",
+      "Enhanced AI to avoid duplicating components already implied in a meal's name (e.g., not adding an 'extra egg' to 'Egg McMuffin' unless specified by the user).",
+      "Refined AI prompt for `processMealDescriptionFlow` to accurately preserve all user-stated quantities and explicit additions (like 'extra egg') in the `primaryFoodItemForAnalysis` field.",
+      "Strengthened AI prompt for `analyzeFoodItemFlow` to use embedded nutritional examples for common branded items (e.g., McDonald's items) to improve macro and calorie accuracy for those specific items.",
+    ],
+  },
   {
     version: "Beta 3.6.2",
     date: "June 08, 2025",
@@ -66,7 +77,7 @@ const releaseNotesData: ReleaseNote[] = [
     date: "June 08, 2025",
     title: "AI Consistency & Date Logging Fixes",
     description: [
-      "Improved consistency of AI meal analysis results by setting a lower temperature (0.2) for relevant AI flows, reducing variability for identical inputs.",
+      "Improved consistency of AI meal analysis results by setting a lower temperature (0.2 or 0.5 as appropriate) for relevant AI flows, reducing variability for identical inputs.",
       "Fixed a bug where logging meals for a previous date was incorrectly using the current date due to premature state reset in the 'Log Previous Meal' dialog.",
     ],
   },
