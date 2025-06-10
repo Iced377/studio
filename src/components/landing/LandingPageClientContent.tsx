@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Camera, Brain, BarChart2, Lightbulb, HelpCircle, ShieldCheck, MessageSquare, Heart } from 'lucide-react';
+import { Camera, Brain, BarChart2, Lightbulb, HelpCircle, ShieldCheck, MessageSquare, Heart, Lock, Network, FileLock2, Smartphone, DatabaseZap, RefreshCw, Shield } from 'lucide-react'; // Added new icons
 import Link from 'next/link';
 
 const featureIcons: Record<string, React.ElementType> = {
@@ -31,6 +31,85 @@ interface LandingPageClientContentProps {
   betaUserMessage?: React.ReactNode;
   finalCTAMessage?: React.ReactNode;
 }
+
+const DataSecuritySection = () => (
+  <section className="py-16 sm:py-20 bg-muted/50">
+    <div className="container mx-auto px-4">
+      <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12 sm:mb-16 font-headline">
+        <Shield className="inline-block h-10 w-10 mr-3 text-primary" /> Your Data Security is Our Priority
+      </h2>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {[
+          {
+            title: "Latest reCAPTCHA v3",
+            description: "We use Google's advanced reCAPTCHA to protect our app from spam and abuse without interrupting your experience.",
+            Icon: ShieldCheck,
+          },
+          {
+            title: "Google Authentication",
+            description: "Secure user management powered by Google's robust authentication system, ensuring your account access is safe.",
+            Icon: Lock,
+          },
+          {
+            title: "SSL/TLS Encryption",
+            description: "All data transmitted between your device and our servers is encrypted using industry-standard SSL/TLS protocols.",
+            Icon: Lock,
+          },
+          {
+            title: "Firebase App Check",
+            description: "App Check helps protect our backend resources from abuse by ensuring requests originate from your authentic app instances.",
+            Icon: ShieldCheck, 
+          },
+          {
+            title: "Premium & Secure DNS",
+            description: "Utilizing premium DNS services with enhanced security features like DDoS protection and DNSSEC for resilient and secure access.",
+            Icon: Network,
+          },
+          {
+            title: "Firestore Security Rules",
+            description: "Robust server-side rules strictly control data access, ensuring you can only access your own information.",
+            Icon: FileLock2,
+          },
+           {
+            title: "Regular Updates & Monitoring",
+            description: "We proactively monitor and update our systems to address emerging security threats and apply best practices.",
+            Icon: RefreshCw,
+          },
+           {
+            title: "Principle of Least Privilege",
+            description: "Our systems are designed to ensure components only have access to the resources necessary for their function.",
+            Icon: DatabaseZap, // Placeholder, could be Shield
+          },
+           {
+            title: "Secure Cloud Infrastructure",
+            description: "Leveraging Google Cloud Platform's secure and reliable infrastructure for hosting and data storage.",
+            Icon: Shield, 
+          },
+        ].map((feature, index) => (
+          <Card
+            key={index}
+            className="bg-card border-border shadow-lg hover:shadow-xl transition-shadow text-center p-6 rounded-xl card-reveal-animation"
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
+            <CardHeader className="p-0 mb-4 flex flex-col items-center">
+              <div className="bg-primary/10 text-primary rounded-full p-3 mb-4 inline-flex">
+                <feature.Icon className="h-8 w-8" />
+              </div>
+              <CardTitle className="text-xl font-semibold font-headline">{feature.title}</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 text-muted-foreground">
+              <p>{feature.description}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <p className="text-center text-muted-foreground mt-12">
+        We are committed to employing robust security measures to safeguard your information and provide a trustworthy platform.
+      </p>
+    </div>
+  </section>
+);
+
 
 export default function LandingPageClientContent({
   heroActionContent,
@@ -196,6 +275,9 @@ export default function LandingPageClientContent({
           </div>
         </div>
       </section>
+
+      {/* Data Security Section - NEW */}
+      <DataSecuritySection />
 
       {/* Final CTA Section - Conditional Rendering */}
       {finalCTAMessage ? (
