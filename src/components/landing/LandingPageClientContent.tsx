@@ -296,7 +296,7 @@ export default function LandingPageClientContent({
       <footer className="py-8 bg-muted/30 text-center">
         <div className="container mx-auto px-4 text-sm text-muted-foreground">
           <p>&copy; {new Date().getFullYear()} GutCheck. All Rights Reserved.</p>
-          <p className="mt-1">This app is for informational purposes only and not a substitute for professional medical advice.</p>
+          <p className="mt-1">This app is a non-commercial project intended for informational purposes only and not a substitute for professional medical advice.</p>
           <Link href="/privacy" className="underline hover:text-primary mt-2 inline-block">Privacy Notice</Link>
         </div>
       </footer>
