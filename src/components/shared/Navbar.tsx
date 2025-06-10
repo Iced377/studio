@@ -58,7 +58,6 @@ const releaseNotesData: ReleaseNote[] = [
     description: [
       "Added a comprehensive 'Data Security' section to the landing page (visible to both guest and logged-in users), detailing key security measures like reCAPTCHA, Google Authentication, SSL, AppCheck, Premium DNS, and Firestore Security Rules.",
       "Expanded the 'Data Security' information within the Privacy Notice page to provide more formal and detailed explanations of these measures.",
-      "Removed 'Regular Updates & Monitoring' from data security points to focus on inherent system protections."
     ],
   },
   {
@@ -69,7 +68,7 @@ const releaseNotesData: ReleaseNote[] = [
       "Improved AI text logging to correctly interpret standard meal descriptions (e.g., 'Sausage McMuffin with hashbrown') as a single serving, not 1.5 servings.",
       "Enhanced AI to avoid duplicating components already implied in a meal's name (e.g., not adding an 'extra egg' to 'Egg McMuffin' unless specified by the user).",
       "Refined AI prompt for `processMealDescriptionFlow` to accurately preserve all user-stated quantities and explicit additions (like 'extra egg') in the `primaryFoodItemForAnalysis` field.",
-      "Strengthened AI prompt for `analyzeFoodItemFlow` to use embedded nutritional examples for common branded items (e.g., McDonald's items) to improve macro and calorie accuracy for those specific items.",
+      "Strengthened AI prompt for `analyzeFoodItemFlow` by embedding nutritional examples for common branded items (e.g., specific McDonald's items) to improve the accuracy of macro and calorie estimations for those items.",
     ],
   },
   {
