@@ -113,7 +113,19 @@ const PrivacyPage = () => {
       <section className="mb-6">
         <h2 className="text-2xl font-semibold mb-2">Cookies and Tracking Technologies</h2>
         <p>
-          We use cookies and similar tracking technologies to enhance your experience, analyze usage patterns, and for advertising purposes. You can manage your cookie preferences through your browser settings.
+          Our application uses cookies and similar technologies like browser `localStorage` for essential functionality and to enhance your experience.
+          Specifically:
+        </p>
+        <ul className="list-disc list-inside ml-4 mt-2 space-y-1">
+            <li>
+              <strong>Firebase Authentication:</strong> To manage your login sessions securely, Firebase Authentication may use cookies or browser local storage. These are essential for the application to function correctly for logged-in users.
+            </li>
+            <li>
+              <strong>User Preferences:</strong> We use `localStorage` to remember your preferences, such as your theme choice (light/dark mode) and your cookie consent status. This helps provide a consistent experience across your visits.
+            </li>
+        </ul>
+        <p className="mt-2">
+          We do not currently use cookies for third-party advertising or extensive tracking beyond basic application functionality. You can typically manage cookie settings through your browser, though some essential cookies might be necessary for the app to work as intended.
         </p>
       </section>
 
@@ -132,7 +144,7 @@ const PrivacyPage = () => {
       </section>
 
       <div className="mt-8 text-sm text-gray-500">
-        <p>Last updated: June 7, 2025</p>
+        <p>Last updated: June 8, 2025</p> {/* Assuming date needs update with content change */}
       </div>
 
       <div className="mt-12 text-center">

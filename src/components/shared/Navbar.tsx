@@ -41,7 +41,7 @@ import {
 import type { UserProfile } from '@/types';
 
 const APP_NAME = "GutCheck";
-export const APP_VERSION = "Beta 3.6.4";
+export const APP_VERSION = "Beta 3.6.5";
 
 interface ReleaseNote {
   version: string;
@@ -51,6 +51,16 @@ interface ReleaseNote {
 }
 
 const releaseNotesData: ReleaseNote[] = [
+  {
+    version: "Beta 3.6.5",
+    date: "June 08, 2025",
+    title: "Cookie Policy Update & AdSense Removal",
+    description: [
+      "Removed the Google AdSense script from the application layout as it's not currently in use.",
+      "Updated the 'Cookies and Tracking Technologies' section of the Privacy Policy to accurately reflect current cookie usage (Firebase Authentication for sessions, localStorage for theme/consent preferences), explicitly noting the absence of third-party advertising cookies.",
+      "Incremented app version.",
+    ],
+  },
   {
     version: "Beta 3.6.4",
     date: "June 08, 2025",
@@ -612,4 +622,3 @@ export default function Navbar({
     </header>
   );
 }
-
