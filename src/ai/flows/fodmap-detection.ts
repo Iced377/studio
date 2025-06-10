@@ -114,7 +114,7 @@ export async function analyzeFoodItem(input: AnalyzeFoodItemInput): Promise<Anal
 const analyzeFoodItemPrompt = ai.definePrompt({
   name: 'analyzeFoodItemPrompt',
   input: {schema: AnalyzeFoodItemInputSchema},
-  output: {schema: AnalyzeFoodItemOutputSchema}, 
+  output: {schema: AnalyzeFoodItemOutputSchema},
   config: {
     temperature: 0.2,
   },
@@ -132,12 +132,15 @@ Your task is to provide:
 2.  **Nutritional Estimation (Portion-Specific and Quantity-Aware):**
     *   **HIGHEST PRIORITY: Quantities from 'Food Item' Field:** The 'Food Item: {{{foodItem}}}' field is your PRIMARY source for item-specific quantities (e.g., "4 eggs", "2 slices toast", "100g chicken", "50g bread", "1 extra egg", "1 hashbrown"). If such quantities are present for components of the meal, YOU MUST use these specific quantities when calculating nutritional information (calories, macros, micronutrients) for those components. The 'Portion: {{{portionSize}}} {{{portionUnit}}}' fields refer to the *overall meal* but should NOT override explicit quantities mentioned in the 'Food Item' field for individual components for which specific quantities ARE provided in 'Food Item: {{{foodItem}}}'.
     *   **Handling Composite Meals & Branded Items:**
-        *   If 'Food Item: {{{foodItem}}}' describes a meal with multiple distinct components (e.g., "Sausage McMuffin with Egg, 1 extra egg, and 1 hashbrown"), identify each component (e.g., Component 1: "Sausage McMuffin with Egg"; Component 2: "1 extra egg"; Component 3: "1 hashbrown").
-        *   For recognizable branded menu items (e.g., "Sausage McMuffin with Egg", "Big Mac", "Starbucks Latte"), use your general knowledge to estimate their *typical* nutritional values (calories, protein, carbs, fat, and key micronutrients often listed on official sites or common databases) as a baseline for THAT COMPONENT.
+        *   If 'Food Item: {{{foodItem}}}' describes a meal with multiple distinct components (e.g., "Sausage McMuffin with egg, 1 extra egg, and 1 hashbrown"), identify each component (e.g., Component 1: "Sausage McMuffin with Egg"; Component 2: "1 extra egg"; Component 3: "1 hashbrown").
+        *   For recognizable branded menu items (e.g., "Sausage McMuffin with Egg", "Big Mac", "Starbucks Latte", "McDonald's Hashbrown"), use your general knowledge or the examples provided here to estimate their *typical* nutritional values (calories, protein, carbs, fat, and key micronutrients often listed on official sites or common databases) as a baseline for THAT COMPONENT.
+            *   Example: A standard McDonald's Sausage McMuffin with Egg is approximately 625 kcal, 22g protein, 42g carbs, 38g fat.
+            *   Example: A McDonald's hashbrown is approximately 140-150 kcal, 1.5g protein, 15g carbs, 9g fat.
         *   For added components (e.g., "1 extra egg", "1 hashbrown", "side salad"), estimate their nutrition separately based on typical values for those items in the specified quantity.
-        *   **YOUR FINAL NUTRITIONAL OUTPUT (calories, protein, carbs, fat, and micronutrientsInfo) MUST BE THE SUM TOTAL FOR ALL IDENTIFIED COMPONENTS OF THE ENTIRE MEAL.** For example, if a "Sausage McMuffin with Egg" is typically X calories and Y protein, an "extra egg" is A calories and B protein, and a "hashbrown" is C calories and D protein, then the total output calories should be X+A+C and total protein Y+B+D.
-    *   **Crucially, estimate total calories for the entire meal as described in 'Food Item: {{{foodItem}}}' considering the overall 'Portion: {{{portionSize}}} {{{portionUnit}}}'. If the 'Food Item' field specifies quantities (e.g., "4 eggs", "2 slices toast", "50g bread"), ensure your nutritional estimates reflect those specific quantities for those components within the overall meal.**
-    *   Similarly, estimate total macronutrients: protein (g), carbohydrates (g), and fat (g) for the entire specified meal, portion, and taking into account any quantities mentioned in the 'Food Item' field. Ensure your estimates accurately reflect any quantities directly specified in the 'Food Item: {{{foodItem}}}' field (e.g., if '4 eggs' is stated, calculate protein for 4 eggs).
+            *   Example: An extra large egg is typically 70-80 kcal, 6-7g protein, 0-1g carbs, 5g fat.
+        *   **YOUR FINAL NUTRITIONAL OUTPUT (calories, protein, carbs, fat, and micronutrientsInfo) MUST BE THE SUM TOTAL FOR ALL IDENTIFIED COMPONENTS OF THE ENTIRE MEAL.** For example, if a "Sausage McMuffin with Egg" is typically X calories and Y protein, an "extra egg" is A calories and B protein, and a "hashbrown" is C calories and D protein, then the total output calories should be X+A+C and total protein Y+B+D. Ensure this summation is accurate.
+    *   **Crucially, estimate total calories for the entire meal as described in 'Food Item: {{{foodItem}}}' considering the overall 'Portion: {{{portionSize}}} {{{portionUnit}}}'. The \`calories\` field in your output MUST be the sum of estimated calories from each identified component.** If the 'Food Item' field specifies quantities (e.g., "4 eggs", "2 slices toast", "50g bread"), ensure your nutritional estimates reflect those specific quantities for those components within the overall meal.
+    *   Similarly, estimate total macronutrients (protein, carbs, fat in grams) for the entire meal by SUMMING the contributions from each identified component, accurately reflecting any quantities specified in 'Food Item: {{{foodItem}}}'.
     *   When estimating nutrition for a multi-component meal (e.g., '4 eggs and 2 slices of toast', 'chicken and 50g bread', 'Sausage McMuffin with egg and a hashbrown'), consider the nutritional contribution of each major component based on the provided ingredients and the quantities mentioned in the 'Food Item' field.
 
 3.  **Glycemic Index (GI) (Portion-Specific):**
@@ -206,3 +209,5 @@ const analyzeFoodItemFlow = ai.defineFlow(
 export type { FoodFODMAPProfile as DetailedFodmapProfileFromAI };
 
 
+
+    
