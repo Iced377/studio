@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -54,7 +53,7 @@ const releaseNotesData: ReleaseNote[] = [
   {
     version: "Beta 3.6.5",
     date: "June 08, 2025",
-    title: "Cookie Policy Update & AdSense Removal",
+    title: "Cookie Policy Update",
     description: [
       "Updated the 'Cookies and Tracking Technologies' section of the Privacy Policy to accurately reflect current cookie usage (Firebase Authentication for sessions, localStorage for theme/consent preferences), explicitly noting the absence of third-party advertising cookies.",
     ],
@@ -620,3 +619,4 @@ export default function Navbar({
     </header>
   );
 }
+
