@@ -63,7 +63,36 @@ const PrivacyPage = () => {
       <section className="mb-6">
         <h2 className="text-2xl font-semibold mb-2">Data Security</h2>
         <p>
-          We implement robust security measures to protect your data from unauthorized access, alteration, disclosure, or destruction. These include encryption, access controls, and regular security assessments. However, no system is completely secure, and we cannot guarantee the absolute security of your information.
+          We implement robust security measures to protect your data from unauthorized access, alteration, disclosure, or destruction. These measures include, but are not limited to:
+        </p>
+        <ul className="list-disc list-inside ml-4 mt-2 space-y-1">
+          <li>
+            <strong>Authentication and Access Control:</strong> We utilize Google's robust authentication system for secure user management. Access to data is further controlled by Firestore Security Rules, ensuring users can only access their own information.
+          </li>
+          <li>
+            <strong>Protection Against Automated Abuse:</strong> Google's latest reCAPTCHA v3 technology is employed to protect our application from spam, malicious bots, and other forms of automated abuse without requiring user interaction.
+          </li>
+          <li>
+            <strong>Data Transmission Security:</strong> All data transmitted between your device and our servers is encrypted using industry-standard SSL/TLS (Secure Sockets Layer/Transport Layer Security) protocols to prevent eavesdropping and tampering.
+          </li>
+          <li>
+            <strong>Backend Resource Protection:</strong> Firebase App Check is used to verify that requests to our backend services originate from authentic instances of our application, protecting against unauthorized access and abuse of backend resources.
+          </li>
+          <li>
+            <strong>Network and DNS Security:</strong> We utilize premium Domain Name System (DNS) services that include enhanced security features such as Distributed Denial of Service (DDoS) protection and DNS Security Extensions (DNSSEC) to ensure reliable and secure resolution of our application's domain.
+          </li>
+          <li>
+            <strong>Secure Cloud Infrastructure:</strong> Our application is hosted on Google Cloud Platform (GCP), which provides a secure and reliable infrastructure with comprehensive security controls and compliance certifications.
+          </li>
+          <li>
+            <strong>Principle of Least Privilege:</strong> Our system architecture adheres to the principle of least privilege, meaning components and services are granted only the minimum access necessary to perform their functions, reducing potential impact from any compromised component.
+          </li>
+          <li>
+            <strong>Regular Updates and Monitoring:</strong> We are committed to regularly updating our software dependencies and monitoring our systems for potential vulnerabilities and suspicious activities to proactively address security threats.
+          </li>
+        </ul>
+        <p className="mt-2">
+          Despite these measures, no system is completely secure, and we cannot guarantee the absolute security of your information. We continuously strive to enhance our security practices.
         </p>
       </section>
 
