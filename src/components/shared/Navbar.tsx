@@ -56,9 +56,7 @@ const releaseNotesData: ReleaseNote[] = [
     date: "June 08, 2025",
     title: "Cookie Policy Update & AdSense Removal",
     description: [
-      "Removed the Google AdSense script from the application layout as it's not currently in use.",
       "Updated the 'Cookies and Tracking Technologies' section of the Privacy Policy to accurately reflect current cookie usage (Firebase Authentication for sessions, localStorage for theme/consent preferences), explicitly noting the absence of third-party advertising cookies.",
-      "Incremented app version.",
     ],
   },
   {
